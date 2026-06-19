@@ -80,7 +80,6 @@ nav,main,footer,.chatbot{position:relative;z-index:1}
 .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:140px 24px 80px}
 .hero-in{max-width:860px;display:flex;flex-direction:column;align-items:center;gap:1.4rem}
 .hero-logo{width:184px;height:184px;object-fit:contain;filter:drop-shadow(0 10px 22px rgba(27,42,74,.20))}
-.hero-rule{width:80px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
 .hero h1{font-size:clamp(2.3rem,6vw,4rem);font-weight:800;letter-spacing:-.02em}
 .hero h1 em{font-style:normal;color:var(--red)}
 .hero-sub{color:var(--muted);max-width:620px;font-size:1.12rem}
@@ -164,7 +163,8 @@ table.cmp td.other{color:var(--muted)}
 
 /* founder */
 .founder-top{display:flex;flex-direction:column;align-items:center;text-align:center;gap:1.5rem;margin-bottom:3rem}
-.founder-photo{width:230px;height:230px;border-radius:50%;object-fit:cover;border:6px solid #fff;box-shadow:0 18px 50px rgba(27,42,74,.2);background:var(--navy)}
+.founder-photo{width:230px;height:230px;border-radius:50%;border:6px solid #fff;box-shadow:0 18px 50px rgba(27,42,74,.2);background:var(--navy);overflow:hidden}
+.founder-photo img{width:100%;height:100%;object-fit:cover;object-position:center 25%;display:block;transform:scale(1.22);transform-origin:center 25%}
 .founder-top .sub{color:var(--muted);max-width:680px;font-size:1.05rem}
 .founder-story{max-width:760px;margin:0 auto}
 .founder-story h3{font-size:1.5rem;margin-bottom:1.1rem}
@@ -221,21 +221,14 @@ table.cmp td.other{color:var(--muted)}
 
 <body>
 <div class="hive-canvas" aria-hidden="true">
-<svg viewBox="0 0 1700 1063" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+<svg viewBox="0 0 2400 1500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
 <defs><polygon id="h" points="85,0 170,48 170,142 85,190 0,142 0,48"/></defs>
-<g class="hive-pan">
-<g class="hrow"><use href="#h" class="hx" x="-180" y="-380"/><use href="#h" class="hx" x="0" y="-380"/><use href="#h" class="hx" x="180" y="-380"/><use href="#h" class="hx" x="360" y="-380"/><use href="#h" class="hx" x="540" y="-380"/><use href="#h" class="hx" x="720" y="-380"/><use href="#h" class="hx" x="900" y="-380"/><use href="#h" class="hx" x="1080" y="-380"/><use href="#h" class="hx" x="1260" y="-380"/><use href="#h" class="hx" x="1440" y="-380"/><use href="#h" class="hx" x="1620" y="-380"/></g>
-<g class="hrow"><use href="#h" class="hx" x="-90" y="-190"/><use href="#h" class="hx" x="90" y="-190"/><use href="#h" class="hx" x="270" y="-190"/><use href="#h" class="hx" x="450" y="-190"/><use href="#h" class="hx" x="630" y="-190"/><use href="#h" class="hx" x="810" y="-190"/><use href="#h" class="hx" x="990" y="-190"/><use href="#h" class="hx" x="1170" y="-190"/><use href="#h" class="hx" x="1350" y="-190"/><use href="#h" class="hx" x="1530" y="-190"/><use href="#h" class="hx" x="1710" y="-190"/></g>
-<g class="hrow"><use href="#h" class="hx" x="-180" y="0"/><use href="#h" class="hx" x="0" y="0"/><use href="#h" class="hx" x="180" y="0"/><use href="#h" class="hx" x="360" y="0"/><use href="#h" class="hx" x="540" y="0"/><use href="#h" class="hx" x="720" y="0"/><use href="#h" class="hx" x="900" y="0"/><use href="#h" class="hx" x="1080" y="0"/><use href="#h" class="hx" x="1260" y="0"/><use href="#h" class="hx" x="1440" y="0"/><use href="#h" class="hx" x="1620" y="0"/></g>
-<g class="hrow"><use href="#h" class="hx" x="-90" y="190"/><use href="#h" class="hx" x="90" y="190"/><use href="#h" class="hx" x="270" y="190"/><use href="#h" class="hx" x="450" y="190"/><use href="#h" class="hx" x="630" y="190"/><use href="#h" class="hx" x="810" y="190"/><use href="#h" class="hx" x="990" y="190"/><use href="#h" class="hx" x="1170" y="190"/><use href="#h" class="hx" x="1350" y="190"/><use href="#h" class="hx" x="1530" y="190"/><use href="#h" class="hx" x="1710" y="190"/></g>
-<g class="hrow"><use href="#h" class="hx" x="-180" y="380"/><use href="#h" class="hx" x="0" y="380"/><use href="#h" class="hx" x="180" y="380"/><use href="#h" class="hx" x="360" y="380"/><use href="#h" class="hx" x="540" y="380"/><use href="#h" class="hx" x="720" y="380"/><use href="#h" class="hx" x="900" y="380"/><use href="#h" class="hx" x="1080" y="380"/><use href="#h" class="hx" x="1260" y="380"/><use href="#h" class="hx" x="1440" y="380"/><use href="#h" class="hx" x="1620" y="380"/></g>
-<g class="hrow"><use href="#h" class="hx" x="-90" y="570"/><use href="#h" class="hx" x="90" y="570"/><use href="#h" class="hx" x="270" y="570"/><use href="#h" class="hx" x="450" y="570"/><use href="#h" class="hx" x="630" y="570"/><use href="#h" class="hx" x="810" y="570"/><use href="#h" class="hx" x="990" y="570"/><use href="#h" class="hx" x="1170" y="570"/><use href="#h" class="hx" x="1350" y="570"/><use href="#h" class="hx" x="1530" y="570"/><use href="#h" class="hx" x="1710" y="570"/></g>
-<g class="hrow"><use href="#h" class="hx" x="-180" y="760"/><use href="#h" class="hx" x="0" y="760"/><use href="#h" class="hx" x="180" y="760"/><use href="#h" class="hx" x="360" y="760"/><use href="#h" class="hx" x="540" y="760"/><use href="#h" class="hx" x="720" y="760"/><use href="#h" class="hx" x="900" y="760"/><use href="#h" class="hx" x="1080" y="760"/><use href="#h" class="hx" x="1260" y="760"/><use href="#h" class="hx" x="1440" y="760"/><use href="#h" class="hx" x="1620" y="760"/></g>
-<g class="hrow"><use href="#h" class="hx" x="-90" y="950"/><use href="#h" class="hx" x="90" y="950"/><use href="#h" class="hx" x="270" y="950"/><use href="#h" class="hx" x="450" y="950"/><use href="#h" class="hx" x="630" y="950"/><use href="#h" class="hx" x="810" y="950"/><use href="#h" class="hx" x="990" y="950"/><use href="#h" class="hx" x="1170" y="950"/><use href="#h" class="hx" x="1350" y="950"/><use href="#h" class="hx" x="1530" y="950"/><use href="#h" class="hx" x="1710" y="950"/></g>
-<g class="hrow"><use href="#h" class="hx" x="-180" y="1140"/><use href="#h" class="hx" x="0" y="1140"/><use href="#h" class="hx" x="180" y="1140"/><use href="#h" class="hx" x="360" y="1140"/><use href="#h" class="hx" x="540" y="1140"/><use href="#h" class="hx" x="720" y="1140"/><use href="#h" class="hx" x="900" y="1140"/><use href="#h" class="hx" x="1080" y="1140"/><use href="#h" class="hx" x="1260" y="1140"/><use href="#h" class="hx" x="1440" y="1140"/><use href="#h" class="hx" x="1620" y="1140"/></g>
-</g>
+<g class="hive-pan" id="hivePan"></g>
 </svg>
 </div>
+<script>
+(function(){var pan=document.getElementById('hivePan');if(!pan)return;var NS='http://www.w3.org/2000/svg',dx=180,dy=190,r=0;for(var y=-260;y<=2000;y+=dy,r++){var g=document.createElementNS(NS,'g');g.setAttribute('class','hrow');var off=(r%2)?dx/2:0;for(var x=-260;x<=2800;x+=dx){var u=document.createElementNS(NS,'use');u.setAttribute('href','#h');u.setAttribute('class','hx');u.setAttribute('x',x+off);u.setAttribute('y',y);g.appendChild(u);}pan.appendChild(g);}})();
+</script>
 <nav id="navbar">
   <div class="nav-inner">
     <a href="#top" class="nav-brand"><img class="beelogo" alt="Forged Leads"><span>FORGED LEADS</span></a>
@@ -442,7 +435,7 @@ table.cmp td.other{color:var(--muted)}
     <span class="eyebrow" data-es='Conoce al Fundador'>Meet the Founder</span>
     <h2 class="sec-title" data-es='Creado por Alguien Que Entiende Tu Negocio'>Built by Someone Who Understands Your Business</h2>
     <div class="founder-top">
-      <img class="founder-photo" id="founder-photo" alt="Frank, Founder of Forged Leads">
+      <div class="founder-photo"><img id="founder-photo" alt="Frank, Founder of Forged Leads"></div>
     </div>
     <div class="founder-story">
       <h3 data-es='Por Qu&eacute; Cre&eacute; Forged Leads'>Why I Created Forged Leads</h3>
