@@ -509,6 +509,7 @@ if(btn)btn.addEventListener('click',function(){setLang(window.FL_LANG==='es'?'en
 (function(){var o=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');o.unobserve(e.target);}});},{threshold:.12});document.querySelectorAll('.fade-in').forEach(function(el){o.observe(el);});})();
 /* faq */
 (function(){document.querySelectorAll('.faq-item').forEach(function(it){var q=it.querySelector('.faq-q'),a=it.querySelector('.faq-a');q.addEventListener('click',function(){var open=it.classList.contains('open');document.querySelectorAll('.faq-item.open').forEach(function(o){o.classList.remove('open');o.querySelector('.faq-a').style.maxHeight=null;});if(!open){it.classList.add('open');a.style.maxHeight=a.scrollHeight+'px';}});});})();
+function sendLead(data){data._subject=(data._subject||'New Forged Leads request'+(data.name?' — '+data.name:''));data._template='table';data._captcha='false';return fetch('https://formsubmit.co/ajax/leadsyourcompany@gmail.com',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(data)});}
 /* form */
 (function(){var f=document.getElementById('lead-form'),sub=document.getElementById('fsub'),suc=document.getElementById('fsuc'),log=[];var eRe=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,pRe=/^[0-9\s\-\(\)\+]{7,20}$/;function se(id,m){var e=document.getElementById(id+'-e');if(e)e.textContent=m;}function ce(id){var e=document.getElementById(id+'-e');if(e)e.textContent='';}
 f.addEventListener('submit',function(ev){ev.preventDefault();var hp=f.querySelector('[name="website"]');if(hp&&hp.value!==''){suc.style.display='block';return;}var now=Date.now();log=log.filter(function(t){return now-t<60000;});if(log.length>=3)return;var ok=true,first=null;
@@ -521,8 +522,8 @@ var bu=document.getElementById('fbudget').value;ce('fbudget');if(!bu){se('fbudge
 var ti=document.getElementById('ftime').value;ce('ftime');if(!ti){se('ftime','*');ok=false;first=first||'ftime';}
 if(!document.getElementById('fconsent').checked){ok=false;first=first||'fconsent';}
 if(!ok){var el=document.getElementById(first);if(el)el.scrollIntoView({behavior:'smooth',block:'center'});return;}
-log.push(Date.now());try{console.log('[NOTIFICATION] To: leadsyourcompany@gmail.com');console.log('Lead:',JSON.stringify({name:n,email:em,phone:ph,trade:tr,area:ar,budget:bu,time:ti}));}catch(e){}
-sub.disabled=true;suc.style.display='block';f.reset();setTimeout(function(){sub.disabled=false;suc.style.display='none';},5000);});})();
+log.push(Date.now());sub.disabled=true;
+sendLead({name:n,email:em,phone:ph,trade:tr,service_area:ar,budget:bu,best_time:ti,message:sani(document.getElementById('fmsg').value,1000)}).then(function(r){return r.json();}).catch(function(){return{};}).then(function(){suc.style.display='block';f.reset();setTimeout(function(){sub.disabled=false;suc.style.display='none';},5000);});});})();
 
 /* Johnny chat (bilingual) */
 (function(){var bub=document.getElementById('chat-bubble'),pan=document.getElementById('chat-panel'),msgs=document.getElementById('chat-messages'),opts=document.getElementById('chat-options'),inrow=document.getElementById('chat-input-row'),inp=document.getElementById('chat-text-input'),snd=document.getElementById('chat-send-btn'),rst=document.getElementById('chat-restart');
@@ -547,7 +548,7 @@ else if(s==='qb'){addBot(L("Heard that far too often, ","Lo escucho demasiado se
 else if(s==='qr'){addBot(L("I'm Johnny from Forged Leads — happy to answer any questions you've got. Shall I get you booked in for a quick call with the team?","Soy Johnny de Forged Leads — con gusto respondo cualquier pregunta. ¿Te agendo una llamada rápida con el equipo?")).then(function(){showOpts([L('Book a call','Agendar llamada'),L('More questions','Más preguntas')],function(c){opts.innerHTML='';go(c===L('Book a call','Agendar llamada')?'book':'qs');});});}
 else if(s==='book'){addBot(L("Perfect. What's the best number to reach you on?","Perfecto. ¿Cuál es el mejor número para contactarte?")).then(function(){ask(L('Best phone number...','Mejor número...'),function(v){ud.phone=v;go('time');});});}
 else if(s==='time'){addBot(L("And what's the best time of day to call?","¿Y cuál es la mejor hora para llamar?")).then(function(){showOpts([L('Morning','Mañana'),L('Afternoon','Tarde'),L('Evening','Noche')],function(v){ud.time=v;opts.innerHTML='';go('done');});});}
-else if(s==='done'){try{console.log('[NOTIFICATION] To: leadsyourcompany@gmail.com');console.log('Chat lead:',JSON.stringify(ud));}catch(e){}addBot(L("Brilliant, ","Listo, ")+ud.name+L(" — you're all set. Someone from the team will reach out on the number you gave me. Prefer to reach us first? We're on (786) 864-5946."," — todo queda agendado. Alguien del equipo te contactará al número que me diste. ¿Prefieres contactarnos tú? Llámanos al (786) 864-5946.")).then(function(){showOpts([L('Start over','Empezar de nuevo')],function(){rst.click();});});}
+else if(s==='done'){try{sendLead(Object.assign({_subject:'New Forged Leads chat lead',source:'Website chatbot'},ud));}catch(e){}addBot(L("Brilliant, ","Listo, ")+ud.name+L(" — you're all set. Someone from the team will reach out on the number you gave me. Prefer to reach us first? We're on (786) 864-5946."," — todo queda agendado. Alguien del equipo te contactará al número que me diste. ¿Prefieres contactarnos tú? Llámanos al (786) 864-5946.")).then(function(){showOpts([L('Start over','Empezar de nuevo')],function(){rst.click();});});}
 }})();
 </script>
 </body>
