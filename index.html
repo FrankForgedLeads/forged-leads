@@ -85,6 +85,13 @@ nav,main,footer,.chatbot{position:relative;z-index:1}
 .hero-sub{color:var(--muted);max-width:620px;font-size:1.12rem}
 .hero-trust{font-size:.92rem;font-weight:600;color:var(--navy)}
 .hero-trust a{color:var(--red)}
+.hero .eyebrow{margin-bottom:0}
+.hero-who{font-size:.98rem;font-weight:700;color:var(--navy)}
+.hero-micro{font-size:.9rem;color:var(--muted)}
+.hero-micro a{color:var(--red);font-weight:700}
+.hero-trust-badges{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem .7rem;padding:0;margin:.3rem 0 0;max-width:680px}
+.hero-trust-badges li{font-size:.85rem;font-weight:600;color:var(--navy);background:rgba(178,34,52,.05);border:1px solid var(--border);border-radius:999px;padding:6px 14px}
+.hero-trust-badges li::before{content:"\2713\00a0";color:var(--red);font-weight:800}
 .hero-btns{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:.4rem}
 
 /* generic cards */
@@ -260,13 +267,21 @@ table.cmp td.other{color:var(--muted)}
 <section class="hero">
   <div class="hero-in">
     <img class="hero-logo beelogo" alt="Forged Leads">
-    <h1 data-es='Leads de Contratistas en Florida &mdash; <em>Calificados por IA, Exclusivos y Listos para Cerrar</em>'>Florida Contractor Leads &mdash; <em>AI-Qualified, Exclusive, Ready to Close</em></h1>
-    <p class="hero-sub" data-es='Buscamos, filtramos y calificamos leads de propietarios usando IA y verificaci&oacute;n telef&oacute;nica en vivo, y luego enviamos cada uno a un solo contratista. Sin leads compartidos. Sin guerras de ofertas.'>We source, screen, and qualify homeowner leads using AI and live phone verification &mdash; then send each one to a single contractor. No shared leads. No bidding wars.</p>
-    <p class="hero-trust" data-es='Sin contratos &nbsp;&bull;&nbsp; Leads en 24 horas &nbsp;&bull;&nbsp; Cancela cuando quieras &nbsp;&bull;&nbsp; <a href="tel:+17868645946">(786) 864-5946</a>'>No contracts &nbsp;&bull;&nbsp; Leads in 24 hours &nbsp;&bull;&nbsp; Cancel anytime &nbsp;&bull;&nbsp; <a href="tel:+17868645946">(786) 864-5946</a></p>
+    <span class="eyebrow" data-es='Leads Exclusivos de Propietarios &mdash; Solo para Contratistas de Florida'>Exclusive Homeowner Leads &mdash; For Florida Contractors Only</span>
+    <h1 data-es='M&aacute;s Llamadas. M&aacute;s Estimados. <em>M&aacute;s Trabajos.</em>'>More Calls. More Estimates. <em>More Jobs.</em></h1>
+    <p class="hero-sub" data-es='Te entregamos trabajos exclusivos de propietarios de Florida &mdash; ya filtrados por tel&eacute;fono y listos para cotizar &mdash; directo a tu calendario. Un solo contratista por trabajo. T&uacute; te presentas, cotizas y cierras. Sin leads compartidos. Sin guerras de ofertas.'>We deliver exclusive Florida homeowner jobs &mdash; already screened by phone and ready to quote &mdash; straight to your calendar. One contractor per job. You show up, quote, and close. No shared leads. No bidding wars.</p>
+    <p class="hero-who" data-es='Para techadores &middot; restauraci&oacute;n y da&ntilde;os por agua &middot; moho &middot; plomeros &middot; HVAC &middot; electricistas &middot; ajustadores p&uacute;blicos'>For roofers &middot; restoration &amp; water damage &middot; mold &middot; plumbers &middot; HVAC &middot; electricians &middot; public adjusters</p>
     <div class="hero-btns">
-      <a href="#contact" class="btn btn-red" data-es='&#128222; Agenda una Llamada'>&#128222; Schedule a Call</a>
+      <a href="#contact" class="btn btn-red" data-es='&#128272; Reclama Mi &Aacute;rea Exclusiva'>&#128272; Claim My Exclusive Area</a>
       <a href="#how" class="btn btn-out" data-es='Mira C&oacute;mo Funciona'>See How It Works</a>
     </div>
+    <p class="hero-micro" data-es='Revisi&oacute;n de tu &aacute;rea gratis &middot; Sin contratos &middot; Cancela cuando quieras &middot; O llama al <a href="tel:+17868645946">(786) 864-5946</a>'>Free area check &middot; No contracts &middot; Cancel anytime &middot; Or call <a href="tel:+17868645946">(786) 864-5946</a></p>
+    <ul class="hero-trust-badges">
+      <li data-es='Leads exclusivos &mdash; un contratista por trabajo'>Exclusive leads &mdash; one contractor per job</li>
+      <li data-es='Filtrados por tel&eacute;fono por una persona real'>Phone-screened by a real person</li>
+      <li data-es='Garant&iacute;a de reemplazo de lead malo'>Bad-lead replacement guarantee</li>
+      <li data-es='Creado por alguien con m&aacute;s de 10 a&ntilde;os en los oficios'>Built by 10+ years in the trades</li>
+    </ul>
   </div>
 </section>
 
@@ -303,14 +318,14 @@ table.cmp td.other{color:var(--muted)}
 
 <section class="section bg2">
   <div class="container">
-    <span class="eyebrow" data-es='La Plataforma de Crecimiento con IA de Forged Leads'>The Forged Leads AI Growth Platform</span>
-    <h2 class="sec-title" data-es='M&aacute;s Que Leads &mdash; Un Sistema Completo de Crecimiento para Contratistas'>More Than Leads &mdash; A Complete Growth System for Contractors</h2>
-    <p class="sec-intro" data-es='Forged Leads se encarga del trabajo entre que &ldquo;entra el lead&rdquo; y que &ldquo;llegas al trabajo.&rdquo;'>Forged Leads handles the work between &ldquo;lead comes in&rdquo; and &ldquo;you show up to the job.&rdquo;</p>
+    <span class="eyebrow" data-es='Hecho Por Ti'>Done For You</span>
+    <h2 class="sec-title" data-es='Nosotros Perseguimos. T&uacute; Cotizas.'>We Do the Chasing. You Do the Quoting.</h2>
+    <p class="sec-intro" data-es='La mayor&iacute;a de las empresas de leads te dan un nombre y un n&uacute;mero y te desean suerte. Nosotros trabajamos el lead desde el primer contacto hasta la cita agendada &mdash; para que lo &uacute;nico que te quede sea presentarte y ganar el trabajo.'>Most lead companies hand you a name and a phone number and wish you luck. We work the lead from first contact to booked appointment &mdash; so the only thing left for you to do is show up and win the job.</p>
     <div class="grid g4">
-      <div class="card navy-h fade-in"><div class="ic">&#9989;</div><h3 data-es='Calificaci&oacute;n de Leads con IA'>AI Lead Qualification</h3><p data-es='Nuestra IA analiza los leads entrantes con 12 criterios &mdash; tipo de proyecto, rango de presupuesto, propiedad del inmueble y urgencia del plazo. Los leads que no cumplen tus criterios se filtran antes de costarte tiempo.'>Our AI analyzes incoming leads against 12 criteria &mdash; project type, budget range, property ownership, and timeline urgency. Leads that don't meet your criteria get filtered before they cost you time.</p></div>
-      <div class="card navy-h fade-in"><div class="ic">&#128197;</div><h3 data-es='Agendado de Citas con IA'>AI Appointment Setting</h3><p data-es='Cuando entra un lead calificado, nuestra IA contacta al propietario por mensaje y tel&eacute;fono para agendar una cita que funcione para tu equipo. Recibes un horario confirmado, no solo un n&uacute;mero de tel&eacute;fono.'>When a qualified lead comes in, our AI contacts the homeowner via text and phone to schedule an appointment that works for your crew. You get a confirmed time slot, not just a phone number.</p></div>
-      <div class="card navy-h fade-in"><div class="ic">&#128276;</div><h3 data-es='Automatizaci&oacute;n de Seguimiento con IA'>AI Follow-Up Automation</h3><p data-es='&iquest;Perdiste la llamada? &iquest;El propietario dej&oacute; de responder? Nuestra IA env&iacute;a secuencias de seguimiento personalizadas &mdash; mensajes, correos y buzones de voz &mdash; para que ning&uacute;n lead se pierda.'>Missed the call? Homeowner went quiet? Our AI sends personalized follow-up sequences &mdash; texts, emails, and voicemail drops &mdash; so no lead falls through the cracks.</p></div>
-      <div class="card navy-h fade-in"><div class="ic">&#128202;</div><h3 data-es='Integraci&oacute;n con CRM'>CRM Integration</h3><p data-es='Cada lead, cita y seguimiento se sincroniza con tu CRM actual o nuestro panel integrado. Monitorea tu flujo, tasas de cierre y ROI en tiempo real.'>Every lead, appointment, and follow-up syncs to your existing CRM or our built-in dashboard. Track your pipeline, close rates, and ROI in real time.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#9989;</div><h3 data-es='Cada Lead Filtrado por Tel&eacute;fono'>Every Lead Screened by Phone</h3><p data-es='Antes de que un lead te llegue, confirmamos que es un propietario real con un proyecto real, un presupuesto real y un plazo real. Inquilinos, curiosos y n&uacute;meros equivocados nunca llegan a tu tel&eacute;fono.'>Before a lead ever reaches you, we confirm it's a real homeowner with a real project, a real budget, and a real timeline. Renters, tire-kickers, and wrong numbers never make it to your phone.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#128197;</div><h3 data-es='Citas Agendadas por Ti'>Appointments Booked for You</h3><p data-es='No solo te enviamos datos de contacto &mdash; contactamos al propietario, fijamos un horario que funcione para tu equipo y te entregamos una cita de estimado confirmada en tu calendario.'>We don't just send contact info &mdash; we contact the homeowner, lock in a time that works for your crew, and hand you a confirmed estimate appointment on your calendar.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#128276;</div><h3 data-es='Nosotros Hacemos el Seguimiento'>We Chase the Follow-Up</h3><p data-es='&iquest;El propietario dej&oacute; de responder? Seguimos enviando mensajes, llamando y dando seguimiento para que el trabajo no muera en tu bandeja de entrada. T&uacute; sigues en la obra; nosotros seguimos en el lead.'>Homeowner went quiet? We keep texting, calling, and following up so the job doesn't die in your inbox. You stay on the tools; we stay on the lead.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#128202;</div><h3 data-es='Controla Cada Trabajo en un Solo Lugar'>Track Every Job in One Place</h3><p data-es='Ve cada lead, cita y trabajo agendado en tiempo real &mdash; sincronizado con tu CRM o nuestro panel sencillo. Sabe exactamente qu&eacute; est&aacute; funcionando y cu&aacute;nto vale cada trabajo.'>See every lead, appointment, and booked job in real time &mdash; synced to your CRM or our simple dashboard. Know exactly what's working and what each job is worth.</p></div>
     </div>
   </div>
 </section>
@@ -347,7 +362,7 @@ table.cmp td.other{color:var(--muted)}
     <h2 class="sec-title" data-es='Por Qu&eacute; los Contratistas de Florida Eligen Forged Leads'>Why Florida Contractors Choose Forged Leads</h2>
     <div class="cmp-wrap">
       <table class="cmp">
-        <thead><tr><th data-es='Caracter&iacute;stica'>Feature</th><th>Forged Leads</th><th data-es='Empresas de Leads T&iacute;picas'>Typical Lead Companies</th></tr></thead>
+        <thead><tr><th data-es='Caracter&iacute;stica'>Feature</th><th>Forged Leads</th><th data-es='Angi, HomeAdvisor y Sitios de Leads Compartidos'>Angi, HomeAdvisor &amp; Shared-Lead Sites</th></tr></thead>
         <tbody>
           <tr><td class="feat" data-es='Exclusividad del Lead'>Lead Exclusivity</td><td class="fl" data-es='Un contratista por lead'>One contractor per lead</td><td class="other" data-es='3&ndash;5 contratistas por lead'>3&ndash;5 contractors per lead</td></tr>
           <tr><td class="feat" data-es='Calificaci&oacute;n'>Qualification</td><td class="fl" data-es='IA + filtro telef&oacute;nico en vivo'>AI + live phone screen</td><td class="other" data-es='Solo formulario'>Form fill only</td></tr>
@@ -357,10 +372,29 @@ table.cmp td.other{color:var(--muted)}
           <tr><td class="feat" data-es='Pol&iacute;tica de Leads Malos'>Bad Lead Policy</td><td class="fl" data-es='Reemplazo en 48 horas'>48-hour replacement</td><td class="other" data-es='&ldquo;Todas las ventas son finales&rdquo;'>&ldquo;All sales final&rdquo;</td></tr>
           <tr><td class="feat" data-es='Integraci&oacute;n con CRM'>CRM Integration</td><td class="fl" data-es='Incluida'>Included</td><td class="other" data-es='Complemento de $50&ndash;200/mes'>$50&ndash;200/mo add-on</td></tr>
           <tr><td class="feat" data-es='Valor M&iacute;nimo del Trabajo'>Minimum Job Value</td><td class="fl" data-es='Filtro de $2,000+'>$2,000+ filter</td><td class="other" data-es='Sin filtro'>No filter</td></tr>
+          <tr><td class="feat" data-es='Experiencia en el Oficio'>Trade Experience</td><td class="fl" data-es='Creado por alguien con m&aacute;s de 10 a&ntilde;os junto a contratistas'>Built by 10+ years alongside contractors</td><td class="other" data-es='Vendedores que nunca pisaron una obra'>Marketers who never worked a job site</td></tr>
         </tbody>
       </table>
     </div>
     <p class="cmp-note" data-es='La comparaci&oacute;n refleja pr&aacute;cticas generales de la industria observadas por Forged Leads. Las caracter&iacute;sticas y precios de la competencia pueden variar. Forged Leads no ofrece garant&iacute;a sobre las ofertas de la competencia.'>Comparison reflects general industry practices observed by Forged Leads. Competitor features and pricing may vary. Forged Leads makes no warranty regarding competitor offerings.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <span class="eyebrow" data-es='Resultados de Contratistas'>Contractor Results</span>
+    <h2 class="sec-title" data-es='Contratistas de Florida, M&aacute;s Trabajos en el Calendario'>Florida Contractors, More Jobs on the Calendar</h2>
+    <p class="sec-intro" data-es='Resultados reales de contratistas en camino. Las tarjetas de abajo son ejemplos de marcador &mdash; las reemplazaremos con tus propios testimonios y casos de &eacute;xito reales.'>Real contractor results coming soon. The cards below are placeholders &mdash; we'll swap in your own real client testimonials and case studies.</p>
+    <div class="grid g3">
+      <div class="card fade-in"><p style="color:var(--gold);font-size:1.15rem;margin-bottom:.4rem">&starf;&starf;&starf;&starf;&starf;</p><p data-es='&ldquo;[Testimonio del contratista &mdash; ej.: &lsquo;Forged Leads me agend&oacute; 6 estimados de techado exclusivos en mis primeras dos semanas.&rsquo;]&rdquo;'>&ldquo;[Contractor testimonial &mdash; e.g., &lsquo;Forged Leads booked me 6 exclusive roofing estimates in my first two weeks.&rsquo;]&rdquo;</p><p style="font-weight:700;margin-top:1rem" data-es='&mdash; [Nombre], Techador, [Ciudad], FL'>&mdash; [Name], Roofer, [City], FL</p></div>
+      <div class="card fade-in"><p style="color:var(--gold);font-size:1.15rem;margin-bottom:.4rem">&starf;&starf;&starf;&starf;&starf;</p><p data-es='&ldquo;[Testimonio del contratista &mdash; ej.: &lsquo;Por fin leads exclusivos. Sin competir con otras cuatro empresas. Cerr&eacute; tres trabajos de da&ntilde;o por agua el primer mes.&rsquo;]&rdquo;'>&ldquo;[Contractor testimonial &mdash; e.g., &lsquo;Finally, exclusive leads. No competing with four other companies. Closed three water-damage jobs my first month.&rsquo;]&rdquo;</p><p style="font-weight:700;margin-top:1rem" data-es='&mdash; [Nombre], Restauraci&oacute;n de Agua, [Ciudad], FL'>&mdash; [Name], Water Restoration, [City], FL</p></div>
+      <div class="card fade-in"><p style="color:var(--gold);font-size:1.15rem;margin-bottom:.4rem">&starf;&starf;&starf;&starf;&starf;</p><p data-es='&ldquo;[Testimonio del contratista &mdash; ej.: &lsquo;Las citas llegan ya agendadas. Solo me presento y cotizo. Cambi&oacute; mi negocio.&rsquo;]&rdquo;'>&ldquo;[Contractor testimonial &mdash; e.g., &lsquo;Appointments show up already booked. I just show up and quote. Game changer.&rsquo;]&rdquo;</p><p style="font-weight:700;margin-top:1rem" data-es='&mdash; [Nombre], HVAC, [Ciudad], FL'>&mdash; [Name], HVAC, [City], FL</p></div>
+    </div>
+    <div class="grid g3" style="margin-top:1.5rem">
+      <div class="card navy-h fade-in"><span class="eyebrow" data-es='Caso de &Eacute;xito'>Case Study</span><h3 data-es='[Techador en Miami]'>[Roofer in Miami]</h3><p data-es='[Reto &rarr; Lo que hicimos &rarr; Resultado. Ej.: &ldquo;Pasamos a un techador de leads compartidos a leads exclusivos filtrados por tel&eacute;fono &mdash; X estimados agendados y $Y en trabajos cerrados en 30 d&iacute;as.&rdquo;]'>[Challenge &rarr; What we did &rarr; Result. e.g., &ldquo;Moved a roofer off shared leads onto exclusive, phone-screened jobs &mdash; X estimates booked and $Y in closed work in 30 days.&rdquo;]</p></div>
+      <div class="card navy-h fade-in"><span class="eyebrow" data-es='Caso de &Eacute;xito'>Case Study</span><h3 data-es='[Empresa de Restauraci&oacute;n en Tampa]'>[Restoration Co. in Tampa]</h3><p data-es='[Reto &rarr; Lo que hicimos &rarr; Resultado. Ej.: &ldquo;X citas de da&ntilde;o por agua agendadas en el primer mes, sin competir con ninguna otra empresa.&rdquo;]'>[Challenge &rarr; What we did &rarr; Result. e.g., &ldquo;X water-damage appointments booked in month one, with zero competing companies.&rdquo;]</p></div>
+      <div class="card navy-h fade-in"><span class="eyebrow" data-es='Caso de &Eacute;xito'>Case Study</span><h3 data-es='[Contratista de HVAC en Orlando]'>[HVAC Contractor in Orlando]</h3><p data-es='[Reto &rarr; Lo que hicimos &rarr; Resultado. Ej.: &ldquo;Pas&oacute; de perseguir leads a un calendario lleno de citas confirmadas de reemplazo.&rdquo;]'>[Challenge &rarr; What we did &rarr; Result. e.g., &ldquo;Went from chasing leads to a calendar full of confirmed replacement appointments.&rdquo;]</p></div>
+    </div>
   </div>
 </section>
 
@@ -390,14 +424,29 @@ table.cmp td.other{color:var(--muted)}
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;C&oacute;mo funciona la calificaci&oacute;n con IA?'>How does the AI qualification work?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Nuestra IA punt&uacute;a cada consulta con 12 criterios &mdash; tipo de proyecto, presupuesto, propiedad del inmueble, plazo y m&aacute;s &mdash; y luego una persona real llama para confirmar antes de que el lead te llegue.'>Our AI scores every inquiry against 12 criteria &mdash; project type, budget, property ownership, timeline, and more &mdash; then a real person calls to confirm before the lead ever reaches you.</p></div></div>
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Puedo elegir mi &aacute;rea de servicio?'>Can I choose my service area?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Por supuesto. Nos dices tu oficio, ciudades y capacidad, y solo te emparejamos con consultas dentro de tu &aacute;rea de servicio.'>Absolutely. You tell us your trade, cities, and capacity, and we match only inquiries inside your service area.</p></div></div>
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Se integran con mi CRM?'>Do you integrate with my CRM?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute; &mdash; los leads, citas y seguimientos se sincronizan con ServiceTitan, Housecall Pro, Jobber, GoHighLevel o nuestro panel integrado.'>Yes &mdash; leads, appointments, and follow-ups sync to ServiceTitan, Housecall Pro, Jobber, GoHighLevel, or our built-in dashboard.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;En qu&eacute; se diferencian de Angi o HomeAdvisor?'>How are you different from Angi or HomeAdvisor?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Angi, HomeAdvisor y la mayor&iacute;a de los sitios de leads venden el mismo lead a tres, cuatro o cinco contratistas y te dejan pelear por &eacute;l. Nosotros enviamos cada lead filtrado y exclusivo a un solo contratista &mdash; t&uacute;. Sin leads compartidos, sin guerras de ofertas, y una persona real ya llam&oacute; al propietario antes de que te llegue.'>Angi, HomeAdvisor, and most lead sites sell the same lead to three, four, even five contractors, then leave you to fight over it. We send each screened, exclusive lead to one contractor &mdash; you. No shared leads, no bidding wars, and a real person has already called the homeowner before it reaches you.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Garantizan los leads?'>Do you guarantee the leads?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute;. Cada lead es exclusivo para ti y verificado por tel&eacute;fono antes de entreg&aacute;rtelo. Si uno no cumple nuestro est&aacute;ndar, lo reemplazamos gratis en 48 horas. Sin contratos, cancela cuando quieras &mdash; nos ganamos tu negocio cada mes.'>Yes. Every lead is exclusive to you and phone-verified before delivery. If one doesn't meet our standard, we replace it free within 48 hours. No contracts, cancel anytime &mdash; we earn your business every month.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <span class="eyebrow" data-es='Nuestra Promesa'>Our Promise to You</span>
+    <h2 class="sec-title" data-es='El Riesgo Es Nuestro, No Tuyo'>The Risk Is on Us, Not You</h2>
+    <p class="sec-intro" data-es='No te pedimos que apuestes tu dinero a una promesa. Te lo demostramos &mdash; con leads exclusivos, verificados y respaldados por garant&iacute;a.'>We're not asking you to gamble your money on a promise. We prove it &mdash; with exclusive, verified, guarantee-backed leads.</p>
+    <div class="grid g3">
+      <div class="card fade-in"><div class="ic">&#128274;</div><h3 data-es='Exclusivo o No Cuenta'>Exclusive or It Doesn't Count</h3><p data-es='Cada lead es solo tuyo. Si alguna vez te enviamos un lead que tambi&eacute;n le dimos a otro contratista en tu oficio y &aacute;rea, corre por nuestra cuenta.'>Every lead is yours alone. If we ever send you a lead we also gave another contractor in your trade and area, that one's on us.</p></div>
+      <div class="card fade-in"><div class="ic">&#128260;</div><h3 data-es='Garant&iacute;a de Reemplazo de Leads'>Bad-Lead Replacement Guarantee</h3><p data-es='&iquest;N&uacute;mero equivocado? &iquest;Inquilino? &iquest;Curioso? Si un lead no cumple nuestro est&aacute;ndar verificado por tel&eacute;fono, lo reemplazamos gratis en 48 horas. Nada de &ldquo;todas las ventas son finales.&rdquo;'>Wrong number? Renter? Tire-kicker? If a lead doesn't meet our phone-verified standard, we replace it free within 48 hours. No &ldquo;all sales final.&rdquo;</p></div>
+      <div class="card fade-in"><div class="ic">&#128176;</div><h3 data-es='Sin Contratos. Cancela Cuando Quieras.'>No Contracts. Cancel Anytime.</h3><p data-es='Mes a mes, sin ataduras y sin cargos por cancelaci&oacute;n. Nos ganamos tu negocio cada mes &mdash; o te vas. As&iacute; de simple.'>Month-to-month, no lock-in, no cancellation fees. We earn your business every single month &mdash; or you walk. Simple as that.</p></div>
     </div>
   </div>
 </section>
 
 <section class="cta">
-  <h2 data-es='Empieza a Recibir Leads Exclusivos de Contratista Hoy'>Start Getting Exclusive Contractor Leads Today</h2>
-  <p data-es='Dinos tu oficio y tu mercado. Te mostraremos cu&aacute;ntos leads calificados hay disponibles en tu &aacute;rea este mes &mdash; gratis y sin compromiso.'>Tell us your trade and market. We'll show you how many qualified leads are available in your area this month &mdash; free, no commitment.</p>
-  <div class="cta-btns"><a href="#contact" class="btn btn-red" data-es='Obt&eacute;n Mi Reporte Gratis de Leads'>Get My Free Lead Report</a></div>
+  <h2 data-es='Mira Cu&aacute;ntos Trabajos Exclusivos Te Esperan en Tu &Aacute;rea'>See How Many Exclusive Jobs Are Waiting in Your Area</h2>
+  <p data-es='Dinos tu oficio y tu mercado y te mostraremos &mdash; gratis &mdash; cu&aacute;ntos trabajos de propietarios podemos entregarte este mes. Sin contratos. Sin compromiso. Y si un lead no cumple nuestro est&aacute;ndar, lo reemplazamos gratis.'>Tell us your trade and market and we'll show you &mdash; free &mdash; how many homeowner jobs we can deliver you this month. No contracts. No commitment. And if a lead doesn't meet our standard, we replace it free.</p>
+  <div class="cta-btns"><a href="#contact" class="btn btn-red" data-es='Mu&eacute;strame Mis Trabajos Disponibles'>Show Me My Available Jobs</a></div>
   <p class="cta-call" data-es='O ll&aacute;manos directamente: <a href="tel:+17868645946">(786) 864-5946</a>'>Or call us directly: <a href="tel:+17868645946">(786) 864-5946</a></p>
 </section>
 
@@ -438,12 +487,12 @@ table.cmp td.other{color:var(--muted)}
       <div class="founder-photo"><img id="founder-photo" alt="Frank, Founder of Forged Leads"></div>
     </div>
     <div class="founder-story">
-      <h3 data-es='Por Qu&eacute; Cre&eacute; Forged Leads'>Why I Created Forged Leads</h3>
-      <p data-es='Durante m&aacute;s de una d&eacute;cada, he trabajado junto a contratistas y equipos de restauraci&oacute;n de Florida &mdash; techadores, especialistas en moho, plomeros, t&eacute;cnicos de HVAC y electricistas. He visto c&oacute;mo se ganan los trabajos, c&oacute;mo se pierden los leads y c&oacute;mo un mal seguimiento les cuesta miles en ingresos a las empresas.'>For over a decade, I've worked alongside Florida's contractors and restoration crews &mdash; roofers, mold specialists, plumbers, HVAC techs, and electricians. I've seen how jobs are won, how leads are lost, and how poor follow-up costs companies thousands in revenue.</p>
-      <p class="founder-quote" data-es='Pas&eacute; a&ntilde;os dentro de esta industria. Hoy, ayudo a los contratistas a dejar de pelear por leads.'>I spent years inside this industry. Today, I help contractors stop fighting for leads.</p>
-      <p data-es='Esa experiencia me ense&ntilde;&oacute; exactamente lo que los contratistas necesitan &mdash; y lo que no. No necesitan otra agencia de marketing que no entienda su d&iacute;a a d&iacute;a. Necesitan un sistema construido por alguien que ha estado en la trinchera con ellos.'>That experience taught me exactly what contractors need &mdash; and what they don't. They don't need another marketing agency that doesn't understand their day-to-day. They need a system built by someone who's been in the trenches with them.</p>
-      <p data-es='Por eso cre&eacute; Forged Leads. No solo hacemos sitios web &mdash; construimos sistemas de leads que ayudan a los contratistas a captar m&aacute;s oportunidades, agendar m&aacute;s citas y crecer con automatizaci&oacute;n moderna y herramientas de IA.'>That's why I created Forged Leads. We don't just build websites &mdash; we build lead systems that help contractors capture more opportunities, book more appointments, and grow their business with modern automation and AI-powered tools.</p>
-      <p data-es='Cada funci&oacute;n que ofrecemos &mdash; desde leads calificados por IA hasta verificaci&oacute;n telef&oacute;nica en vivo y emparejamiento exclusivo &mdash; se dise&ntilde;&oacute; porque vi el problema de primera mano y supe que ten&iacute;a que haber una mejor manera.'>Every feature we offer &mdash; from AI-qualified leads to live phone verification to exclusive matching &mdash; was designed because I saw the problem firsthand and knew there had to be a better way.</p>
+      <h3 data-es='Por Qu&eacute; Constru&iacute; Forged Leads'>Why I Built Forged Leads</h3>
+      <p data-es='Durante m&aacute;s de 10 a&ntilde;os trabaj&eacute; codo a codo con los contratistas y equipos de restauraci&oacute;n de Florida &mdash; techadores, empresas de moho y da&ntilde;os por agua, plomeros, t&eacute;cnicos de HVAC, electricistas y ajustadores p&uacute;blicos. Estuve en las camionetas, sub&iacute; a los techos y vi de cerca c&oacute;mo se ganan los trabajos &mdash; y c&oacute;mo se desperdicia buen dinero en leads basura.'>For more than 10 years, I worked shoulder-to-shoulder with Florida's contractors and restoration crews &mdash; roofers, mold and water-damage companies, plumbers, HVAC techs, electricians, and public adjusters. I sat in the trucks, climbed onto the roofs, and watched up close how jobs get won &mdash; and how good money gets wasted on junk leads.</p>
+      <p class="founder-quote" data-es='No soy un vendedor que &ldquo;descubri&oacute;&rdquo; a los contratistas. Pas&eacute; una d&eacute;cada en tu mundo &mdash; y constru&iacute; el sistema de leads que ojal&aacute; hubieras tenido todo este tiempo.'>I'm not a marketer who discovered contractors. I spent a decade in your world &mdash; and built the lead system I wish you'd had the whole time.</p>
+      <p data-es='Vi a contratistas pagarle a Angi, HomeAdvisor y &ldquo;empresas de leads&rdquo; por el mismo lead que le vend&iacute;an a otros cuatro tipos &mdash; y luego pasar la noche persiguiendo inquilinos, curiosos y n&uacute;meros muertos. Eso no es un problema de leads. Es un problema de sistema.'>I watched contractors pay Angi, HomeAdvisor, and &ldquo;lead companies&rdquo; for the same lead they sold to four other guys &mdash; then spend their nights chasing renters, tire-kickers, and dead phone numbers. That's not a lead problem. That's a system problem.</p>
+      <p data-es='Forged Leads es la soluci&oacute;n. No vendemos sitios web ni software para que lo resuelvas solo. Nosotros hacemos la b&uacute;squeda, las llamadas y el filtrado por ti &mdash; y te entregamos propietarios exclusivos de Florida listos para recibir una cotizaci&oacute;n. T&uacute; te presentas, cotizas y cierras.'>Forged Leads is the fix. We don't sell websites, and we don't sell you software to figure out yourself. We do the sourcing, the calling, and the screening for you &mdash; and hand you exclusive Florida homeowners who are ready for a quote. You show up, you estimate, you close.</p>
+      <p data-es='Todo lo que hacemos se mide con una sola pregunta: &iquest;esto pone otro trabajo agendado en tu calendario? Si no, no lo hacemos.'>Everything we do is measured against one question: does this put another booked job on your calendar? If it doesn't, we don't do it.</p>
     </div>
     <div style="margin-top:3.5rem">
       <span class="eyebrow" data-es='Lo Que Defendemos'>What We Stand For</span>
