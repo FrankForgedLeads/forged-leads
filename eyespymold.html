@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eye Spy Mold — Florida Mold Inspection &amp; Remediation Experts</title>
+<meta name="description" content="Licensed Florida Mold Assessors and IICRC-certified remediation specialists. Free mold inspections. Same-day appointments. No high-pressure sales. Serving Miami-Dade, Broward, Palm Beach &amp; Central Florida.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #050a05;
+  --bg2:      #070d07;
+  --card:     #0a140a;
+  --card2:    #0d1a0d;
+  --green:    #00c83c;
+  --green-glow: rgba(0,200,60,0.25);
+  --green-dim:  rgba(0,200,60,0.07);
+  --gold:     #c8921a;
+  --gold-b:   #e8b040;
+  --white:    #f0f8f0;
+  --muted:    rgba(240,248,240,0.62);
+  --border:   rgba(0,200,60,0.18);
+  --border-g: rgba(200,146,26,0.35);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--white);line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+h1,h2,h3,h4{font-family:'Oswald',sans-serif;line-height:1.15}
+
+/* Mold organism background canvas */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    /* Ambient green glow pools */
+    radial-gradient(ellipse 55% 40% at 8%  18%, rgba(0,160,40,0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 45% 35% at 92% 72%, rgba(0,160,40,0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0,140,35,0.04) 0%, transparent 70%),
+    /* Mold colony blobs */
+    radial-gradient(ellipse 12% 8%  at 15% 30%, rgba(0,120,30,0.12) 0%, rgba(0,80,20,0.06) 40%, transparent 70%),
+    radial-gradient(ellipse 8%  12% at 78% 22%, rgba(0,100,25,0.10) 0%, rgba(0,70,15,0.05) 45%, transparent 70%),
+    radial-gradient(ellipse 14% 9%  at 62% 65%, rgba(0,110,28,0.09) 0%, rgba(0,70,18,0.04) 45%, transparent 70%),
+    radial-gradient(ellipse 7%  10% at 33% 80%, rgba(0,100,25,0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 10% 7%  at 88% 50%, rgba(0,120,30,0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 6%  8%  at 22% 58%, rgba(0,90,22,0.09)  0%, transparent 65%),
+    radial-gradient(ellipse 9%  6%  at 70% 10%, rgba(0,105,26,0.07) 0%, transparent 65%);
+}
+
+/* Mold spore dot pattern overlay */
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Ccircle cx='20' cy='20' r='1.2' fill='%2300c83c' fill-opacity='0.035'/%3E%3Ccircle cx='60' cy='50' r='0.8' fill='%2300c83c' fill-opacity='0.028'/%3E%3Ccircle cx='100' cy='30' r='1.5' fill='%2300c83c' fill-opacity='0.025'/%3E%3Ccircle cx='40' cy='90' r='1'   fill='%2300c83c' fill-opacity='0.03'/%3E%3Ccircle cx='85' cy='85' r='1.8' fill='%2300c83c' fill-opacity='0.022'/%3E%3Ccircle cx='10' cy='75' r='0.7' fill='%2300c83c' fill-opacity='0.03'/%3E%3Ccircle cx='110' cy='100' r='1.1' fill='%2300c83c' fill-opacity='0.028'/%3E%3C/svg%3E");
+  opacity:1;
+}
+
+.notif-bar,header,main,footer,.chat-widget,.fab-phone,.fab-chat{position:relative;z-index:1}
+
+/* ── SCROLL PROGRESS LINE (right side) ── */
+.scroll-line{
+  position:fixed;right:0;top:0;bottom:0;width:3px;
+  background:rgba(0,200,60,0.07);z-index:200;pointer-events:none;
+}
+.scroll-line-fill{
+  position:absolute;top:0;left:0;right:0;
+  background:linear-gradient(to bottom, transparent, var(--green), rgba(0,200,60,0.4));
+  transition:height .05s linear;box-shadow:0 0 8px var(--green);
+}
+.scroll-dot{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:10px;height:10px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 12px var(--green),0 0 4px #fff;
+  margin-left:-1px;
+}
+
+/* ── NOTIFICATION BAR ── */
+.notif-bar{
+  background:linear-gradient(90deg,#7a0000,#a00000);
+  color:#fff;text-align:center;padding:9px 16px;
+  font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+}
+.notif-bar span{opacity:.92}
+.notif-bar a{
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.35);
+  padding:4px 14px;border-radius:4px;font-weight:700;white-space:nowrap;transition:.2s;
+}
+.notif-bar a:hover{background:rgba(255,255,255,0.22)}
+
+/* ── STICKY HEADER ── */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(5,10,5,0.96);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.ticker{
+  font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--green);
+  text-align:center;padding:4px 16px;border-bottom:1px solid rgba(0,200,60,0.08);
+  background:rgba(0,200,60,0.025);letter-spacing:.04em;overflow:hidden;white-space:nowrap;
+}
+.ticker-sep{color:rgba(0,200,60,0.35);margin:0 10px}
+.nav{
+  display:flex;align-items:center;justify-content:space-between;padding:10px 20px;
+}
+.logo-mark{display:flex;align-items:center;gap:10px;cursor:pointer}
+.logo-eye{
+  width:38px;height:38px;border-radius:50%;border:1.5px solid var(--green);
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,200,60,0.07);box-shadow:0 0 12px rgba(0,200,60,0.25);
+  flex-shrink:0;
+}
+.logo-wordmark{font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.1em}
+.logo-wordmark span{color:var(--green);display:block;font-size:.55rem;letter-spacing:.2em;opacity:.85}
+.nav-cta{display:flex;gap:8px}
+.btn-sm-call{
+  display:inline-flex;align-items:center;gap:6px;
+  background:transparent;border:1px solid var(--green);color:var(--green);
+  padding:7px 14px;border-radius:4px;font-size:.78rem;font-weight:600;cursor:pointer;transition:.2s;
+}
+.btn-sm-call:hover{background:var(--green-dim)}
+.btn-sm-gold{
+  display:inline-flex;align-items:center;
+  background:var(--gold);color:#000;padding:7px 14px;border-radius:4px;
+  font-family:'Oswald',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.05em;
+  cursor:pointer;transition:.2s;border:none;text-transform:uppercase;
+}
+.btn-sm-gold:hover{background:var(--gold-b)}
+
+/* ── WAVE DIVIDER ── */
+.wave-sep{width:100%;height:36px;overflow:hidden}
+.wave-sep svg{width:100%;height:100%}
+
+/* ── HERO ── */
+.hero{padding:44px 20px 28px;max-width:800px;margin:0 auto;text-align:center}
+.hero h1{
+  font-size:clamp(1.9rem,5.5vw,3.4rem);font-weight:700;
+  color:var(--gold-b);text-transform:uppercase;letter-spacing:.02em;margin-bottom:14px;
+  text-shadow:0 0 40px rgba(232,176,64,0.25);
+}
+.hero-sub{
+  font-size:.95rem;color:var(--muted);max-width:640px;
+  margin:0 auto 10px;line-height:1.7;
+}
+.hero-tagline{
+  font-family:'Share Tech Mono',monospace;font-size:.72rem;
+  color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:26px;
+}
+
+/* Hero logo SVG card */
+.hero-logo-card{
+  margin:0 auto 28px;max-width:360px;border-radius:12px;overflow:hidden;
+  border:1px solid var(--border);box-shadow:0 0 50px rgba(0,200,60,0.12),0 0 0 1px rgba(0,200,60,0.08);
+}
+
+.hero-btns{
+  display:flex;flex-direction:column;gap:12px;max-width:340px;margin:0 auto 28px;
+}
+.btn-hero-gold{
+  display:block;background:var(--gold);color:#000;padding:15px 24px;border-radius:6px;
+  font-family:'Oswald',sans-serif;font-size:1.05rem;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;text-align:center;
+  cursor:pointer;transition:.2s;border:none;
+}
+.btn-hero-gold:hover{background:var(--gold-b)}
+.btn-hero-call{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:transparent;border:1.5px solid var(--green);color:var(--green);
+  padding:13px 24px;border-radius:6px;
+  font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;letter-spacing:.05em;
+  cursor:pointer;transition:.2s;
+}
+.btn-hero-call:hover{background:var(--green-dim)}
+
+/* Stats 2x2 */
+.stats-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:1px;max-width:400px;
+  margin:0 auto 18px;background:var(--border);
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;
+}
+.stat-cell{background:var(--card);padding:12px 14px;text-align:center}
+.stat-lbl{font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--gold-b)}
+.stat-sub{font-size:.67rem;color:var(--muted);font-family:'Share Tech Mono',monospace;letter-spacing:.03em}
+.stat-big{font-family:'Oswald',sans-serif;font-size:1.35rem;font-weight:700;color:var(--gold-b)}
+
+/* Credential pills */
+.cred-pills{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:32px}
+.cpill{
+  border:1px solid rgba(0,200,60,0.3);background:rgba(0,200,60,0.04);
+  color:rgba(240,248,240,.75);padding:4px 12px;border-radius:20px;
+  font-size:.68rem;font-family:'Share Tech Mono',monospace;letter-spacing:.03em;
+}
+
+/* ── FORM ── */
+.form-wrap{padding:36px 20px;max-width:540px;margin:0 auto}
+.form-card{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:26px 22px;box-shadow:0 0 40px rgba(0,200,60,0.07);
+}
+.form-trust{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:18px}
+.ftbadge{font-size:.7rem;color:var(--green);display:flex;align-items:center;gap:4px}
+.step-dots{display:flex;gap:7px;justify-content:center;margin-bottom:14px}
+.sdot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(0,200,60,0.12);border:1px solid rgba(0,200,60,0.3);transition:.3s;
+}
+.sdot.active{background:var(--green);box-shadow:0 0 8px var(--green)}
+.sdot.done{background:rgba(0,200,60,0.4)}
+.step-lbl{
+  font-family:'Share Tech Mono',monospace;font-size:.72rem;
+  color:var(--green);text-align:center;margin-bottom:18px;letter-spacing:.05em;
+}
+.fstep{display:none}
+.fstep.active{display:block}
+.fg{margin-bottom:14px}
+.fg label{
+  display:block;font-size:.75rem;color:var(--muted);margin-bottom:5px;
+  text-transform:uppercase;letter-spacing:.05em;font-weight:600;
+}
+.fg label .req{color:var(--green)}
+.fg select,.fg input{
+  width:100%;background:rgba(0,200,60,0.03);border:1px solid rgba(0,200,60,0.22);
+  color:var(--white);padding:11px 13px;border-radius:6px;
+  font-size:.88rem;outline:none;transition:.2s;-webkit-appearance:none;
+}
+.fg select:focus,.fg input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,200,60,0.09)}
+.fg select option{background:#0a140a;color:#fff}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:460px){.fg-row{grid-template-columns:1fr}}
+.btn-cont{
+  width:100%;background:var(--gold);color:#000;border:none;
+  padding:14px;border-radius:6px;font-family:'Oswald',sans-serif;
+  font-size:1.05rem;font-weight:700;letter-spacing:.1em;cursor:pointer;
+  transition:.2s;text-transform:uppercase;margin-top:6px;
+}
+.btn-cont:hover{background:var(--gold-b)}
+.form-fine{font-size:.69rem;color:var(--muted);text-align:center;margin-top:12px;line-height:1.6}
+.form-fine a{color:var(--green)}
+.form-success{text-align:center;padding:16px 0}
+.success-check{
+  width:58px;height:58px;border-radius:50%;
+  background:rgba(0,200,60,0.1);border:2px solid var(--green);
+  margin:0 auto 14px;display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;color:var(--green);
+}
+.form-success h3{color:var(--gold-b);font-size:1.2rem;margin-bottom:8px}
+.form-success p{color:var(--muted);font-size:.875rem;line-height:1.6}
+
+/* ── SECTIONS ── */
+.sec{padding:60px 20px}
+.sec-inner{max-width:920px;margin:0 auto}
+.sec-dark{background:var(--card)}
+.sec-title{
+  font-size:clamp(1.5rem,3.8vw,2.3rem);font-weight:700;color:var(--gold-b);
+  text-align:center;text-transform:uppercase;margin-bottom:8px;
+}
+.sec-sub{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:28px}
+.sec-div{width:54px;height:2px;background:var(--gold);margin:10px auto 26px;box-shadow:0 0 8px rgba(200,146,26,.35)}
+
+/* ── TRUST CARDS ── */
+.trust-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.tcard{
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:20px 18px;transition:.2s;
+}
+.tcard:hover{border-color:rgba(0,200,60,.38);box-shadow:0 0 18px rgba(0,200,60,.09)}
+.tcard-ico{font-size:1.3rem;margin-bottom:9px}
+.tcard h3{font-size:.9rem;color:var(--gold-b);margin-bottom:5px;font-weight:600;text-transform:uppercase}
+.tcard p{font-size:.8rem;color:var(--muted);line-height:1.55}
+
+/* ── ABOUT ── */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+@media(max-width:640px){.about-grid{grid-template-columns:1fr}}
+.about-h{font-size:clamp(1.5rem,3.8vw,2.2rem);color:var(--gold-b);text-transform:uppercase;margin-bottom:6px}
+.about-tag{color:var(--green);font-size:.8rem;font-family:'Share Tech Mono',monospace;margin-bottom:18px;letter-spacing:.04em}
+.about-body p{font-size:.875rem;color:var(--muted);margin-bottom:13px;line-height:1.7}
+.bullets{margin-top:18px}
+.bullet{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px;font-size:.85rem}
+.bullet .ico{color:var(--green);font-weight:700;flex-shrink:0;margin-top:2px}
+.photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.photo-ph{
+  aspect-ratio:4/3;background:var(--bg2);
+  border:1px dashed rgba(0,200,60,.25);border-radius:8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:rgba(0,200,60,.35);font-size:.72rem;gap:7px;
+}
+
+/* ── SERVICES ── */
+.svc-main{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:32px}
+.svc-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:22px 18px;transition:.2s;
+}
+.svc-card:hover{border-color:rgba(0,200,60,.4);box-shadow:0 0 20px rgba(0,200,60,.09)}
+.svc-card h3{color:var(--gold-b);font-size:.95rem;margin-bottom:9px;text-transform:uppercase}
+.svc-card p{font-size:.8rem;color:var(--muted);line-height:1.6}
+.svc-spec-label{
+  color:var(--gold-b);font-family:'Oswald',sans-serif;font-size:.9rem;
+  text-transform:uppercase;letter-spacing:.05em;margin:30px 0 14px;
+}
+.svc-spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.spec-card{
+  background:var(--card2);border:1px solid var(--border);
+  border-left:3px solid var(--green);border-radius:8px;padding:16px 15px;
+}
+.spec-card h4{color:var(--gold-b);font-family:'Oswald',sans-serif;font-size:.88rem;margin-bottom:5px;text-transform:uppercase}
+.spec-card p{font-size:.78rem;color:var(--muted);line-height:1.55}
+
+/* ── FLORIDA SPECIALISTS ── */
+.fl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.fl-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px 18px;transition:.2s}
+.fl-card:hover{border-color:rgba(0,200,60,.38)}
+.fl-card h3{color:var(--gold-b);font-size:.9rem;font-weight:600;margin-bottom:7px;text-transform:uppercase}
+.fl-card p{font-size:.79rem;color:var(--muted);line-height:1.55}
+
+/* ── SERVICE AREAS ── */
+.areas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:28px}
+.area-county h3{
+  color:var(--gold-b);font-size:.95rem;font-weight:700;text-transform:uppercase;
+  margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(200,146,26,.25);
+}
+.area-list{list-style:none;display:flex;flex-direction:column;gap:3px}
+.area-list li a{font-size:.79rem;color:var(--muted);display:block;padding:2px 0;transition:.2s}
+.area-list li a:hover{color:var(--green)}
+
+/* ── TESTIMONIALS ── */
+.testi-hdr{text-align:center}
+.testi-stars{color:#f5c518;font-size:1.05rem;margin-bottom:5px}
+.testi-avg{font-size:.8rem;color:var(--muted);margin-bottom:26px}
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:22px}
+.testi-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:18px 16px}
+.tc-stars{color:#f5c518;font-size:.85rem;margin-bottom:9px}
+.tc-text{font-size:.82rem;color:var(--muted);line-height:1.7;font-style:italic;margin-bottom:10px}
+.tc-author{font-size:.76rem;color:var(--green);font-weight:600;font-family:'Share Tech Mono',monospace}
+.btn-reviews{
+  display:block;width:fit-content;margin:0 auto;
+  border:1.5px solid var(--green);color:var(--green);
+  padding:11px 26px;border-radius:6px;font-family:'Oswald',sans-serif;
+  font-size:.88rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;transition:.2s;
+}
+.btn-reviews:hover{background:var(--green-dim)}
+
+/* ── FAQ ── */
+.faq-list{display:flex;flex-direction:column}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-item:first-child{border-top:1px solid var(--border)}
+.faq-q{
+  width:100%;background:none;border:none;color:var(--white);
+  text-align:left;padding:15px 0;font-size:.92rem;font-weight:500;
+  cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  gap:12px;transition:.2s;font-family:'Inter',sans-serif;
+}
+.faq-q:hover{color:var(--gold-b)}
+.faq-q.open{color:var(--gold-b)}
+.faq-arr{font-size:.95rem;color:var(--green);transition:transform .3s;flex-shrink:0}
+.faq-q.open .faq-arr{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.faq-a.open{max-height:300px}
+.faq-a-in{font-size:.84rem;color:var(--muted);line-height:1.7;padding-bottom:15px}
+
+/* ── BOTTOM CTA ── */
+.cta-bottom{
+  background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:60px 20px;text-align:center;
+}
+.cta-bottom h2{font-size:clamp(1.5rem,4vw,2.8rem);color:var(--gold-b);text-transform:uppercase;margin-bottom:10px}
+.cta-bottom p{color:var(--muted);margin-bottom:26px;font-size:.9rem}
+.cta-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.btn-cta-gold{
+  background:var(--gold);color:#000;padding:15px 30px;border-radius:6px;
+  font-family:'Oswald',sans-serif;font-size:1rem;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:.2s;
+  border:none;display:inline-flex;align-items:center;gap:7px;
+}
+.btn-cta-gold:hover{background:var(--gold-b)}
+.btn-cta-call{
+  display:inline-flex;align-items:center;gap:7px;
+  background:transparent;border:1.5px solid var(--green);color:var(--green);
+  padding:13px 26px;border-radius:6px;font-family:'Oswald',sans-serif;
+  font-size:1rem;font-weight:600;letter-spacing:.05em;cursor:pointer;transition:.2s;
+}
+.btn-cta-call:hover{background:var(--green-dim)}
+
+/* ── FOOTER ── */
+footer{
+  background:#030703;border-top:1px solid var(--border);
+  padding:34px 20px;text-align:center;
+}
+.footer-logo{font-family:'Orbitron',sans-serif;font-size:1.15rem;font-weight:700;color:var(--gold-b);letter-spacing:.1em;margin-bottom:3px}
+.footer-dba{font-size:.72rem;color:var(--green);font-family:'Share Tech Mono',monospace;letter-spacing:.12em;margin-bottom:14px;text-transform:uppercase}
+.footer-contact{font-size:.8rem;color:var(--muted);margin-bottom:5px}
+.footer-contact a{color:var(--green)}
+.footer-pills{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:14px 0}
+.footer-legal{font-size:.68rem;color:rgba(240,248,240,.28);margin-top:14px}
+
+/* ── FLOATING BUTTONS ── */
+.fab-phone,.fab-chat{
+  position:fixed;bottom:24px;z-index:1000;
+  width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:1.25rem;
+  box-shadow:0 4px 18px rgba(0,0,0,.45);transition:transform .2s;
+}
+.fab-phone:hover,.fab-chat:hover{transform:scale(1.08)}
+.fab-phone{left:20px;background:#b22020;color:#fff}
+.fab-chat{right:20px;background:var(--green);color:#000}
+
+/* ── WALLY CHAT ── */
+.chat-widget{
+  position:fixed;bottom:86px;right:16px;width:318px;z-index:999;
+  display:none;flex-direction:column;
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 0 1px var(--border);
+}
+.chat-widget.open{display:flex}
+.chat-hdr{
+  background:var(--card2);border-bottom:1px solid var(--border);
+  padding:12px 14px;display:flex;align-items:center;gap:10px;
+}
+.wally-av{
+  width:34px;height:34px;border-radius:50%;background:var(--green);color:#000;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;flex-shrink:0;
+}
+.wally-name{font-family:'Oswald',sans-serif;font-size:.88rem;color:var(--white);letter-spacing:.05em}
+.wally-title{font-size:.62rem;color:var(--green);font-family:'Share Tech Mono',monospace;letter-spacing:.04em}
+.chat-close{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;margin-left:auto;padding:4px}
+.chat-close:hover{color:var(--white)}
+.chat-body{
+  background:#060c06;padding:14px;height:260px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:10px;
+}
+.cmsg{
+  max-width:86%;padding:9px 11px;border-radius:11px;
+  font-size:.79rem;line-height:1.5;
+}
+.cmsg.bot{background:var(--card2);border:1px solid var(--border);color:var(--white);align-self:flex-start}
+.cmsg.usr{background:rgba(0,200,60,.13);border:1px solid rgba(0,200,60,.28);color:var(--white);align-self:flex-end}
+.chat-qbtns{
+  background:#060c06;border-top:1px solid var(--border);
+  padding:9px 10px;display:flex;flex-wrap:wrap;gap:5px;
+}
+.qbtn{
+  background:rgba(0,200,60,.07);border:1px solid rgba(0,200,60,.27);
+  color:var(--green);padding:4px 9px;border-radius:13px;
+  font-size:.67rem;cursor:pointer;transition:.2s;font-family:'Inter',sans-serif;
+}
+.qbtn:hover{background:rgba(0,200,60,.16)}
+.chat-inp-row{
+  background:var(--card);border-top:1px solid var(--border);
+  padding:9px 11px;display:flex;gap:7px;align-items:center;
+}
+.chat-inp{
+  flex:1;background:rgba(0,200,60,.035);border:1px solid rgba(0,200,60,.18);
+  color:var(--white);padding:7px 11px;border-radius:18px;
+  font-size:.77rem;outline:none;font-family:'Inter',sans-serif;
+}
+.chat-inp::placeholder{color:rgba(240,248,240,.32)}
+.chat-inp:focus{border-color:var(--green)}
+.chat-send{
+  background:var(--green);border:none;color:#000;
+  width:30px;height:30px;border-radius:50%;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;flex-shrink:0;
+}
+.chat-send:hover{background:#00ff52}
+
+/* Section scroll-in animation */
+.sec, .form-wrap, .hero, .cta-bottom {
+  opacity:0;transform:translateY(22px);transition:opacity .55s ease,transform .55s ease;
+}
+.sec.in-view,.form-wrap.in-view,.hero.in-view,.cta-bottom.in-view{
+  opacity:1;transform:translateY(0);
+}
+/* Sections with dark bg also glow briefly when entering view */
+.sec-dark.in-view{
+  box-shadow:inset 0 0 60px rgba(0,200,60,0.04);
+}
+
+@media(max-width:480px){
+  .chat-widget{width:calc(100vw - 28px);right:14px}
+  .btn-sm-gold{display:none}
+  .stats-grid{max-width:100%}
+  .hero-logo-card{max-width:300px}
+  .scroll-line{width:2px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── SCROLL PROGRESS LINE ── -->
+<div class="scroll-line" id="scroll-line">
+  <div class="scroll-line-fill" id="scroll-fill" style="height:0%">
+    <div class="scroll-dot" id="scroll-dot"></div>
+  </div>
+</div>
+
+<!-- ── NOTIFICATION BAR ── -->
+<div class="notif-bar">
+  <span>⚠️ Water damage or suspected mold? Same-day inspections available across Florida.</span>
+  <a href="tel:+14079195755">Call Now: (407) 919-5755</a>
+</div>
+
+<!-- ── STICKY HEADER ── -->
+<header>
+  <div class="ticker">
+    FL LICENSE #MRSA3318
+    <span class="ticker-sep">|</span>
+    <span id="live-time">01 JUN 2026 05:45 PM EDT</span>
+    <span class="ticker-sep">|</span>
+    IICRC CERTIFIED
+    <span class="ticker-sep">|</span>
+    LICENSED &amp; INSURED SINCE 2018
+    <span class="ticker-sep">|</span>
+    FL REMEDIATOR #MRSR325
+    <span class="ticker-sep">|</span>
+    AIHA ACCREDITED LAB PARTNER
+  </div>
+  <nav class="nav">
+    <div class="logo-mark" onclick="scrollToTop()">
+      <div class="logo-eye">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <circle cx="9" cy="9" r="5.5" stroke="#00c83c" stroke-width="1.4"/>
+          <circle cx="9" cy="9" r="2.2" fill="rgba(0,200,60,0.5)"/>
+          <line x1="13" y1="13" x2="19" y2="19" stroke="#00c83c" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="logo-wordmark">EYE SPY<span>MOLD</span></div>
+    </div>
+    <div class="nav-cta">
+      <a href="tel:+14079195755" class="btn-sm-call">📞 (407) 919-5755</a>
+      <button class="btn-sm-gold" onclick="scrollToForm()">Free Inspection</button>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <h1>Florida Mold Inspection &amp;<br>Remediation Experts</h1>
+  <p class="hero-sub">Licensed Florida Mold Assessors and IICRC-certified remediation specialists helping homeowners, property managers, real estate agents, insurance claims, and businesses identify mold, document for insurance, and remediate safely. Free assessments. Honest reporting. No high-pressure sales.</p>
+  <p class="hero-tagline">SERVING ALL OF FLORIDA · RESIDENTIAL &amp; COMMERCIAL · SAME-DAY APPOINTMENTS</p>
+
+  <!-- Logo artwork -->
+  <div class="hero-logo-card">
+    <svg viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#050a05">
+      <!-- Ambient circuit lines -->
+      <g opacity="0.12" stroke="#00c83c" stroke-width="0.6" fill="none">
+        <path d="M0 60 Q90 40 180 60 Q270 80 360 60"/>
+        <path d="M0 170 Q90 150 180 170 Q270 190 360 170"/>
+        <circle cx="25" cy="60" r="3"/><circle cx="140" cy="52" r="2"/><circle cx="248" cy="68" r="3.5"/><circle cx="335" cy="58" r="2"/>
+        <line x1="25" y1="57" x2="25" y2="48"/><line x1="248" y1="64" x2="248" y2="78"/>
+      </g>
+      <!-- Data readout -->
+      <text x="12" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="#00c83c" opacity="0.55">MOLD SCAN: Confirmed</text>
+      <text x="12" y="34" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="#00c83c" opacity="0.55">GROWTH RATE: +2.1%</text>
+      <text x="348" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="#00c83c" opacity="0.55" text-anchor="end">01 JUN 2026 05:45</text>
+      <text x="348" y="34" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="#00c83c" opacity="0.55" text-anchor="end">SPECIES: Stachybotrys</text>
+      <!-- Outer magnifier ring shadow glow -->
+      <circle cx="180" cy="105" r="66" fill="rgba(0,200,60,0.04)" stroke="none"/>
+      <!-- Magnifier glass background -->
+      <circle cx="180" cy="105" r="58" fill="rgba(0,40,10,0.85)"/>
+      <!-- Mold organisms inside -->
+      <ellipse cx="168" cy="97"  rx="16" ry="21" fill="#1a6020" opacity="0.85" transform="rotate(-18,168,97)"/>
+      <ellipse cx="191" cy="112" rx="13" ry="18" fill="#15701a" opacity="0.78" transform="rotate(22,191,112)"/>
+      <ellipse cx="172" cy="118" rx="10" ry="14" fill="#0f5515" opacity="0.9"/>
+      <ellipse cx="193" cy="92"  rx="9"  ry="12" fill="#1a6822" opacity="0.82" transform="rotate(-12,193,92)"/>
+      <ellipse cx="162" cy="112" rx="8"  ry="11" fill="#126018" opacity="0.75"/>
+      <!-- Spore dots -->
+      <circle cx="163" cy="89"  r="3.5" fill="#00c83c" opacity="0.95"/>
+      <circle cx="184" cy="82"  r="2.8" fill="#00ff52" opacity="0.88"/>
+      <circle cx="199" cy="100" r="2.2" fill="#00c83c" opacity="0.80"/>
+      <circle cx="170" cy="126" r="3"   fill="#00ff52" opacity="0.92"/>
+      <circle cx="156" cy="106" r="2"   fill="#00c83c" opacity="0.72"/>
+      <circle cx="196" cy="122" r="2.5" fill="#00c83c" opacity="0.70"/>
+      <!-- Magnifier outer ring -->
+      <circle cx="180" cy="105" r="58" fill="none" stroke="#00c83c" stroke-width="1.8"/>
+      <circle cx="180" cy="105" r="61" fill="none" stroke="#00c83c" stroke-width="0.5" opacity="0.3"/>
+      <!-- Handle -->
+      <line x1="222" y1="148" x2="247" y2="173" stroke="#00c83c" stroke-width="6" stroke-linecap="round"/>
+      <line x1="222" y1="148" x2="247" y2="173" stroke="#00ff52" stroke-width="2.2" stroke-linecap="round" opacity="0.45"/>
+      <!-- Green wave at mid -->
+      <path d="M0 115 Q30 103 60 115 Q90 127 120 115 Q150 103 180 115 Q210 127 240 115 Q270 103 300 115 Q330 127 360 115"
+            stroke="#00c83c" stroke-width="1.2" fill="none" opacity="0.4"/>
+      <!-- Bottom nameplate -->
+      <rect x="0" y="183" width="360" height="47" fill="#080d08"/>
+      <rect x="0" y="183" width="360" height="1" fill="#00c83c" opacity="0.45"/>
+      <text x="180" y="205" font-family="'Orbitron',sans-serif" font-size="20" font-weight="700"
+            fill="white" text-anchor="middle" letter-spacing="5">EYE SPY</text>
+      <text x="180" y="222" font-family="'Orbitron',sans-serif" font-size="10"
+            fill="#c8921a" text-anchor="middle" letter-spacing="7">— MOLD —</text>
+    </svg>
+  </div>
+
+  <!-- CTAs -->
+  <div class="hero-btns">
+    <button class="btn-hero-gold" onclick="scrollToForm()">Schedule Your Free Inspection</button>
+    <a href="tel:+14079195755" class="btn-hero-call">📞 Call (407) 919-5755</a>
+  </div>
+
+  <!-- Stats 2×2 -->
+  <div class="stats-grid">
+    <div class="stat-cell">
+      <div class="stat-lbl">Licensed</div>
+      <div class="stat-sub">FL ASSESSOR #MRSA3318</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-lbl">Insured</div>
+      <div class="stat-sub">SINCE 2018</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-big">4.9★</div>
+      <div class="stat-sub">127+ GOOGLE REVIEWS</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-lbl">IICRC</div>
+      <div class="stat-sub">CERTIFIED REMEDIATOR</div>
+    </div>
+  </div>
+
+  <!-- Credential pills -->
+  <div class="cred-pills">
+    <span class="cpill">FL Mold Assessor #MRSA3318</span>
+    <span class="cpill">FL Remediator #MRSR325</span>
+    <span class="cpill">IICRC Certified</span>
+    <span class="cpill">AIHA-Accredited Lab Partner</span>
+    <span class="cpill">Fully Insured</span>
+  </div>
+</section>
+
+<!-- ── MULTI-STEP FORM ── -->
+<div class="form-wrap" id="inspection-form">
+  <div class="form-card">
+    <div class="form-trust">
+      <span class="ftbadge">✓ Licensed FL Assessor #MRSA3318</span>
+      <span class="ftbadge">✓ Fast Response</span>
+      <span class="ftbadge">✓ No High-Pressure Sales</span>
+    </div>
+    <div class="step-dots">
+      <div class="sdot active" id="sd1"></div>
+      <div class="sdot" id="sd2"></div>
+      <div class="sdot" id="sd3"></div>
+    </div>
+    <div class="step-lbl" id="slabel">STEP 1 OF 3 – PROPERTY</div>
+
+    <!-- Step 1 -->
+    <div class="fstep active" id="fs1">
+      <div class="fg">
+        <label>Property Type <span class="req">*</span></label>
+        <select id="prop-type">
+          <option value="">– Select –</option>
+          <option>Single Family Home</option>
+          <option>Condo / Apartment</option>
+          <option>Townhouse</option>
+          <option>Commercial Property</option>
+          <option>Multi-Family</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Suspected Mold Location <span class="req">*</span></label>
+        <select id="mold-loc">
+          <option value="">– Select –</option>
+          <option>Bathroom</option>
+          <option>Kitchen</option>
+          <option>Attic</option>
+          <option>HVAC / Ductwork</option>
+          <option>Basement / Crawl Space</option>
+          <option>Multiple Areas</option>
+          <option>Not Sure</option>
+        </select>
+      </div>
+      <button class="btn-cont" onclick="nextStep(1)">CONTINUE →</button>
+      <p class="form-fine">No obligation. Fast response. Licensed Florida professionals.<br>
+        Send mold photo to (407) 919-5755 or <a href="mailto:eyespymold@gmail.com">eyespymold@gmail.com</a></p>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="fstep" id="fs2">
+      <div class="fg">
+        <label>Full Name <span class="req">*</span></label>
+        <input type="text" id="fname" placeholder="Your name">
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>Phone <span class="req">*</span></label>
+          <input type="tel" id="fphone" placeholder="(555) 000-0000">
+        </div>
+        <div class="fg">
+          <label>Zip Code <span class="req">*</span></label>
+          <input type="text" id="fzip" placeholder="33101" maxlength="5">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Email Address <span class="req">*</span></label>
+        <input type="email" id="femail" placeholder="you@example.com">
+      </div>
+      <button class="btn-cont" onclick="nextStep(2)">CONTINUE →</button>
+      <p class="form-fine">Your information is secure and never shared with third parties.</p>
+    </div>
+
+    <!-- Step 3 confirmation -->
+    <div class="fstep" id="fs3">
+      <div class="form-success">
+        <div class="success-check">✓</div>
+        <h3>Request Received!</h3>
+        <p>Thank you. A licensed Florida mold assessor will contact you within 1 business hour to schedule your free inspection.</p>
+        <p style="margin-top:12px;color:var(--green);font-size:.82rem">Questions? Call <a href="tel:+14079195755" style="color:var(--green);font-weight:700">(407) 919-5755</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- wave -->
+<div class="wave-sep"><svg viewBox="0 0 1200 36" preserveAspectRatio="none"><path d="M0 18 Q150 4 300 18 Q450 32 600 18 Q750 4 900 18 Q1050 32 1200 18" stroke="#00c83c" stroke-width="1.4" fill="none" opacity="0.45"/></svg></div>
+
+<!-- ── WHY TRUST ── -->
+<section class="sec">
+  <div class="sec-inner">
+    <h2 class="sec-title">Why Homeowners Trust Eye Spy Mold</h2>
+    <p class="sec-sub">Florida-licensed. IICRC-certified. Insurance-friendly. No-pressure inspections.</p>
+    <div class="sec-div"></div>
+    <div class="trust-grid">
+      <div class="tcard"><div class="tcard-ico">🛡️</div><h3>Licensed &amp; Insured</h3><p>FL Mold Assessor #MRSA3318, Remediator #MRSR325. Fully insured since 2018.</p></div>
+      <div class="tcard"><div class="tcard-ico">🎓</div><h3>Florida Certified Professionals</h3><p>State-licensed assessors and remediators with hundreds of completed inspections across Florida.</p></div>
+      <div class="tcard"><div class="tcard-ico">🔬</div><h3>Third-Party Lab Analysis</h3><p>Samples sent to independent AIHA-accredited laboratories. No in-house lab. No conflict of interest.</p></div>
+      <div class="tcard"><div class="tcard-ico">⚡</div><h3>Fast Response Times</h3><p>Same-day appointments across Florida for urgent water damage, post-storm, or active leak concerns.</p></div>
+      <div class="tcard"><div class="tcard-ico">📋</div><h3>Honest Reporting</h3><p>English reports with clear photos. If you do not have a mold problem, we will tell you straight.</p></div>
+      <div class="tcard"><div class="tcard-ico">🚫</div><h3>No High-Pressure Sales</h3><p>We separate assessment from remediation so your inspection report is completely unbiased.</p></div>
+      <div class="tcard"><div class="tcard-ico">📐</div><h3>Clear Remediation Plans</h3><p>IICRC-standard protocols with documented containment, removal, and post-remediation verification.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- wave -->
+<div class="wave-sep"><svg viewBox="0 0 1200 36" preserveAspectRatio="none"><path d="M0 18 Q150 32 300 18 Q450 4 600 18 Q750 32 900 18 Q1050 4 1200 18" stroke="#00c83c" stroke-width="1.4" fill="none" opacity="0.45"/></svg></div>
+
+<!-- ── ABOUT ── -->
+<section class="sec sec-dark">
+  <div class="sec-inner">
+    <div class="about-grid">
+      <div class="about-body">
+        <h2 class="about-h">About Eye Spy Mold</h2>
+        <p class="about-tag">Florida-born. Family-focused. Built on honest inspections.</p>
+        <p>Eye Spy Mold is a Florida-licensed mold inspection and remediation company serving homeowners, property managers, real estate agents, and businesses across the state since 2016. Our team has completed hundreds of inspections from Central Florida through Miami-Dade.</p>
+        <p>We started Eye Spy because too many Florida families were getting bad mold news from companies that also sold the remediation — a conflict we do not think is fair. Our inspections are independent. Our reports are written in plain English. If you do not have a problem, we will tell you straight.</p>
+        <p>We know Florida: The humidity, the hurricanes, the AC condensation, the post-storm water intrusion. That is why we are the right call when something smells off or a stain appears after a leak.</p>
+        <div class="bullets">
+          <div class="bullet"><span class="ico">✓</span><span>Local Florida expertise — every inspector lives and works here</span></div>
+          <div class="bullet"><span class="ico">✓</span><span>Hundreds of inspections completed since 2016</span></div>
+          <div class="bullet"><span class="ico">✓</span><span>Family-focused approach to every property we enter</span></div>
+          <div class="bullet"><span class="ico">✓</span><span>Honest recommendations, never high-pressure</span></div>
+          <div class="bullet"><span class="ico">✓</span><span>Insurance documentation support included</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="photo-grid">
+          <div class="photo-ph">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#00c83c" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span>[Insert Photo]</span>
+          </div>
+          <div class="photo-ph">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#00c83c" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span>[Insert Photo]</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SERVICES ── -->
+<section class="sec">
+  <div class="sec-inner">
+    <h2 class="sec-title">Mold Inspection, Testing &amp;<br>Remediation Services</h2>
+    <p class="sec-sub">Full-scope mold solutions for Florida homes and businesses</p>
+    <div class="sec-div"></div>
+    <div class="svc-main">
+      <div class="svc-card">
+        <h3>Mold Inspection Services</h3>
+        <p>Visual property assessment, moisture meter readings, HVAC inspection, and identification of probable mold sources. Documented with photos and a written report.</p>
+      </div>
+      <div class="svc-card">
+        <h3>Mold Testing Services</h3>
+        <p>Air sampling and surface sampling sent to state-accredited third-party laboratories. Spore counts and species identification compared to outdoor baseline.</p>
+      </div>
+      <div class="svc-card">
+        <h3>Mold Remediation Services</h3>
+        <p>IICRC-standard containment, negative air pressure, HEPA filtration, antimicrobial treatment, and post-remediation clearance testing.</p>
+      </div>
+    </div>
+
+    <p class="svc-spec-label">Eye Spy Mold Specialty Services</p>
+    <div class="svc-spec">
+      <div class="spec-card"><h4>Indoor Air Quality Testing</h4><p>Comprehensive IAQ assessment including airborne mold spores, with optional humidity profiling for sensitive occupants.</p></div>
+      <div class="spec-card"><h4>Water Damage Mold Inspection</h4><p>Post-leak, post-storm, and post-flood inspections using infrared moisture detection to detect hidden growth before it spreads.</p></div>
+      <div class="spec-card"><h4>Insurance Documentation</h4><p>Reports formatted for insurance claims with photo evidence, lab results, and clearance testing to support your remediation claim.</p></div>
+      <div class="spec-card"><h4>Commercial Mold Inspection</h4><p>Inspection and remediation for offices, retail spaces, warehouses, and multi-tenant commercial buildings across Florida.</p></div>
+      <div class="spec-card"><h4>Real Estate Mold Inspection</h4><p>Pre-listing and pre-purchase mold inspections with clear reports that help close deals and protect buyers and sellers alike.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FLORIDA SPECIALISTS ── -->
+<section class="sec sec-dark">
+  <div class="sec-inner">
+    <h2 class="sec-title">Florida Mold Specialists</h2>
+    <p class="sec-sub">Built for the climate. Trained for the conditions.</p>
+    <div class="sec-div"></div>
+    <div class="fl-grid">
+      <div class="fl-card"><h3>High Humidity</h3><p>Florida humidity sits well above the 50% threshold where mold thrives year-round. We know where it hides.</p></div>
+      <div class="fl-card"><h3>Hurricane &amp; Storm Damage</h3><p>Post-storm water intrusion is the #1 cause of Florida mold. We respond fast after major weather events.</p></div>
+      <div class="fl-card"><h3>AC System Mold</h3><p>Florida AC units run nearly year-round. Condensate pans, evaporator coils, and ductwork are common hidden mold sources.</p></div>
+      <div class="fl-card"><h3>Condo &amp; High-Rise Issues</h3><p>Shared walls, building envelope failures, and concrete moisture create unique mold patterns in Florida condos.</p></div>
+      <div class="fl-card"><h3>Water Intrusion</h3><p>Roof leaks, plumbing failures, and slab moisture in Florida construction — diagnosed with thermal imaging and moisture meters.</p></div>
+      <div class="fl-card"><h3>South Florida Climate</h3><p>From Miami salt air to Broward humidity to Palm Beach storm exposure — we tailor inspections to your local environment.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SERVICE AREAS ── -->
+<section class="sec">
+  <div class="sec-inner">
+    <h2 class="sec-title">Service Areas</h2>
+    <p class="sec-sub">Mold inspection and remediation across Florida</p>
+    <div class="sec-div"></div>
+    <div class="areas-grid">
+      <div class="area-county">
+        <h3>Miami-Dade County</h3>
+        <ul class="area-list">
+          <li><a href="#">Mold Inspection Miami</a></li>
+          <li><a href="#">Mold Inspection Hialeah</a></li>
+          <li><a href="#">Mold Inspection Miami Gardens</a></li>
+          <li><a href="#">Mold Inspection Doral</a></li>
+          <li><a href="#">Mold Inspection North Miami</a></li>
+          <li><a href="#">Mold Inspection Homestead</a></li>
+        </ul>
+      </div>
+      <div class="area-county">
+        <h3>Broward County</h3>
+        <ul class="area-list">
+          <li><a href="#">Mold Inspection Fort Lauderdale</a></li>
+          <li><a href="#">Mold Inspection Hollywood</a></li>
+          <li><a href="#">Mold Inspection Pembroke Pines</a></li>
+          <li><a href="#">Mold Inspection Miramar</a></li>
+          <li><a href="#">Mold Inspection Coral Springs</a></li>
+          <li><a href="#">Mold Inspection Pompano Beach</a></li>
+        </ul>
+      </div>
+      <div class="area-county">
+        <h3>Palm Beach County</h3>
+        <ul class="area-list">
+          <li><a href="#">Mold Inspection West Palm Beach</a></li>
+          <li><a href="#">Mold Inspection Boca Raton</a></li>
+          <li><a href="#">Mold Inspection Boynton Beach</a></li>
+          <li><a href="#">Mold Inspection Delray Beach</a></li>
+          <li><a href="#">Mold Inspection Jupiter</a></li>
+        </ul>
+      </div>
+      <div class="area-county">
+        <h3>Central Florida</h3>
+        <ul class="area-list">
+          <li><a href="#">Mold Inspection Orlando</a></li>
+          <li><a href="#">Mold Inspection Kissimmee</a></li>
+          <li><a href="#">Mold Inspection Sanford</a></li>
+          <li><a href="#">Mold Inspection Winter Park</a></li>
+          <li><a href="#">Mold Inspection Lake Mary</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="sec sec-dark">
+  <div class="sec-inner">
+    <h2 class="sec-title">What Florida Homeowners Say</h2>
+    <div class="testi-hdr">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-avg">4.9★ average · 170+ Google reviews</p>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="tc-stars">★★★★★</div>
+        <p class="tc-text">"After Hurricane Ian we had ceiling staining and a smell we could not pin down. Eye Spy showed up the next morning, inspected top to bottom, and gave us a clear plan. They handled remediation and submitted everything to insurance for us."</p>
+        <div class="tc-author">— Maria G., Hollywood, FL</div>
+      </div>
+      <div class="testi-card">
+        <div class="tc-stars">★★★★★</div>
+        <p class="tc-text">"Professional from the first call. The inspector explained every test and what we were looking at. Report was thorough and the price was fair. No upsell, no scare tactics."</p>
+        <div class="tc-author">— David R., Miami, FL</div>
+      </div>
+      <div class="testi-card">
+        <div class="tc-stars">★★★★★</div>
+        <p class="tc-text">"We thought we had mold but the inspection found just water staining from an old leak. Most companies would have invented a problem — they told us the truth and saved us thousands."</p>
+        <div class="tc-author">— Jennifer P., Fort Lauderdale, FL</div>
+      </div>
+      <div class="testi-card">
+        <div class="tc-stars">★★★★★</div>
+        <p class="tc-text">"Our condo had a long-running humidity issue and tenant complaints. Eye Spy did the assessment, coordinated the remediation, and handled the clearance testing. Everyone was easy to work with."</p>
+        <div class="tc-author">— Carlos M., Pembroke Pines, FL</div>
+      </div>
+      <div class="testi-card">
+        <div class="tc-stars">★★★★★</div>
+        <p class="tc-text">"As a realtor I refer clients to Eye Spy because their reports are accurate and on time. They have helped close deals that other inspectors derailed with bad reporting."</p>
+        <div class="tc-author">— Susan W., Boca Raton, FL</div>
+      </div>
+      <div class="testi-card">
+        <div class="tc-stars">★★★★★</div>
+        <p class="tc-text">"Insurance was dragging their feet until Eye Spy's report landed in their inbox. Detailed, professional, and the photos told the whole story. Claim got approved the same week."</p>
+        <div class="tc-author">— Robert K., Orlando, FL</div>
+      </div>
+    </div>
+    <a href="#" class="btn-reviews">READ ALL GOOGLE REVIEWS</a>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="sec">
+  <div class="sec-inner" style="max-width:700px">
+    <h2 class="sec-title">Mold Inspection FAQs</h2>
+    <p class="sec-sub">Common questions from Florida homeowners</p>
+    <div class="sec-div"></div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How much does a mold inspection cost?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">Standard mold inspections range from $299–$499 depending on property size and service type. Air quality testing with lab analysis starts at $349. We provide a detailed quote before any work begins — no hidden fees.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How long does mold testing take?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">The on-site inspection takes 1–3 hours depending on property size. Lab results typically return within 24–72 hours, and your full written report is delivered within 24 hours of receiving results.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Can mold affect my health?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">Yes. Mold exposure can cause respiratory issues, allergic reactions, headaches, and fatigue. Children, the elderly, and those with respiratory conditions are especially at risk. If you suspect mold, don't wait — schedule a free inspection.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Will my insurance cover mold remediation?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">Many homeowners insurance policies cover mold if it results from a sudden covered event such as a burst pipe or storm damage. We provide detailed, insurance-formatted reports with photo evidence and lab results to support your claim.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How do I know if I have mold?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">Common signs include musty odors, visible dark spots on walls or ceilings, recent water damage, condensation issues, or unexplained allergy symptoms indoors. If you notice any of these, a professional inspection is the safest next step.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Do you provide lab testing?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">Yes. All air and surface samples are sent to AIHA-accredited third-party laboratories. We have no financial interest in the lab — which means you receive a completely unbiased report with spore counts and species identification.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How quickly can you schedule an inspection?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">We offer same-day appointments for urgent situations including active water damage, post-storm inspections, and health concerns. Standard inspections are typically available within 24–48 hours across all Florida service areas.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BOTTOM CTA ── -->
+<div class="cta-bottom">
+  <h2>Schedule Your Free<br>Mold Inspection</h2>
+  <p>Licensed Florida professionals. Same-day appointments. No obligation.</p>
+  <div class="cta-btns">
+    <button class="btn-cta-gold" onclick="scrollToForm()">→ Book Free Inspection</button>
+    <a href="tel:+14079195755" class="btn-cta-call">📞 (407) 919-5755</a>
+  </div>
+</div>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">EYE SPY MOLD</div>
+  <div class="footer-dba">DRIGO MOLD INSPECTION &amp; MEDIATION</div>
+  <p class="footer-contact">South Florida mold inspection, testing, and remediation</p>
+  <p class="footer-contact">
+    <a href="tel:+14079195755">(407) 919-5755</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:eyespymold@gmail.com">eyespymold@gmail.com</a>
+  </p>
+  <div class="footer-pills">
+    <span class="cpill">FL Assessor #MRSA3318</span>
+    <span class="cpill">FL Remediator #MRSR325</span>
+    <span class="cpill">IICRC Certified</span>
+    <span class="cpill">AIHA Lab Partner</span>
+    <span class="cpill">Fully Insured</span>
+  </div>
+  <p class="footer-legal">© 2026 Eye Spy Mold · All rights reserved · Licensed Florida Mold Assessor &amp; Remediator</p>
+</footer>
+
+<!-- ── FLOATING BUTTONS ── -->
+<a href="tel:+14079195755" class="fab-phone" title="Call Us">📞</a>
+<button class="fab-chat" onclick="toggleChat()" title="Chat with Wally">💬</button>
+
+<!-- ── WALLY CHAT ── -->
+<div class="chat-widget" id="chat-widget">
+  <div class="chat-hdr">
+    <div class="wally-av">W</div>
+    <div style="flex:1">
+      <div class="wally-name">WALLY</div>
+      <div class="wally-title">● EYE SPY MOLD ASSISTANT</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-body" id="chat-body">
+    <div class="cmsg bot">Hi! I'm <strong>Wally</strong>, the Eye Spy Mold assistant. I can answer questions about inspections, services, pricing, or coverage areas. What can I help with?</div>
+  </div>
+  <div class="chat-qbtns">
+    <button class="qbtn" onclick="qr('services')">Services</button>
+    <button class="qbtn" onclick="qr('inspection')">Free Inspection</button>
+    <button class="qbtn" onclick="qr('areas')">Areas Covered</button>
+    <button class="qbtn" onclick="qr('pricing')">Pricing</button>
+    <button class="qbtn" onclick="qr('emergency')">Emergency</button>
+    <button class="qbtn" onclick="qr('contact')">Contact</button>
+  </div>
+  <div class="chat-inp-row">
+    <input class="chat-inp" id="chat-inp" type="text"
+      placeholder="Ask about inspections, pricing, areas..."
+      onkeypress="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">▶</button>
+  </div>
+</div>
+
+<script>
+// Live clock
+(function tick() {
+  const el = document.getElementById('live-time');
+  if (!el) return;
+  const now = new Date();
+  const M = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  let h = now.getHours(), m = now.getMinutes().toString().padStart(2,'0');
+  const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+  el.textContent = `${now.getDate().toString().padStart(2,'0')} ${M[now.getMonth()]} ${now.getFullYear()} ${h}:${m} ${ap} EDT`;
+  setTimeout(tick, 30000);
+})();
+
+function scrollToTop() { window.scrollTo({top:0,behavior:'smooth'}); }
+
+function scrollToForm() {
+  document.getElementById('inspection-form').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// Multi-step form
+function nextStep(n) {
+  if (n === 1) {
+    if (!document.getElementById('prop-type').value || !document.getElementById('mold-loc').value) {
+      alert('Please select both fields to continue.');return;
+    }
+  }
+  if (n === 2) {
+    const f = document.getElementById('fname').value.trim();
+    const p = document.getElementById('fphone').value.trim();
+    const e = document.getElementById('femail').value.trim();
+    const z = document.getElementById('fzip').value.trim();
+    if (!f || !p || !e || !z) { alert('Please fill out all fields to continue.');return; }
+  }
+  document.getElementById('fs'+n).classList.remove('active');
+  document.getElementById('fs'+(n+1)).classList.add('active');
+  document.getElementById('sd'+n).classList.remove('active');
+  document.getElementById('sd'+n).classList.add('done');
+  if (n+1 <= 3) document.getElementById('sd'+(n+1)).classList.add('active');
+  const labels = ['','STEP 1 OF 3 – PROPERTY','STEP 2 OF 3 – CONTACT','REQUEST SUBMITTED'];
+  document.getElementById('slabel').textContent = labels[n+1];
+}
+
+// FAQ
+function toggleFaq(btn) {
+  const ans = btn.nextElementSibling;
+  const open = btn.classList.contains('open');
+  document.querySelectorAll('.faq-q.open').forEach(q => {
+    q.classList.remove('open'); q.nextElementSibling.classList.remove('open');
+  });
+  if (!open) { btn.classList.add('open'); ans.classList.add('open'); }
+}
+
+// Chat
+let chatOpen = false;
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-widget').classList.toggle('open', chatOpen);
+}
+
+const replies = {
+  services: 'Eye Spy Mold offers: Mold Inspection, Air Quality Testing, Mold Testing (lab analysis), Remediation, Water Damage Inspections, Insurance Documentation, Commercial Inspections, and Real Estate Inspections.',
+  inspection: 'Your free inspection includes a full visual assessment for mold and moisture. Same-day appointments available! Call (407) 919-5755 or use the form on this page.',
+  areas: 'We serve all of Florida — Miami-Dade, Broward, Palm Beach, and Central Florida. Cities include Miami, Fort Lauderdale, Boca Raton, Orlando, and many more.',
+  pricing: 'Mold inspections start at $299. Air quality testing with lab analysis starts at $349. We quote upfront — no hidden fees.',
+  emergency: 'For water damage or active mold emergencies call (407) 919-5755 directly. We offer same-day emergency appointments across Florida.',
+  contact: 'Phone: (407) 919-5755\nEmail: eyespymold@gmail.com\nLicense: FL Assessor #MRSA3318\nAvailable 7 days a week.'
+};
+
+function qr(key) {
+  addMsg(key.replace(/-/g,' '), 'usr');
+  setTimeout(() => addMsg(replies[key], 'bot'), 650);
+}
+
+function sendChat() {
+  const inp = document.getElementById('chat-inp');
+  const txt = inp.value.trim(); if (!txt) return;
+  addMsg(txt, 'usr'); inp.value = '';
+  const l = txt.toLowerCase();
+  let r;
+  if (/price|cost|how much/.test(l)) r = replies.pricing;
+  else if (/area|location|city|county|where/.test(l)) r = replies.areas;
+  else if (/service|what do you|offer/.test(l)) r = replies.services;
+  else if (/emergency|urgent|asap/.test(l)) r = replies.emergency;
+  else if (/contact|phone|email|call/.test(l)) r = replies.contact;
+  else if (/free|inspection|schedule|book/.test(l)) r = replies.inspection;
+  else r = "Great question! For the most accurate answer call (407) 919-5755 or email eyespymold@gmail.com — our team is available 7 days a week.";
+  setTimeout(() => addMsg(r, 'bot'), 700);
+}
+
+function addMsg(txt, type) {
+  const body = document.getElementById('chat-body');
+  const d = document.createElement('div');
+  d.className = 'cmsg ' + type;
+  d.textContent = txt;
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+
+// Scroll progress line
+(function() {
+  const fill = document.getElementById('scroll-fill');
+  const dot  = document.getElementById('scroll-dot');
+  function updateScroll() {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docH > 0 ? Math.min(100, (scrollTop / docH) * 100) : 0;
+    fill.style.height = pct + '%';
+    dot.style.bottom = '0px';
+  }
+  window.addEventListener('scroll', updateScroll, {passive:true});
+  updateScroll();
+})();
+
+// Section highlight on scroll (Intersection Observer)
+(function() {
+  const sections = document.querySelectorAll('.sec, .form-wrap, .hero, .cta-bottom');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in-view');
+      }
+    });
+  }, {threshold: 0.12});
+  sections.forEach(s => obs.observe(s));
+})();
+</script>
+</body>
+</html>
