@@ -31,48 +31,32 @@ a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
 h1,h2,h3,h4{font-family:'Oswald',sans-serif;line-height:1.15}
 
-/* Mold organism background canvas */
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:
-    /* Ambient green glow pools */
-    radial-gradient(ellipse 55% 40% at 8%  18%, rgba(0,160,40,0.07) 0%, transparent 65%),
-    radial-gradient(ellipse 45% 35% at 92% 72%, rgba(0,160,40,0.06) 0%, transparent 65%),
-    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0,140,35,0.04) 0%, transparent 70%),
-    /* Mold colony blobs */
-    radial-gradient(ellipse 12% 8%  at 15% 30%, rgba(0,120,30,0.12) 0%, rgba(0,80,20,0.06) 40%, transparent 70%),
-    radial-gradient(ellipse 8%  12% at 78% 22%, rgba(0,100,25,0.10) 0%, rgba(0,70,15,0.05) 45%, transparent 70%),
-    radial-gradient(ellipse 14% 9%  at 62% 65%, rgba(0,110,28,0.09) 0%, rgba(0,70,18,0.04) 45%, transparent 70%),
-    radial-gradient(ellipse 7%  10% at 33% 80%, rgba(0,100,25,0.08) 0%, transparent 65%),
-    radial-gradient(ellipse 10% 7%  at 88% 50%, rgba(0,120,30,0.07) 0%, transparent 65%),
-    radial-gradient(ellipse 6%  8%  at 22% 58%, rgba(0,90,22,0.09)  0%, transparent 65%),
-    radial-gradient(ellipse 9%  6%  at 70% 10%, rgba(0,105,26,0.07) 0%, transparent 65%);
-}
-
-/* Mold spore dot pattern overlay */
-body::after{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Ccircle cx='20' cy='20' r='1.2' fill='%2300c83c' fill-opacity='0.035'/%3E%3Ccircle cx='60' cy='50' r='0.8' fill='%2300c83c' fill-opacity='0.028'/%3E%3Ccircle cx='100' cy='30' r='1.5' fill='%2300c83c' fill-opacity='0.025'/%3E%3Ccircle cx='40' cy='90' r='1'   fill='%2300c83c' fill-opacity='0.03'/%3E%3Ccircle cx='85' cy='85' r='1.8' fill='%2300c83c' fill-opacity='0.022'/%3E%3Ccircle cx='10' cy='75' r='0.7' fill='%2300c83c' fill-opacity='0.03'/%3E%3Ccircle cx='110' cy='100' r='1.1' fill='%2300c83c' fill-opacity='0.028'/%3E%3C/svg%3E");
-  opacity:1;
+/* Matrix canvas sits behind everything */
+#matrix-canvas{
+  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:1;
 }
 
 .notif-bar,header,main,footer,.chat-widget,.fab-phone,.fab-chat{position:relative;z-index:1}
 
 /* ── SCROLL PROGRESS LINE (right side) ── */
 .scroll-line{
-  position:fixed;right:0;top:0;bottom:0;width:3px;
-  background:rgba(0,200,60,0.07);z-index:200;pointer-events:none;
+  position:fixed;right:3px;top:0;bottom:0;width:2px;
+  background:rgba(0,200,60,0.08);z-index:500;pointer-events:none;
 }
 .scroll-line-fill{
   position:absolute;top:0;left:0;right:0;
-  background:linear-gradient(to bottom, transparent, var(--green), rgba(0,200,60,0.4));
-  transition:height .05s linear;box-shadow:0 0 8px var(--green);
+  background:linear-gradient(to bottom,
+    rgba(0,200,60,0.2) 0%,
+    #00ff52 50%,
+    #00c83c 100%);
+  transition:height .04s linear;
+  box-shadow:0 0 6px #00ff52, 0 0 14px rgba(0,255,82,0.6), 0 0 28px rgba(0,200,60,0.3);
 }
 .scroll-dot{
-  position:absolute;left:50%;transform:translateX(-50%);
-  width:10px;height:10px;border-radius:50%;
-  background:var(--green);box-shadow:0 0 12px var(--green),0 0 4px #fff;
-  margin-left:-1px;
+  position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);
+  width:12px;height:12px;border-radius:50%;
+  background:#00ff52;
+  box-shadow:0 0 8px #00ff52,0 0 20px rgba(0,255,82,0.8),0 0 4px #fff;
 }
 
 /* ── NOTIFICATION BAR ── */
@@ -487,6 +471,9 @@ footer{
 </style>
 </head>
 <body>
+
+<!-- Matrix mold canvas -->
+<canvas id="matrix-canvas"></canvas>
 
 <!-- ── SCROLL PROGRESS LINE ── -->
 <div class="scroll-line" id="scroll-line">
@@ -1118,32 +1105,83 @@ function addMsg(txt, type) {
   body.scrollTop = body.scrollHeight;
 }
 
-// Scroll progress line
+// ── MATRIX MOLD BACKGROUND ──
+(function() {
+  const canvas = document.getElementById('matrix-canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Mold-themed glyphs — spore symbols + organic shapes
+  const glyphs = '●◉○◎✦✧⬡⬢◆◇⬟⬠✺✹✸✷⊕⊗⊙⊘⊛•·'.split('');
+
+  let cols, drops, W, H;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    cols  = Math.floor(W / 18);
+    drops = Array(cols).fill(0).map(() => Math.random() * -H);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    // Dark semi-transparent fade — creates the trailing glow
+    ctx.fillStyle = 'rgba(5,10,5,0.06)';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = 0; i < cols; i++) {
+      const y = drops[i];
+      if (y < 0 || y > H + 20) { drops[i] += 16; continue; }
+
+      const glyph = glyphs[Math.floor(Math.random() * glyphs.length)];
+      const progress = y / H;
+
+      // Leading bright glow
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#00ff52';
+      ctx.fillStyle = `rgba(0,255,82,${0.85 - progress * 0.4})`;
+      ctx.font = `${10 + Math.random()*6}px monospace`;
+      ctx.fillText(glyph, i * 18, y);
+
+      // Dimmer trail behind
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = `rgba(0,180,40,${0.25 - progress * 0.1})`;
+      ctx.font = '10px monospace';
+      ctx.fillText(glyphs[Math.floor(Math.random() * glyphs.length)], i * 18, y - 18);
+
+      drops[i] += 14 + Math.random() * 6;
+
+      // Reset with random delay
+      if (drops[i] > H + 40) {
+        drops[i] = Math.random() * -200;
+      }
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  setInterval(draw, 40);
+})();
+
+// ── SCROLL PROGRESS LINE ──
 (function() {
   const fill = document.getElementById('scroll-fill');
-  const dot  = document.getElementById('scroll-dot');
   function updateScroll() {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const docH = document.documentElement.scrollHeight - window.innerHeight;
     const pct = docH > 0 ? Math.min(100, (scrollTop / docH) * 100) : 0;
     fill.style.height = pct + '%';
-    dot.style.bottom = '0px';
   }
   window.addEventListener('scroll', updateScroll, {passive:true});
   updateScroll();
 })();
 
-// Section highlight on scroll (Intersection Observer)
+// ── SECTION REVEAL ──
 (function() {
-  const sections = document.querySelectorAll('.sec, .form-wrap, .hero, .cta-bottom');
   const obs = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('in-view');
-      }
-    });
-  }, {threshold: 0.12});
-  sections.forEach(s => obs.observe(s));
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+  }, {threshold: 0.1});
+  document.querySelectorAll('.sec,.form-wrap,.hero,.cta-bottom').forEach(s => obs.observe(s));
 })();
 </script>
 </body>
