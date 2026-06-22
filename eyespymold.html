@@ -38,23 +38,26 @@ h1,h2,h3,h4{font-family:'Oswald',sans-serif;line-height:1.15}
 
 .notif-bar,header,main,footer,.chat-widget,.fab-phone,.fab-chat{position:relative;z-index:1}
 
-/* ── SCROLL PROGRESS LINE (right side) ── */
-.scroll-line{
+/* ── SCANNER LINE (right side) — glowing dot follows scroll ── */
+.scan-line{
   position:fixed;right:3px;top:0;bottom:0;width:2px;
-  background:rgba(0,200,60,0.08);z-index:500;pointer-events:none;
+  background:rgba(0,200,60,0.06);z-index:500;pointer-events:none;
 }
-.scroll-line-fill{
-  position:absolute;top:0;left:0;right:0;
+.scan-beam{
+  position:absolute;left:-4px;right:-4px;height:80px;
+  top:0;transform:translateY(-50%);
   background:linear-gradient(to bottom,
-    rgba(0,200,60,0.2) 0%,
+    rgba(0,200,60,0) 0%,
+    rgba(0,255,82,0.6) 35%,
     #00ff52 50%,
-    #00c83c 100%);
-  transition:height .04s linear;
-  box-shadow:0 0 6px #00ff52, 0 0 14px rgba(0,255,82,0.6), 0 0 28px rgba(0,200,60,0.3);
+    rgba(0,255,82,0.6) 65%,
+    rgba(0,200,60,0) 100%);
+  box-shadow:0 0 12px #00ff52, 0 0 30px rgba(0,255,82,0.4), -8px 0 20px rgba(0,255,82,0.15);
+  transition:top .05s linear;
 }
-.scroll-dot{
-  position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);
-  width:12px;height:12px;border-radius:50%;
+.scan-dot{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:10px;height:10px;border-radius:50%;
   background:#00ff52;
   box-shadow:0 0 8px #00ff52,0 0 20px rgba(0,255,82,0.8),0 0 4px #fff;
 }
@@ -307,23 +310,26 @@ header{
 .area-list li a{font-size:.79rem;color:var(--muted);display:block;padding:2px 0;transition:.2s}
 .area-list li a:hover{color:var(--green)}
 
-/* ── TESTIMONIALS ── */
-.testi-hdr{text-align:center}
-.testi-stars{color:#f5c518;font-size:1.05rem;margin-bottom:5px}
-.testi-avg{font-size:.8rem;color:var(--muted);margin-bottom:26px}
-.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:22px}
-.testi-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:18px 16px}
-.tc-stars{color:#f5c518;font-size:.85rem;margin-bottom:9px}
-.tc-text{font-size:.82rem;color:var(--muted);line-height:1.7;font-style:italic;margin-bottom:10px}
-.tc-author{font-size:.76rem;color:var(--green);font-weight:600;font-family:'Share Tech Mono',monospace}
-.btn-reviews{
-  display:block;width:fit-content;margin:0 auto;
-  border:1.5px solid var(--green);color:var(--green);
-  padding:11px 26px;border-radius:6px;font-family:'Oswald',sans-serif;
-  font-size:.88rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
-  cursor:pointer;transition:.2s;
+/* ── BEFORE & AFTER PHOTOS ── */
+.ba-grid{display:grid;gap:30px}
+.ba-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.ba-pair{grid-template-columns:1fr}}
+.ba-label{
+  font-family:'Oswald',sans-serif;font-size:.82rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;padding:5px 12px;
+  border-radius:6px 6px 0 0;text-align:center;
 }
-.btn-reviews:hover{background:var(--green-dim)}
+.ba-before .ba-label{background:rgba(160,0,0,0.4);color:#ff8080;border:1px solid rgba(200,0,0,0.25);border-bottom:none}
+.ba-after .ba-label{background:rgba(0,140,40,0.25);color:var(--green);border:1px solid rgba(0,200,60,0.2);border-bottom:none}
+.ba-photo{
+  aspect-ratio:4/3;background:var(--bg2);
+  border-radius:0 0 8px 8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:rgba(0,200,60,.3);font-size:.72rem;gap:8px;
+}
+.ba-before .ba-photo{border:1px solid rgba(200,0,0,0.2);border-top:none}
+.ba-after .ba-photo{border:1px solid rgba(0,200,60,0.18);border-top:none}
+.ba-caption{font-size:.72rem;color:var(--muted);text-align:center;margin-top:8px;font-family:'Share Tech Mono',monospace;letter-spacing:.03em}
 
 /* ── FAQ ── */
 .faq-list{display:flex;flex-direction:column}
@@ -466,7 +472,7 @@ footer{
   .btn-sm-gold{display:none}
   .stats-grid{max-width:100%}
   .hero-logo-card{max-width:300px}
-  .scroll-line{width:2px}
+  .scan-line{width:2px}
 }
 </style>
 </head>
@@ -475,16 +481,16 @@ footer{
 <!-- Matrix mold canvas -->
 <canvas id="matrix-canvas"></canvas>
 
-<!-- ── SCROLL PROGRESS LINE ── -->
-<div class="scroll-line" id="scroll-line">
-  <div class="scroll-line-fill" id="scroll-fill" style="height:0%">
-    <div class="scroll-dot" id="scroll-dot"></div>
+<!-- ── SCANNER LINE ── -->
+<div class="scan-line">
+  <div class="scan-beam" id="scan-beam">
+    <div class="scan-dot"></div>
   </div>
 </div>
 
 <!-- ── NOTIFICATION BAR ── -->
 <div class="notif-bar">
-  <span>⚠️ Water damage or suspected mold? Same-day inspections available across Florida.</span>
+  <span>⚠️ Suspected mold or recent water damage? Most Florida inspections scheduled within 24–48 hours — call now for urgent cases.</span>
   <a href="tel:+14079195755">Call Now: (407) 919-5755</a>
 </div>
 
@@ -526,7 +532,7 @@ footer{
 <!-- ── HERO ── -->
 <section class="hero">
   <h1>Florida Mold Inspection &amp;<br>Remediation Experts</h1>
-  <p class="hero-sub">Licensed Florida Mold Assessors and IICRC-certified remediation specialists helping homeowners, property managers, real estate agents, insurance claims, and businesses identify mold, document for insurance, and remediate safely. Free assessments. Honest reporting. No high-pressure sales.</p>
+  <p class="hero-sub">We find mold, tell you exactly what you're dealing with, and clean it up safely. Whether you've noticed a musty smell, spotted dark stains, had a water leak, or need a report for your insurance — we have you covered. Florida-licensed mold assessors and certified cleanup specialists who give you straight answers, not a sales pitch.</p>
   <p class="hero-tagline">SERVING ALL OF FLORIDA · RESIDENTIAL &amp; COMMERCIAL · SAME-DAY APPOINTMENTS</p>
 
   <!-- Logo artwork -->
@@ -646,16 +652,16 @@ footer{
         </select>
       </div>
       <div class="fg">
-        <label>Suspected Mold Location <span class="req">*</span></label>
+        <label>Where Do You Suspect Mold? <span class="req">*</span></label>
         <select id="mold-loc">
           <option value="">– Select –</option>
           <option>Bathroom</option>
           <option>Kitchen</option>
           <option>Attic</option>
-          <option>HVAC / Ductwork</option>
-          <option>Basement / Crawl Space</option>
+          <option>AC / Ductwork</option>
+          <option>Crawl Space</option>
           <option>Multiple Areas</option>
-          <option>Not Sure</option>
+          <option>Not Sure / Just a Smell</option>
         </select>
       </div>
       <button class="btn-cont" onclick="nextStep(1)">CONTINUE →</button>
@@ -705,17 +711,17 @@ footer{
 <!-- ── WHY TRUST ── -->
 <section class="sec">
   <div class="sec-inner">
-    <h2 class="sec-title">Why Homeowners Trust Eye Spy Mold</h2>
-    <p class="sec-sub">Florida-licensed. IICRC-certified. Insurance-friendly. No-pressure inspections.</p>
+    <h2 class="sec-title">Why Florida Homeowners Choose Eye Spy Mold</h2>
+    <p class="sec-sub">We do one thing and we do it right — find mold, tell you the truth, and fix it safely.</p>
     <div class="sec-div"></div>
     <div class="trust-grid">
-      <div class="tcard"><div class="tcard-ico">🛡️</div><h3>Licensed &amp; Insured</h3><p>FL Mold Assessor #MRSA3318, Remediator #MRSR325. Fully insured since 2018.</p></div>
-      <div class="tcard"><div class="tcard-ico">🎓</div><h3>Florida Certified Professionals</h3><p>State-licensed assessors and remediators with hundreds of completed inspections across Florida.</p></div>
-      <div class="tcard"><div class="tcard-ico">🔬</div><h3>Third-Party Lab Analysis</h3><p>Samples sent to independent AIHA-accredited laboratories. No in-house lab. No conflict of interest.</p></div>
-      <div class="tcard"><div class="tcard-ico">⚡</div><h3>Fast Response Times</h3><p>Same-day appointments across Florida for urgent water damage, post-storm, or active leak concerns.</p></div>
-      <div class="tcard"><div class="tcard-ico">📋</div><h3>Honest Reporting</h3><p>English reports with clear photos. If you do not have a mold problem, we will tell you straight.</p></div>
-      <div class="tcard"><div class="tcard-ico">🚫</div><h3>No High-Pressure Sales</h3><p>We separate assessment from remediation so your inspection report is completely unbiased.</p></div>
-      <div class="tcard"><div class="tcard-ico">📐</div><h3>Clear Remediation Plans</h3><p>IICRC-standard protocols with documented containment, removal, and post-remediation verification.</p></div>
+      <div class="tcard"><div class="tcard-ico">🛡️</div><h3>Licensed &amp; Insured</h3><p>FL Mold Assessor #MRSA3318 and Remediator #MRSR325. Fully insured since 2018 — you're protected from start to finish.</p></div>
+      <div class="tcard"><div class="tcard-ico">🎓</div><h3>State-Licensed Professionals</h3><p>Every inspector is Florida-licensed with hundreds of real inspections completed — not just classroom training.</p></div>
+      <div class="tcard"><div class="tcard-ico">🔬</div><h3>Independent Lab Results</h3><p>Your samples go to a separate, accredited lab — not one we own. That means your results are honest, not slanted to sell you more work.</p></div>
+      <div class="tcard"><div class="tcard-ico">⚡</div><h3>Fast Scheduling</h3><p>Most inspections are scheduled within 24–48 hours. For active water damage or urgent health concerns, we prioritize getting to you fast.</p></div>
+      <div class="tcard"><div class="tcard-ico">📋</div><h3>Straight-Talk Reports</h3><p>You get a clear written report with photos that explains what we found in plain English. If there's no mold problem, we tell you that too.</p></div>
+      <div class="tcard"><div class="tcard-ico">🚫</div><h3>No Sales Pressure, Ever</h3><p>We keep inspections separate from cleanup. Your report is written before any remediation conversation — so you know the real picture first.</p></div>
+      <div class="tcard"><div class="tcard-ico">📐</div><h3>Cleanup Done by the Book</h3><p>We seal off the area so mold doesn't spread, run industrial air scrubbers to capture airborne spores, remove all affected material, and retest the air to confirm the job is complete.</p></div>
     </div>
   </div>
 </section>
@@ -730,15 +736,15 @@ footer{
       <div class="about-body">
         <h2 class="about-h">About Eye Spy Mold</h2>
         <p class="about-tag">Florida-born. Family-focused. Built on honest inspections.</p>
-        <p>Eye Spy Mold is a Florida-licensed mold inspection and remediation company serving homeowners, property managers, real estate agents, and businesses across the state since 2016. Our team has completed hundreds of inspections from Central Florida through Miami-Dade.</p>
-        <p>We started Eye Spy because too many Florida families were getting bad mold news from companies that also sold the remediation — a conflict we do not think is fair. Our inspections are independent. Our reports are written in plain English. If you do not have a problem, we will tell you straight.</p>
-        <p>We know Florida: The humidity, the hurricanes, the AC condensation, the post-storm water intrusion. That is why we are the right call when something smells off or a stain appears after a leak.</p>
+        <p>Eye Spy Mold is a Florida-licensed mold inspection and remediation company that has been helping homeowners, landlords, real estate agents, and businesses across the state since 2016. Our team has completed hundreds of inspections — from single-family homes in Orlando to high-rise condos in Miami-Dade.</p>
+        <p>We started Eye Spy because too many Florida families were getting bad advice from companies that both inspect AND sell the cleanup — which means they have a financial reason to find a problem whether there is one or not. We don't work that way. Our inspections are independent, and our reports are written in plain English so you understand exactly what's going on in your home.</p>
+        <p>We grew up in Florida. We know the humidity, the hurricanes, the AC condensation issues, and what happens after a pipe bursts or storm rolls through. When something smells off or a stain shows up after a leak — we're the call you want to make.</p>
         <div class="bullets">
-          <div class="bullet"><span class="ico">✓</span><span>Local Florida expertise — every inspector lives and works here</span></div>
-          <div class="bullet"><span class="ico">✓</span><span>Hundreds of inspections completed since 2016</span></div>
-          <div class="bullet"><span class="ico">✓</span><span>Family-focused approach to every property we enter</span></div>
-          <div class="bullet"><span class="ico">✓</span><span>Honest recommendations, never high-pressure</span></div>
-          <div class="bullet"><span class="ico">✓</span><span>Insurance documentation support included</span></div>
+          <div class="bullet"><span class="ico">✓</span><span>Every inspector lives and works in Florida — we know this climate</span></div>
+          <div class="bullet"><span class="ico">✓</span><span>Hundreds of completed inspections across the state since 2016</span></div>
+          <div class="bullet"><span class="ico">✓</span><span>We treat your home the way we'd want our own treated</span></div>
+          <div class="bullet"><span class="ico">✓</span><span>Honest recommendations — we won't invent problems to make money</span></div>
+          <div class="bullet"><span class="ico">✓</span><span>Insurance documentation support included with every inspection</span></div>
         </div>
       </div>
       <div>
@@ -761,30 +767,30 @@ footer{
 <section class="sec">
   <div class="sec-inner">
     <h2 class="sec-title">Mold Inspection, Testing &amp;<br>Remediation Services</h2>
-    <p class="sec-sub">Full-scope mold solutions for Florida homes and businesses</p>
+    <p class="sec-sub">We handle every step — from finding it to fixing it</p>
     <div class="sec-div"></div>
     <div class="svc-main">
       <div class="svc-card">
-        <h3>Mold Inspection Services</h3>
-        <p>Visual property assessment, moisture meter readings, HVAC inspection, and identification of probable mold sources. Documented with photos and a written report.</p>
+        <h3>Mold Inspection</h3>
+        <p>We walk your entire property looking for mold, moisture, and the conditions that cause mold to grow. Using moisture meters and thermal cameras we find what's hiding inside walls and ceilings — plus we always check your AC system, one of the most overlooked spots in Florida homes. You receive a written report with photos documenting everything we found.</p>
       </div>
       <div class="svc-card">
-        <h3>Mold Testing Services</h3>
-        <p>Air sampling and surface sampling sent to state-accredited third-party laboratories. Spore counts and species identification compared to outdoor baseline.</p>
+        <h3>Mold Testing &amp; Lab Analysis</h3>
+        <p>We take air samples and surface swabs from problem areas and send them to a certified independent lab. The lab identifies what type of mold is there and how concentrated the spores are in your air — compared to outdoor levels so you know if your home is actually affected. Results usually return within 24–72 hours.</p>
       </div>
       <div class="svc-card">
-        <h3>Mold Remediation Services</h3>
-        <p>IICRC-standard containment, negative air pressure, HEPA filtration, antimicrobial treatment, and post-remediation clearance testing.</p>
+        <h3>Mold Remediation (Cleanup)</h3>
+        <p>We seal off the contaminated area so spores can't spread, run industrial HEPA air scrubbers to pull spores from the air, remove all affected materials, apply antimicrobial treatment, and retest after to confirm the mold is completely gone. Every job is documented and done to IICRC industry standards.</p>
       </div>
     </div>
 
-    <p class="svc-spec-label">Eye Spy Mold Specialty Services</p>
+    <p class="svc-spec-label">Specialty Services</p>
     <div class="svc-spec">
-      <div class="spec-card"><h4>Indoor Air Quality Testing</h4><p>Comprehensive IAQ assessment including airborne mold spores, with optional humidity profiling for sensitive occupants.</p></div>
-      <div class="spec-card"><h4>Water Damage Mold Inspection</h4><p>Post-leak, post-storm, and post-flood inspections using infrared moisture detection to detect hidden growth before it spreads.</p></div>
-      <div class="spec-card"><h4>Insurance Documentation</h4><p>Reports formatted for insurance claims with photo evidence, lab results, and clearance testing to support your remediation claim.</p></div>
-      <div class="spec-card"><h4>Commercial Mold Inspection</h4><p>Inspection and remediation for offices, retail spaces, warehouses, and multi-tenant commercial buildings across Florida.</p></div>
-      <div class="spec-card"><h4>Real Estate Mold Inspection</h4><p>Pre-listing and pre-purchase mold inspections with clear reports that help close deals and protect buyers and sellers alike.</p></div>
+      <div class="spec-card"><h4>Indoor Air Quality Testing</h4><p>We test what you're actually breathing. Important for families with asthma, allergies, young children, or anyone feeling consistently unwell at home. We measure airborne mold spore levels and compare to outdoor baselines.</p></div>
+      <div class="spec-card"><h4>Water Damage Mold Inspection</h4><p>Mold begins growing within 24–48 hours after any water intrusion. We use thermal imaging and moisture meters to find it inside walls and under floors before it spreads further and costs more to address.</p></div>
+      <div class="spec-card"><h4>Insurance Claim Documentation</h4><p>Insurance companies require specific documentation to approve mold claims. We write our reports the way adjusters need them — detailed photos, lab results, moisture readings, and scope of damage — so your claim moves faster.</p></div>
+      <div class="spec-card"><h4>Commercial Mold Inspection</h4><p>Mold in a business means liability exposure, employee health concerns, and potential downtime. We inspect offices, retail spaces, warehouses, and multi-unit buildings and provide documentation that meets commercial standards.</p></div>
+      <div class="spec-card"><h4>Real Estate Mold Inspection</h4><p>Buying or selling? A mold inspection protects buyers from post-closing surprises and gives sellers documented proof the property is clean. Our reports are trusted by Florida real estate agents and help deals close without mold disputes.</p></div>
     </div>
   </div>
 </section>
@@ -792,16 +798,16 @@ footer{
 <!-- ── FLORIDA SPECIALISTS ── -->
 <section class="sec sec-dark">
   <div class="sec-inner">
-    <h2 class="sec-title">Florida Mold Specialists</h2>
-    <p class="sec-sub">Built for the climate. Trained for the conditions.</p>
+    <h2 class="sec-title">Built for Florida's Climate</h2>
+    <p class="sec-sub">Florida conditions create the perfect environment for mold — we know exactly where it hides.</p>
     <div class="sec-div"></div>
     <div class="fl-grid">
-      <div class="fl-card"><h3>High Humidity</h3><p>Florida humidity sits well above the 50% threshold where mold thrives year-round. We know where it hides.</p></div>
-      <div class="fl-card"><h3>Hurricane &amp; Storm Damage</h3><p>Post-storm water intrusion is the #1 cause of Florida mold. We respond fast after major weather events.</p></div>
-      <div class="fl-card"><h3>AC System Mold</h3><p>Florida AC units run nearly year-round. Condensate pans, evaporator coils, and ductwork are common hidden mold sources.</p></div>
-      <div class="fl-card"><h3>Condo &amp; High-Rise Issues</h3><p>Shared walls, building envelope failures, and concrete moisture create unique mold patterns in Florida condos.</p></div>
-      <div class="fl-card"><h3>Water Intrusion</h3><p>Roof leaks, plumbing failures, and slab moisture in Florida construction — diagnosed with thermal imaging and moisture meters.</p></div>
-      <div class="fl-card"><h3>South Florida Climate</h3><p>From Miami salt air to Broward humidity to Palm Beach storm exposure — we tailor inspections to your local environment.</p></div>
+      <div class="fl-card"><h3>Year-Round Humidity</h3><p>Florida indoor humidity stays above 50% almost every day — and 50% is exactly the level where mold starts to grow. We know every spot it likes to hide in Florida homes.</p></div>
+      <div class="fl-card"><h3>Hurricane &amp; Storm Damage</h3><p>Post-storm water getting into your walls and ceilings is the #1 cause of mold in Florida. Mold can start growing within 24 hours of a flood or leak — we respond fast after any storm event.</p></div>
+      <div class="fl-card"><h3>AC System Mold</h3><p>Your AC runs almost every day in Florida. The drain pan, coils, and ductwork collect moisture and can grow mold silently, spreading spores through your vents into every room. We always check the AC.</p></div>
+      <div class="fl-card"><h3>Condo &amp; High-Rise Problems</h3><p>Shared walls, building envelope failures, and moisture in concrete create mold problems in Florida condos that require specific experience to properly diagnose. We've inspected hundreds.</p></div>
+      <div class="fl-card"><h3>Hidden Water Intrusion</h3><p>Roof leaks, plumbing failures, and moisture rising through concrete slabs are common in Florida — and they hide inside walls for months before becoming visible. We find them with thermal imaging.</p></div>
+      <div class="fl-card"><h3>South Florida Salt &amp; Heat</h3><p>From Miami's salt air to Broward's extreme humidity to Palm Beach storm exposure — coastal Florida is especially aggressive for mold growth. We tailor every inspection to your specific area and building type.</p></div>
     </div>
   </div>
 </section>
@@ -859,84 +865,109 @@ footer{
   </div>
 </section>
 
-<!-- ── TESTIMONIALS ── -->
+<!-- ── BEFORE & AFTER PHOTOS ── -->
 <section class="sec sec-dark">
   <div class="sec-inner">
-    <h2 class="sec-title">What Florida Homeowners Say</h2>
-    <div class="testi-hdr">
-      <div class="testi-stars">★★★★★</div>
-      <p class="testi-avg">4.9★ average · 170+ Google reviews</p>
+    <h2 class="sec-title">Before &amp; After — Real Jobs</h2>
+    <p class="sec-sub">Actual results from Florida homes and businesses we've serviced</p>
+    <div class="sec-div"></div>
+    <div class="ba-grid">
+
+      <div class="ba-pair">
+        <div class="ba-col ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-photo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(200,0,0,0.4)" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span style="color:rgba(200,80,80,0.4)">[Photo Coming Soon]</span>
+          </div>
+          <p class="ba-caption">Mold visible before treatment</p>
+        </div>
+        <div class="ba-col ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-photo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(0,200,60,0.3)" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span>[Photo Coming Soon]</span>
+          </div>
+          <p class="ba-caption">Clean and cleared post-remediation</p>
+        </div>
+      </div>
+
+      <div class="ba-pair">
+        <div class="ba-col ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-photo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(200,0,0,0.4)" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span style="color:rgba(200,80,80,0.4)">[Photo Coming Soon]</span>
+          </div>
+          <p class="ba-caption">Mold visible before treatment</p>
+        </div>
+        <div class="ba-col ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-photo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(0,200,60,0.3)" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span>[Photo Coming Soon]</span>
+          </div>
+          <p class="ba-caption">Clean and cleared post-remediation</p>
+        </div>
+      </div>
+
+      <div class="ba-pair">
+        <div class="ba-col ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-photo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(200,0,0,0.4)" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span style="color:rgba(200,80,80,0.4)">[Photo Coming Soon]</span>
+          </div>
+          <p class="ba-caption">Mold visible before treatment</p>
+        </div>
+        <div class="ba-col ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-photo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(0,200,60,0.3)" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span>[Photo Coming Soon]</span>
+          </div>
+          <p class="ba-caption">Clean and cleared post-remediation</p>
+        </div>
+      </div>
+
     </div>
-    <div class="testi-grid">
-      <div class="testi-card">
-        <div class="tc-stars">★★★★★</div>
-        <p class="tc-text">"After Hurricane Ian we had ceiling staining and a smell we could not pin down. Eye Spy showed up the next morning, inspected top to bottom, and gave us a clear plan. They handled remediation and submitted everything to insurance for us."</p>
-        <div class="tc-author">— Maria G., Hollywood, FL</div>
-      </div>
-      <div class="testi-card">
-        <div class="tc-stars">★★★★★</div>
-        <p class="tc-text">"Professional from the first call. The inspector explained every test and what we were looking at. Report was thorough and the price was fair. No upsell, no scare tactics."</p>
-        <div class="tc-author">— David R., Miami, FL</div>
-      </div>
-      <div class="testi-card">
-        <div class="tc-stars">★★★★★</div>
-        <p class="tc-text">"We thought we had mold but the inspection found just water staining from an old leak. Most companies would have invented a problem — they told us the truth and saved us thousands."</p>
-        <div class="tc-author">— Jennifer P., Fort Lauderdale, FL</div>
-      </div>
-      <div class="testi-card">
-        <div class="tc-stars">★★★★★</div>
-        <p class="tc-text">"Our condo had a long-running humidity issue and tenant complaints. Eye Spy did the assessment, coordinated the remediation, and handled the clearance testing. Everyone was easy to work with."</p>
-        <div class="tc-author">— Carlos M., Pembroke Pines, FL</div>
-      </div>
-      <div class="testi-card">
-        <div class="tc-stars">★★★★★</div>
-        <p class="tc-text">"As a realtor I refer clients to Eye Spy because their reports are accurate and on time. They have helped close deals that other inspectors derailed with bad reporting."</p>
-        <div class="tc-author">— Susan W., Boca Raton, FL</div>
-      </div>
-      <div class="testi-card">
-        <div class="tc-stars">★★★★★</div>
-        <p class="tc-text">"Insurance was dragging their feet until Eye Spy's report landed in their inbox. Detailed, professional, and the photos told the whole story. Claim got approved the same week."</p>
-        <div class="tc-author">— Robert K., Orlando, FL</div>
-      </div>
-    </div>
-    <a href="#" class="btn-reviews">READ ALL GOOGLE REVIEWS</a>
   </div>
 </section>
 
 <!-- ── FAQ ── -->
 <section class="sec">
   <div class="sec-inner" style="max-width:700px">
-    <h2 class="sec-title">Mold Inspection FAQs</h2>
-    <p class="sec-sub">Common questions from Florida homeowners</p>
+    <h2 class="sec-title">Common Questions</h2>
+    <p class="sec-sub">Straight answers to what Florida homeowners ask most</p>
     <div class="sec-div"></div>
     <div class="faq-list">
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">How much does a mold inspection cost?<span class="faq-arr">+</span></button>
-        <div class="faq-a"><div class="faq-a-in">Standard mold inspections range from $299–$499 depending on property size and service type. Air quality testing with lab analysis starts at $349. We provide a detailed quote before any work begins — no hidden fees.</div></div>
+        <div class="faq-a"><div class="faq-a-in">Inspections range from $299–$499 depending on your property size and what's needed. Air quality testing with certified lab analysis starts at $349. We give you a clear quote before starting — no surprises. If your mold issue is tied to water damage or a covered event, your homeowners insurance may cover part or all of the cost, and we'll help you document it properly.</div></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFaq(this)">How long does mold testing take?<span class="faq-arr">+</span></button>
-        <div class="faq-a"><div class="faq-a-in">The on-site inspection takes 1–3 hours depending on property size. Lab results typically return within 24–72 hours, and your full written report is delivered within 24 hours of receiving results.</div></div>
+        <button class="faq-q" onclick="toggleFaq(this)">How long does the whole process take?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">The on-site walkthrough typically takes 1–3 hours. If we collect lab samples, results come back from the lab within 24–72 hours. Your full written report with photos is delivered within 24 hours of getting the lab results back. Remediation (cleanup) timelines depend on the size of the affected area — we'll scope that out clearly before any work begins.</div></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFaq(this)">Can mold affect my health?<span class="faq-arr">+</span></button>
-        <div class="faq-a"><div class="faq-a-in">Yes. Mold exposure can cause respiratory issues, allergic reactions, headaches, and fatigue. Children, the elderly, and those with respiratory conditions are especially at risk. If you suspect mold, don't wait — schedule a free inspection.</div></div>
+        <button class="faq-q" onclick="toggleFaq(this)">Can mold make you and your family sick?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">Yes — and people often don't connect the dots. Mold exposure can cause persistent coughing, stuffy nose, headaches, fatigue, skin irritation, and worsened asthma or allergies. A key sign: if people in your home feel noticeably better when they're away from the house, mold may be a factor. Children, the elderly, and anyone with respiratory conditions are the most vulnerable. Don't wait to get it checked.</div></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFaq(this)">Will my insurance cover mold remediation?<span class="faq-arr">+</span></button>
-        <div class="faq-a"><div class="faq-a-in">Many homeowners insurance policies cover mold if it results from a sudden covered event such as a burst pipe or storm damage. We provide detailed, insurance-formatted reports with photo evidence and lab results to support your claim.</div></div>
+        <button class="faq-q" onclick="toggleFaq(this)">Will my insurance pay for mold cleanup?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">Many homeowners policies do cover mold when it results from a sudden covered event — a burst pipe, storm damage, appliance leak. The key is having the right documentation. We write our inspection reports specifically for insurance adjusters, with photos, moisture readings, lab results, and a clear scope of damage. This documentation often makes the difference between an approved claim and a denied one.</div></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFaq(this)">How do I know if I have mold?<span class="faq-arr">+</span></button>
-        <div class="faq-a"><div class="faq-a-in">Common signs include musty odors, visible dark spots on walls or ceilings, recent water damage, condensation issues, or unexplained allergy symptoms indoors. If you notice any of these, a professional inspection is the safest next step.</div></div>
+        <button class="faq-q" onclick="toggleFaq(this)">How do I know if I actually have mold?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">The most common signs are: a musty smell that keeps coming back even after cleaning, dark spots or discoloration on walls or ceilings, any recent water damage from a leak or flood, or allergy-like symptoms that get better when you're outside the house. You don't need to see visible mold for it to be a problem — it often grows inside walls, under flooring, and in AC ductwork. When in doubt, a professional inspection is the safest next step.</div></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFaq(this)">Do you provide lab testing?<span class="faq-arr">+</span></button>
-        <div class="faq-a"><div class="faq-a-in">Yes. All air and surface samples are sent to AIHA-accredited third-party laboratories. We have no financial interest in the lab — which means you receive a completely unbiased report with spore counts and species identification.</div></div>
+        <button class="faq-q" onclick="toggleFaq(this)">What exactly happens during mold testing?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">We collect air samples using a small pump that captures spores from the air in each room, plus surface swabs from any visibly suspicious areas. These go to an independent certified lab — not affiliated with us in any way — which identifies exactly what types of mold are present and at what concentration. We also take an outdoor air sample at your property as a comparison baseline. You get the actual lab report plus our written explanation of what it means for your home.</div></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFaq(this)">How quickly can you schedule an inspection?<span class="faq-arr">+</span></button>
-        <div class="faq-a"><div class="faq-a-in">We offer same-day appointments for urgent situations including active water damage, post-storm inspections, and health concerns. Standard inspections are typically available within 24–48 hours across all Florida service areas.</div></div>
+        <button class="faq-q" onclick="toggleFaq(this)">How fast can you come out?<span class="faq-arr">+</span></button>
+        <div class="faq-a"><div class="faq-a-in">Most standard inspections are scheduled within 24–48 hours. For urgent situations — active water damage, post-storm, or health concerns — we prioritize getting to you as quickly as possible. Call us directly at (407) 919-5755 and we'll work with your schedule to get someone out fast.</div></div>
       </div>
     </div>
   </div>
@@ -944,8 +975,8 @@ footer{
 
 <!-- ── BOTTOM CTA ── -->
 <div class="cta-bottom">
-  <h2>Schedule Your Free<br>Mold Inspection</h2>
-  <p>Licensed Florida professionals. Same-day appointments. No obligation.</p>
+  <h2>Ready to Find Out<br>What's in Your Home?</h2>
+  <p>Florida-licensed professionals. Most inspections scheduled within 24–48 hours. No obligation — we give you the truth, whatever it is.</p>
   <div class="cta-btns">
     <button class="btn-cta-gold" onclick="scrollToForm()">→ Book Free Inspection</button>
     <a href="tel:+14079195755" class="btn-cta-call">📞 (407) 919-5755</a>
@@ -957,7 +988,7 @@ footer{
 <!-- ── FOOTER ── -->
 <footer>
   <div class="footer-logo">EYE SPY MOLD</div>
-  <div class="footer-dba">DRIGO MOLD INSPECTION &amp; MEDIATION</div>
+  <div class="footer-dba">DRIGO MOLD INSPECTION &amp; REMEDIATION</div>
   <p class="footer-contact">South Florida mold inspection, testing, and remediation</p>
   <p class="footer-contact">
     <a href="tel:+14079195755">(407) 919-5755</a>
@@ -1163,17 +1194,17 @@ function addMsg(txt, type) {
   setInterval(draw, 40);
 })();
 
-// ── SCROLL PROGRESS LINE ──
+// ── SCANNER LINE — follows scroll position ──
 (function() {
-  const fill = document.getElementById('scroll-fill');
-  function updateScroll() {
+  const beam = document.getElementById('scan-beam');
+  function updateScan() {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const docH = document.documentElement.scrollHeight - window.innerHeight;
     const pct = docH > 0 ? Math.min(100, (scrollTop / docH) * 100) : 0;
-    fill.style.height = pct + '%';
+    beam.style.top = pct + '%';
   }
-  window.addEventListener('scroll', updateScroll, {passive:true});
-  updateScroll();
+  window.addEventListener('scroll', updateScan, {passive:true});
+  updateScan();
 })();
 
 // ── SECTION REVEAL ──
