@@ -44,16 +44,16 @@ h1,h2,h3,h4{font-family:'Oswald',sans-serif;line-height:1.15}
   background:rgba(0,200,60,0.06);z-index:500;pointer-events:none;
 }
 .scan-beam{
-  position:absolute;left:-4px;right:-4px;height:80px;
-  top:0;transform:translateY(-50%);
+  position:absolute;left:-5px;right:-5px;height:80px;
+  top:0;
   background:linear-gradient(to bottom,
     rgba(0,200,60,0) 0%,
-    rgba(0,255,82,0.6) 35%,
+    rgba(0,255,82,0.7) 35%,
     #00ff52 50%,
-    rgba(0,255,82,0.6) 65%,
+    rgba(0,255,82,0.7) 65%,
     rgba(0,200,60,0) 100%);
-  box-shadow:0 0 12px #00ff52, 0 0 30px rgba(0,255,82,0.4), -8px 0 20px rgba(0,255,82,0.15);
-  transition:top .05s linear;
+  box-shadow:0 0 14px #00ff52, 0 0 36px rgba(0,255,82,0.5), -12px 0 24px rgba(0,255,82,0.18);
+  transition:top .08s linear;
 }
 .scan-dot{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -537,52 +537,62 @@ footer{
 
   <!-- Logo artwork -->
   <div class="hero-logo-card">
-    <svg viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#050a05">
-      <!-- Ambient circuit lines -->
-      <g opacity="0.12" stroke="#00c83c" stroke-width="0.6" fill="none">
-        <path d="M0 60 Q90 40 180 60 Q270 80 360 60"/>
-        <path d="M0 170 Q90 150 180 170 Q270 190 360 170"/>
-        <circle cx="25" cy="60" r="3"/><circle cx="140" cy="52" r="2"/><circle cx="248" cy="68" r="3.5"/><circle cx="335" cy="58" r="2"/>
-        <line x1="25" y1="57" x2="25" y2="48"/><line x1="248" y1="64" x2="248" y2="78"/>
-      </g>
-      <!-- Data readout -->
-      <text x="12" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="#00c83c" opacity="0.55">MOLD SCAN: Confirmed</text>
-      <text x="12" y="34" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="#00c83c" opacity="0.55">GROWTH RATE: +2.1%</text>
-      <text x="348" y="22" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="#00c83c" opacity="0.55" text-anchor="end">01 JUN 2026 05:45</text>
-      <text x="348" y="34" font-family="'Share Tech Mono',monospace" font-size="7.5" fill="#00c83c" opacity="0.55" text-anchor="end">SPECIES: Stachybotrys</text>
-      <!-- Outer magnifier ring shadow glow -->
-      <circle cx="180" cy="105" r="66" fill="rgba(0,200,60,0.04)" stroke="none"/>
-      <!-- Magnifier glass background -->
-      <circle cx="180" cy="105" r="58" fill="rgba(0,40,10,0.85)"/>
-      <!-- Mold organisms inside -->
-      <ellipse cx="168" cy="97"  rx="16" ry="21" fill="#1a6020" opacity="0.85" transform="rotate(-18,168,97)"/>
-      <ellipse cx="191" cy="112" rx="13" ry="18" fill="#15701a" opacity="0.78" transform="rotate(22,191,112)"/>
-      <ellipse cx="172" cy="118" rx="10" ry="14" fill="#0f5515" opacity="0.9"/>
-      <ellipse cx="193" cy="92"  rx="9"  ry="12" fill="#1a6822" opacity="0.82" transform="rotate(-12,193,92)"/>
-      <ellipse cx="162" cy="112" rx="8"  ry="11" fill="#126018" opacity="0.75"/>
-      <!-- Spore dots -->
-      <circle cx="163" cy="89"  r="3.5" fill="#00c83c" opacity="0.95"/>
-      <circle cx="184" cy="82"  r="2.8" fill="#00ff52" opacity="0.88"/>
-      <circle cx="199" cy="100" r="2.2" fill="#00c83c" opacity="0.80"/>
-      <circle cx="170" cy="126" r="3"   fill="#00ff52" opacity="0.92"/>
-      <circle cx="156" cy="106" r="2"   fill="#00c83c" opacity="0.72"/>
-      <circle cx="196" cy="122" r="2.5" fill="#00c83c" opacity="0.70"/>
-      <!-- Magnifier outer ring -->
-      <circle cx="180" cy="105" r="58" fill="none" stroke="#00c83c" stroke-width="1.8"/>
-      <circle cx="180" cy="105" r="61" fill="none" stroke="#00c83c" stroke-width="0.5" opacity="0.3"/>
-      <!-- Handle -->
-      <line x1="222" y1="148" x2="247" y2="173" stroke="#00c83c" stroke-width="6" stroke-linecap="round"/>
-      <line x1="222" y1="148" x2="247" y2="173" stroke="#00ff52" stroke-width="2.2" stroke-linecap="round" opacity="0.45"/>
-      <!-- Green wave at mid -->
-      <path d="M0 115 Q30 103 60 115 Q90 127 120 115 Q150 103 180 115 Q210 127 240 115 Q270 103 300 115 Q330 127 360 115"
-            stroke="#00c83c" stroke-width="1.2" fill="none" opacity="0.4"/>
-      <!-- Bottom nameplate -->
-      <rect x="0" y="183" width="360" height="47" fill="#080d08"/>
-      <rect x="0" y="183" width="360" height="1" fill="#00c83c" opacity="0.45"/>
-      <text x="180" y="205" font-family="'Orbitron',sans-serif" font-size="20" font-weight="700"
-            fill="white" text-anchor="middle" letter-spacing="5">EYE SPY</text>
-      <text x="180" y="222" font-family="'Orbitron',sans-serif" font-size="10"
-            fill="#c8921a" text-anchor="middle" letter-spacing="7">— MOLD —</text>
+    <svg viewBox="0 0 360 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#060a06">
+      <defs>
+        <filter id="glow-gold" x="-40%" y="-300%" width="180%" height="700%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-sp" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- Background -->
+      <rect width="360" height="230" fill="#060a06"/>
+      <!-- Gold wavy line 1 (upper) — prominent, glowing -->
+      <path d="M-10 63 C45 38 85 88 140 63 S230 38 280 63 S345 88 380 63"
+            stroke="#b87818" stroke-width="5" fill="none" opacity="0.6"/>
+      <path d="M-10 63 C45 38 85 88 140 63 S230 38 280 63 S345 88 380 63"
+            stroke="#e8a830" stroke-width="2.5" fill="none" filter="url(#glow-gold)" opacity="0.9"/>
+      <!-- Gold wavy line 2 (lower) — prominent, glowing -->
+      <path d="M-10 157 C55 132 95 182 155 157 S250 132 300 157 S358 182 400 157"
+            stroke="#b87818" stroke-width="5" fill="none" opacity="0.55"/>
+      <path d="M-10 157 C55 132 95 182 155 157 S250 132 300 157 S358 182 400 157"
+            stroke="#e8a830" stroke-width="2.5" fill="none" filter="url(#glow-gold)" opacity="0.85"/>
+      <!-- Outer glow halo -->
+      <circle cx="175" cy="104" r="78" fill="rgba(0,160,40,0.06)"/>
+      <!-- Magnifier interior -->
+      <circle cx="175" cy="104" r="66" fill="#0c1e0c"/>
+      <!-- Mold colonies -->
+      <ellipse cx="163" cy="97" rx="24" ry="30" fill="#165216" opacity="0.92" transform="rotate(-22,163,97)"/>
+      <ellipse cx="192" cy="113" rx="20" ry="26" fill="#126018" opacity="0.88" transform="rotate(18,192,113)"/>
+      <ellipse cx="168" cy="122" rx="15" ry="20" fill="#0e4a10" opacity="0.93"/>
+      <ellipse cx="197" cy="92" rx="14" ry="18" fill="#186020" opacity="0.82" transform="rotate(-10,197,92)"/>
+      <ellipse cx="155" cy="113" rx="13" ry="17" fill="#104e18" opacity="0.78"/>
+      <ellipse cx="188" cy="130" rx="10" ry="14" fill="#0d4012" opacity="0.75"/>
+      <!-- Bright spore dots -->
+      <circle cx="159" cy="87" r="4.5" fill="#00c83c" opacity="1" filter="url(#glow-sp)"/>
+      <circle cx="184" cy="79" r="3.5" fill="#00ff52" opacity="0.95" filter="url(#glow-sp)"/>
+      <circle cx="203" cy="100" r="3" fill="#00c83c" opacity="0.88" filter="url(#glow-sp)"/>
+      <circle cx="168" cy="133" r="4" fill="#00ff52" opacity="0.92" filter="url(#glow-sp)"/>
+      <circle cx="151" cy="109" r="2.5" fill="#00c83c" opacity="0.72"/>
+      <circle cx="200" cy="125" r="3.2" fill="#00c83c" opacity="0.76"/>
+      <circle cx="178" cy="92" r="2.2" fill="#00ff52" opacity="0.82"/>
+      <!-- Magnifier ring — white border like the original -->
+      <circle cx="175" cy="104" r="66" fill="none" stroke="rgba(240,240,240,0.88)" stroke-width="2.5"/>
+      <circle cx="175" cy="104" r="69.5" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1.2"/>
+      <!-- Handle — gold rod -->
+      <line x1="229" y1="156" x2="257" y2="184" stroke="#7a5010" stroke-width="11" stroke-linecap="round"/>
+      <line x1="229" y1="156" x2="257" y2="184" stroke="#c8921a" stroke-width="7" stroke-linecap="round"/>
+      <line x1="229" y1="156" x2="257" y2="184" stroke="#e8c060" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+      <!-- Bottom nameplate — lighter gray like the original -->
+      <rect x="0" y="181" width="360" height="49" fill="#1c1c1c"/>
+      <rect x="0" y="181" width="360" height="2" fill="#c8921a" opacity="0.85"/>
+      <text x="180" y="208" font-family="'Oswald','Arial Black',sans-serif" font-size="24" font-weight="700"
+            fill="#ffffff" text-anchor="middle" letter-spacing="6">EYE SPY</text>
+      <text x="180" y="225" font-family="'Oswald','Arial',sans-serif" font-size="12"
+            fill="#c8921a" text-anchor="middle" letter-spacing="9">— MOLD —</text>
     </svg>
   </div>
 
@@ -1194,14 +1204,17 @@ function addMsg(txt, type) {
   setInterval(draw, 40);
 })();
 
-// ── SCANNER LINE — follows scroll position ──
+// ── SCANNER LINE — glowing dot follows scroll, always visible ──
 (function() {
   const beam = document.getElementById('scan-beam');
+  const BEAM_H = 80;
   function updateScan() {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const docH = document.documentElement.scrollHeight - window.innerHeight;
-    const pct = docH > 0 ? Math.min(100, (scrollTop / docH) * 100) : 0;
-    beam.style.top = pct + '%';
+    const lineH = window.innerHeight;
+    const pct = docH > 0 ? scrollTop / docH : 0;
+    const topPx = Math.round(pct * (lineH - BEAM_H));
+    beam.style.top = topPx + 'px';
   }
   window.addEventListener('scroll', updateScan, {passive:true});
   updateScan();
