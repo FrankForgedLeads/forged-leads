@@ -1090,7 +1090,7 @@ function addMsg(txt, type) {
   body.scrollTop = body.scrollHeight;
 }
 
-// ── MOLD COLONY GLOW + SCROLL SCAN WAVE ──
+// ── MOLD REVEAL: scan wave sweeps down as you scroll, revealing mold in the dark ──
 (function() {
   const canvas = document.getElementById('matrix-canvas');
   const ctx    = canvas.getContext('2d');
@@ -1100,143 +1100,142 @@ function addMsg(txt, type) {
   function resize() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
+    buildColonies();
   }
-  resize();
-  window.addEventListener('resize', resize);
 
-  // Track scroll → move scan wave
+  // Track scroll → wave follows scroll position
   function onScroll() {
-    const st  = window.scrollY || document.documentElement.scrollTop;
-    const dH  = document.documentElement.scrollHeight - window.innerHeight;
+    const st = window.scrollY || document.documentElement.scrollTop;
+    const dH = document.documentElement.scrollHeight - window.innerHeight;
     targetScanY = dH > 0 ? (st / dH) * H : 0;
   }
   window.addEventListener('scroll', onScroll, {passive:true});
-  onScroll();
 
-  // ── Mold Colony ──
-  function Colony() {
-    this.spawn = function() {
-      this.x = Math.random() * W;
-      this.y = Math.random() * H;
-      const sz = 16 + Math.random() * 52;
-      this.blobs = [];
-      const n = 5 + Math.floor(Math.random() * 7);
-      for (let i = 0; i < n; i++) {
+  // ── Mold colonies — ONLY visible when scan wave is near them ──
+  let colonies = [];
+  function buildColonies() {
+    colonies = [];
+    const count = Math.max(28, Math.floor(W * H / 14000));
+    for (let i = 0; i < count; i++) {
+      const sz = 14 + Math.random() * 58;
+      const blobs = [];
+      const nb = 5 + Math.floor(Math.random() * 8);
+      for (let j = 0; j < nb; j++) {
         const a = Math.random() * Math.PI * 2;
-        const d = Math.random() * sz * 0.6;
-        this.blobs.push({ ox:Math.cos(a)*d, oy:Math.sin(a)*d, r:5+Math.random()*sz*0.5 });
+        const d = Math.random() * sz * 0.62;
+        blobs.push({ ox: Math.cos(a)*d, oy: Math.sin(a)*d, r: 5 + Math.random()*sz*0.52 });
       }
-      this.spores = [];
-      for (let i = 0; i < 4 + Math.floor(Math.random()*4); i++) {
-        const a = Math.random()*Math.PI*2, d = sz*(0.8+Math.random()*0.8);
-        this.spores.push({ ox:Math.cos(a)*d, oy:Math.sin(a)*d, r:1+Math.random()*2.5 });
+      const spores = [];
+      for (let j = 0; j < 3+Math.floor(Math.random()*5); j++) {
+        const a = Math.random()*Math.PI*2, d = sz*(0.75+Math.random()*0.9);
+        spores.push({ ox:Math.cos(a)*d, oy:Math.sin(a)*d, r:1+Math.random()*3 });
       }
-      this.alpha    = 0;
-      this.maxAlpha = 0.08 + Math.random() * 0.14;
-      this.speed    = 0.0018 + Math.random() * 0.003;
-      this.hold = 0; this.maxHold = 90 + Math.random() * 180;
-      this.pulse = Math.random()*Math.PI*2;
-      this.pulseSpd = 0.018 + Math.random()*0.025;
-      this.phase = 'in';
-      this.gold = Math.random() > 0.82;
-    };
-    this.update = function() {
-      this.pulse += this.pulseSpd;
-      if (this.phase==='in')  { this.alpha += this.speed; if (this.alpha>=this.maxAlpha){this.alpha=this.maxAlpha;this.phase='hold';} }
-      else if (this.phase==='hold') { this.alpha=this.maxAlpha*(0.9+0.1*Math.sin(this.pulse)); if(++this.hold>=this.maxHold)this.phase='out'; }
-      else { this.alpha -= this.speed*0.65; if(this.alpha<=0){this.alpha=0;this.spawn();} }
-    };
-    this.draw = function(ctx, sy) {
-      if (this.alpha <= 0) return;
-      // Boost alpha when scan wave is nearby
-      const dist  = Math.abs(this.y - sy);
-      const boost = Math.max(0, 1 - dist / 160) * 0.25;
+      colonies.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        blobs, spores,
+        lit: 0,          // current lit level 0–1
+        gold: Math.random() > 0.88
+      });
+    }
+  }
+
+  function drawColonies(sy) {
+    const BAND = 150; // how far from wave colonies can be seen
+    for (const c of colonies) {
+      const dist = Math.abs(c.y - sy);
+      // Target lit level based on distance from wave
+      const target = dist < BAND ? Math.pow(1 - dist/BAND, 1.4) : 0;
+      // Fade in fast when wave approaches, linger slightly after it passes
+      c.lit += (target - c.lit) * (target > c.lit ? 0.18 : 0.055);
+      if (c.lit < 0.01) continue;
+
       ctx.save();
-      ctx.translate(this.x, this.y);
-      ctx.globalAlpha = Math.min(this.alpha + boost, 0.42);
-      for (const b of this.blobs) {
-        const g = ctx.createRadialGradient(b.ox,b.oy,0,b.ox,b.oy,b.r);
-        if (!this.gold) {
-          g.addColorStop(0,  'rgba(80,255,120,0.92)');
-          g.addColorStop(0.35,'rgba(0,210,60,0.7)');
-          g.addColorStop(0.7,'rgba(0,110,28,0.28)');
-          g.addColorStop(1,  'rgba(0,30,8,0)');
+      ctx.translate(c.x, c.y);
+      ctx.globalAlpha = c.lit * 0.72;
+
+      for (const b of c.blobs) {
+        const g = ctx.createRadialGradient(b.ox, b.oy, 0, b.ox, b.oy, b.r);
+        if (!c.gold) {
+          g.addColorStop(0,    'rgba(100,255,140,0.95)');
+          g.addColorStop(0.3,  'rgba(0,220,65,0.80)');
+          g.addColorStop(0.65, 'rgba(0,130,35,0.35)');
+          g.addColorStop(1,    'rgba(0,40,10,0)');
         } else {
-          g.addColorStop(0,  'rgba(255,220,80,0.85)');
-          g.addColorStop(0.4,'rgba(195,135,10,0.5)');
-          g.addColorStop(1,  'rgba(50,25,0,0)');
+          g.addColorStop(0,   'rgba(255,230,90,0.90)');
+          g.addColorStop(0.4, 'rgba(200,145,15,0.55)');
+          g.addColorStop(1,   'rgba(55,28,0,0)');
         }
-        ctx.beginPath(); ctx.arc(b.ox,b.oy,b.r,0,Math.PI*2);
-        ctx.fillStyle = g; ctx.fill();
+        ctx.beginPath();
+        ctx.arc(b.ox, b.oy, b.r, 0, Math.PI * 2);
+        ctx.fillStyle = g;
+        ctx.fill();
       }
-      for (const s of this.spores) {
-        ctx.beginPath(); ctx.arc(s.ox,s.oy,s.r,0,Math.PI*2);
-        ctx.fillStyle = this.gold ? 'rgba(255,200,60,0.55)' : 'rgba(0,255,82,0.6)';
+      // Spore dots
+      for (const s of c.spores) {
+        ctx.beginPath();
+        ctx.arc(s.ox, s.oy, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = c.gold ? 'rgba(255,210,70,0.65)' : 'rgba(0,255,90,0.7)';
         ctx.fill();
       }
       ctx.restore();
-    };
-    this.spawn();
-    this.alpha = Math.random() * this.maxAlpha;
-    this.phase = Math.random()>0.5 ? 'hold' : 'in';
-    this.hold  = Math.floor(Math.random() * this.maxHold);
+    }
   }
 
-  const colonies = [];
-  for (let i = 0; i < 24; i++) colonies.push(new Colony());
+  // ── Scan wave — the glowing horizontal light band ──
+  function drawWave(sy, t) {
+    // Outer soft glow (wide)
+    const outer = ctx.createLinearGradient(0, sy-180, 0, sy+180);
+    outer.addColorStop(0,   'rgba(0,140,30,0)');
+    outer.addColorStop(0.3, 'rgba(0,200,55,0.06)');
+    outer.addColorStop(0.48,'rgba(0,255,82,0.15)');
+    outer.addColorStop(0.5, 'rgba(0,255,82,0.22)');
+    outer.addColorStop(0.52,'rgba(0,255,82,0.15)');
+    outer.addColorStop(0.7, 'rgba(0,200,55,0.06)');
+    outer.addColorStop(1,   'rgba(0,140,30,0)');
+    ctx.fillStyle = outer;
+    ctx.fillRect(0, sy-180, W, 360);
 
-  // ── Draw the scroll scan wave ──
-  function drawScanWave(sy, t) {
-    // Wide soft glow band
-    const bh = 110;
-    const bg = ctx.createLinearGradient(0, sy - bh*2, 0, sy + bh*2);
-    bg.addColorStop(0,    'rgba(0,160,40,0)');
-    bg.addColorStop(0.28, 'rgba(0,210,55,0.07)');
-    bg.addColorStop(0.45, 'rgba(0,255,82,0.20)');
-    bg.addColorStop(0.5,  'rgba(0,255,82,0.28)');
-    bg.addColorStop(0.55, 'rgba(0,255,82,0.20)');
-    bg.addColorStop(0.72, 'rgba(0,210,55,0.07)');
-    bg.addColorStop(1,    'rgba(0,160,40,0)');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, sy - bh*2, W, bh*4);
-
-    // Bright wavy center line
+    // Bright wavy centerline
     ctx.save();
-    ctx.shadowBlur  = 18;
-    ctx.shadowColor = '#00ff52';
-    ctx.strokeStyle = 'rgba(60,255,110,0.82)';
-    ctx.lineWidth   = 2.5;
+    ctx.shadowBlur  = 22;
+    ctx.shadowColor = '#00ff82';
+    ctx.strokeStyle = 'rgba(80,255,130,0.88)';
+    ctx.lineWidth   = 3;
     ctx.beginPath();
-    for (let x = 0; x <= W; x += 4) {
-      const w = Math.sin(x * 0.018 + t * 0.0007) * 9
-              + Math.sin(x * 0.045 + t * 0.0012) * 4;
-      x === 0 ? ctx.moveTo(x, sy + w) : ctx.lineTo(x, sy + w);
+    for (let x = 0; x <= W; x += 3) {
+      const wy = sy
+        + Math.sin(x * 0.016 + t * 0.0006) * 10
+        + Math.sin(x * 0.042 + t * 0.0011) * 4;
+      x === 0 ? ctx.moveTo(x, wy) : ctx.lineTo(x, wy);
     }
     ctx.stroke();
 
-    // Second dimmer wave slightly offset
-    ctx.globalAlpha = 0.35;
-    ctx.shadowBlur  = 8;
-    ctx.strokeStyle = 'rgba(0,255,82,0.5)';
-    ctx.lineWidth   = 1.2;
+    // Inner core line (extra bright)
+    ctx.shadowBlur  = 10;
+    ctx.strokeStyle = 'rgba(180,255,200,0.55)';
+    ctx.lineWidth   = 1;
     ctx.beginPath();
-    for (let x = 0; x <= W; x += 4) {
-      const w = Math.sin(x * 0.022 + t * 0.0009 + 1.2) * 7
-              + Math.sin(x * 0.05  + t * 0.0015) * 3;
-      x === 0 ? ctx.moveTo(x, sy + w + 18) : ctx.lineTo(x, sy + w + 18);
+    for (let x = 0; x <= W; x += 3) {
+      const wy = sy
+        + Math.sin(x * 0.016 + t * 0.0006) * 10
+        + Math.sin(x * 0.042 + t * 0.0011) * 4;
+      x === 0 ? ctx.moveTo(x, wy) : ctx.lineTo(x, wy);
     }
     ctx.stroke();
     ctx.restore();
 
-    // Sparkle particles along the wave
+    // Sparkle particles riding the wave
     ctx.save();
-    for (let i = 0; i < 6; i++) {
+    ctx.shadowColor = '#00ff52';
+    for (let i = 0; i < 8; i++) {
       const px = Math.random() * W;
-      const pw = Math.sin(px*0.018 + t*0.0007)*9;
-      const pr = 1 + Math.random() * 2.5;
-      ctx.beginPath(); ctx.arc(px, sy + pw, pr, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(120,255,160,${0.4+Math.random()*0.5})`;
-      ctx.shadowBlur = 8; ctx.shadowColor = '#00ff52';
+      const py = sy + Math.sin(px*0.016 + t*0.0006)*10 + Math.sin(px*0.042+t*0.0011)*4;
+      const pr = 0.8 + Math.random() * 2.8;
+      ctx.shadowBlur = 6 + Math.random()*8;
+      ctx.beginPath();
+      ctx.arc(px, py, pr, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(140,255,170,${0.45+Math.random()*0.5})`;
       ctx.fill();
     }
     ctx.restore();
@@ -1244,18 +1243,15 @@ function addMsg(txt, type) {
 
   function draw() {
     tick++;
-    // Smooth interpolation toward target scroll position
-    scanY += (targetScanY - scanY) * 0.12;
-
+    scanY += (targetScanY - scanY) * 0.10;
     ctx.clearRect(0, 0, W, H);
-
-    // Colonies (dim in background, boost near scan wave)
-    for (const c of colonies) { c.update(); c.draw(ctx, scanY); }
-
-    // Scan wave drawn on top of colonies
-    drawScanWave(scanY, tick);
+    drawColonies(scanY);
+    drawWave(scanY, tick);
   }
 
+  window.addEventListener('resize', resize);
+  resize();
+  onScroll();
   setInterval(draw, 40);
 })();
 
