@@ -1186,6 +1186,42 @@ function scrollToForm() {
 }
 
 // Multi-step form
+// ── NOTIFICATION KEY ──────────────────────────────────────────────────────────
+// To activate email + SMS alerts:
+//   1. Go to web3forms.com/create
+//   2. Enter: eyespymold@gmail.com
+//   3. Click the verification link in your Gmail inbox
+//   4. Copy the key and paste it below (replace YOUR_KEY_HERE)
+const NOTIFY_KEY = 'YOUR_KEY_HERE';
+// ─────────────────────────────────────────────────────────────────────────────
+
+function submitLeadNotification() {
+  if (!NOTIFY_KEY || NOTIFY_KEY === 'YOUR_KEY_HERE') return; // not yet activated
+  const name  = document.getElementById('fname').value.trim();
+  const phone = document.getElementById('fphone').value.trim();
+  const email = document.getElementById('femail').value.trim();
+  const zip   = document.getElementById('fzip').value.trim();
+  const prop  = document.getElementById('prop-type').value;
+  const loc   = document.getElementById('mold-loc').value;
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      access_key:       NOTIFY_KEY,
+      subject:          `New Inspection Request — ${name} | ${phone}`,
+      from_name:        'Eye Spy Mold Website',
+      replyto:          email,
+      cc:               '4079195755@vtext.com',
+      'Name':           name,
+      'Phone':          phone,
+      'Email':          email,
+      'Zip':            zip,
+      'Property Type':  prop,
+      'Mold Location':  loc
+    })
+  }).catch(()=>{}); // silent fail — user still sees success screen
+}
+
 function nextStep(n) {
   if (n === 1) {
     if (!document.getElementById('prop-type').value || !document.getElementById('mold-loc').value) {
@@ -1198,6 +1234,7 @@ function nextStep(n) {
     const e = document.getElementById('femail').value.trim();
     const z = document.getElementById('fzip').value.trim();
     if (!f || !p || !e || !z) { alert('Please fill out all fields to continue.');return; }
+    submitLeadNotification(); // send email + SMS to owner
   }
   document.getElementById('fs'+n).classList.remove('active');
   document.getElementById('fs'+(n+1)).classList.add('active');
