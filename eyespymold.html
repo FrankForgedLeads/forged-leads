@@ -503,7 +503,7 @@ footer{
     <span class="ticker-sep">|</span>
     IICRC CERTIFIED
     <span class="ticker-sep">|</span>
-    LICENSED &amp; INSURED SINCE 2018
+    LICENSED &amp; INSURED SINCE 2019
     <span class="ticker-sep">|</span>
     FL REMEDIATOR #MRSR325
     <span class="ticker-sep">|</span>
@@ -554,11 +554,11 @@ footer{
     </div>
     <div class="stat-cell">
       <div class="stat-lbl">Insured</div>
-      <div class="stat-sub">SINCE 2018</div>
+      <div class="stat-sub">SINCE 2019</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-big">4.9★</div>
-      <div class="stat-sub">127+ GOOGLE REVIEWS</div>
+      <div class="stat-lbl">Serving</div>
+      <div class="stat-sub">ALL OF FLORIDA</div>
     </div>
     <div class="stat-cell">
       <div class="stat-lbl">IICRC</div>
@@ -669,7 +669,7 @@ footer{
     <p class="sec-sub">We do one thing and we do it right — find mold, tell you the truth, and fix it safely.</p>
     <div class="sec-div"></div>
     <div class="trust-grid">
-      <div class="tcard"><div class="tcard-ico">🛡️</div><h3>Licensed &amp; Insured</h3><p>FL Mold Assessor #MRSA3318 and Remediator #MRSR325. Fully insured since 2018 — you're protected from start to finish.</p></div>
+      <div class="tcard"><div class="tcard-ico">🛡️</div><h3>Licensed &amp; Insured</h3><p>FL Mold Assessor #MRSA3318 and Remediator #MRSR325. Fully insured since 2019 — you're protected from start to finish.</p></div>
       <div class="tcard"><div class="tcard-ico">🎓</div><h3>State-Licensed Professionals</h3><p>Every inspector is Florida-licensed with hundreds of real inspections completed — not just classroom training.</p></div>
       <div class="tcard"><div class="tcard-ico">🔬</div><h3>Independent Lab Results</h3><p>Your samples go to a separate, accredited lab — not one we own. That means your results are honest, not slanted to sell you more work.</p></div>
       <div class="tcard"><div class="tcard-ico">⚡</div><h3>Fast Scheduling</h3><p>Most inspections are scheduled within 24–48 hours. For active water damage or urgent health concerns, we prioritize getting to you fast.</p></div>
@@ -1090,20 +1090,14 @@ function addMsg(txt, type) {
   body.scrollTop = body.scrollHeight;
 }
 
-// ── MOLD REVEAL: scan wave sweeps down as you scroll, revealing mold in the dark ──
+// ── MOLD REVEAL BACKGROUND ──
 (function() {
   const canvas = document.getElementById('matrix-canvas');
   const ctx    = canvas.getContext('2d');
-  let W, H;
-  let scanY = 0, targetScanY = 0, tick = 0;
+  let W, H, tick = 0;
+  let scanY = 0, targetScanY = 0;
 
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    buildColonies();
-  }
-
-  // Track scroll → wave follows scroll position
+  // Scroll tracking
   function onScroll() {
     const st = window.scrollY || document.documentElement.scrollTop;
     const dH = document.documentElement.scrollHeight - window.innerHeight;
@@ -1111,131 +1105,158 @@ function addMsg(txt, type) {
   }
   window.addEventListener('scroll', onScroll, {passive:true});
 
-  // ── Mold colonies — ONLY visible when scan wave is near them ──
-  let colonies = [];
-  function buildColonies() {
-    colonies = [];
-    const count = Math.max(28, Math.floor(W * H / 14000));
-    for (let i = 0; i < count; i++) {
-      const sz = 14 + Math.random() * 58;
-      const blobs = [];
-      const nb = 5 + Math.floor(Math.random() * 8);
-      for (let j = 0; j < nb; j++) {
-        const a = Math.random() * Math.PI * 2;
-        const d = Math.random() * sz * 0.62;
-        blobs.push({ ox: Math.cos(a)*d, oy: Math.sin(a)*d, r: 5 + Math.random()*sz*0.52 });
+  // Pre-generated mold field — colonies + mycelial threads
+  let colonies = [], threads = [];
+
+  function buildField() {
+    colonies = []; threads = [];
+    // Dense colony grid
+    const cols = Math.ceil(W / 80), rows = Math.ceil(H / 80);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // 70% fill — skip some for natural look
+        if (Math.random() < 0.3) continue;
+        const cx = c * 80 + Math.random() * 60 - 10;
+        const cy = r * 80 + Math.random() * 60 - 10;
+        const sz = 10 + Math.random() * 38;
+        const blobs = [];
+        for (let b = 0; b < 4 + Math.floor(Math.random()*6); b++) {
+          const a = Math.random()*Math.PI*2, d = Math.random()*sz*0.65;
+          blobs.push({ ox:Math.cos(a)*d, oy:Math.sin(a)*d, r:4+Math.random()*sz*0.55 });
+        }
+        colonies.push({ x:cx, y:cy, blobs, lit:0,
+          col: Math.random()>0.88 ? 'gold' : 'green' });
       }
-      const spores = [];
-      for (let j = 0; j < 3+Math.floor(Math.random()*5); j++) {
-        const a = Math.random()*Math.PI*2, d = sz*(0.75+Math.random()*0.9);
-        spores.push({ ox:Math.cos(a)*d, oy:Math.sin(a)*d, r:1+Math.random()*3 });
+    }
+    // Mycelial threads — branching lines connecting the mold
+    const numThreads = Math.floor(W * H / 5000);
+    for (let i = 0; i < numThreads; i++) {
+      const pts = [];
+      let x = Math.random()*W, y = Math.random()*H;
+      let ang = Math.random()*Math.PI*2;
+      const segs = 4 + Math.floor(Math.random()*10);
+      for (let s = 0; s < segs; s++) {
+        ang += (Math.random()-0.5)*1.1;
+        const len = 12 + Math.random()*35;
+        const nx = x + Math.cos(ang)*len, ny = y + Math.sin(ang)*len;
+        pts.push({ x1:x, y1:y, x2:nx, y2:ny,
+          cpx:(x+nx)/2+(Math.random()-0.5)*18,
+          cpy:(y+ny)/2+(Math.random()-0.5)*18,
+          w: 0.3+Math.random()*1.4 });
+        x = nx; y = ny;
+        // Branch
+        if (Math.random()<0.35) {
+          ang += (Math.random()<0.5?1:-1)*(0.6+Math.random()*0.7);
+        }
       }
-      colonies.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
-        blobs, spores,
-        lit: 0,          // current lit level 0–1
-        gold: Math.random() > 0.88
-      });
+      threads.push({ pts, cy: pts[0]?.y1||0, lit:0 });
     }
   }
 
-  function drawColonies(sy) {
-    const BAND = 150; // how far from wave colonies can be seen
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildField();
+    onScroll();
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const BAND = 180; // reveal radius from wave center
+
+  function drawField(sy) {
+    // Draw mycelial threads
+    for (const th of threads) {
+      const midY = th.pts.length ? th.pts[Math.floor(th.pts.length/2)].y1 : th.cy;
+      const dist = Math.abs(midY - sy);
+      const target = dist < BAND ? Math.pow(1 - dist/BAND, 1.2) : 0;
+      th.lit += (target - th.lit) * (target > th.lit ? 0.22 : 0.06);
+      if (th.lit < 0.01) continue;
+
+      ctx.save();
+      ctx.globalAlpha = th.lit * 0.75;
+      ctx.shadowBlur = 4; ctx.shadowColor = '#00c83c';
+      for (const seg of th.pts) {
+        ctx.strokeStyle = `rgba(0,${180+Math.random()*70},${30+Math.random()*40},0.8)`;
+        ctx.lineWidth = seg.w;
+        ctx.beginPath();
+        ctx.moveTo(seg.x1, seg.y1);
+        ctx.quadraticCurveTo(seg.cpx, seg.cpy, seg.x2, seg.y2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // Draw colony blobs
     for (const c of colonies) {
       const dist = Math.abs(c.y - sy);
-      // Target lit level based on distance from wave
-      const target = dist < BAND ? Math.pow(1 - dist/BAND, 1.4) : 0;
-      // Fade in fast when wave approaches, linger slightly after it passes
-      c.lit += (target - c.lit) * (target > c.lit ? 0.18 : 0.055);
+      const target = dist < BAND ? Math.pow(1 - dist/BAND, 1.1) : 0;
+      c.lit += (target - c.lit) * (target > c.lit ? 0.20 : 0.055);
       if (c.lit < 0.01) continue;
 
       ctx.save();
       ctx.translate(c.x, c.y);
-      ctx.globalAlpha = c.lit * 0.72;
-
+      ctx.globalAlpha = c.lit * 0.88;
       for (const b of c.blobs) {
-        const g = ctx.createRadialGradient(b.ox, b.oy, 0, b.ox, b.oy, b.r);
-        if (!c.gold) {
-          g.addColorStop(0,    'rgba(100,255,140,0.95)');
-          g.addColorStop(0.3,  'rgba(0,220,65,0.80)');
-          g.addColorStop(0.65, 'rgba(0,130,35,0.35)');
-          g.addColorStop(1,    'rgba(0,40,10,0)');
+        const g = ctx.createRadialGradient(b.ox,b.oy,0,b.ox,b.oy,b.r);
+        if (c.col === 'green') {
+          g.addColorStop(0,   'rgba(120,255,160,1)');
+          g.addColorStop(0.25,'rgba(0,230,70,0.85)');
+          g.addColorStop(0.6, 'rgba(0,140,35,0.40)');
+          g.addColorStop(1,   'rgba(0,40,10,0)');
         } else {
-          g.addColorStop(0,   'rgba(255,230,90,0.90)');
-          g.addColorStop(0.4, 'rgba(200,145,15,0.55)');
+          g.addColorStop(0,   'rgba(255,235,100,0.95)');
+          g.addColorStop(0.4, 'rgba(205,150,15,0.60)');
           g.addColorStop(1,   'rgba(55,28,0,0)');
         }
-        ctx.beginPath();
-        ctx.arc(b.ox, b.oy, b.r, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
-      }
-      // Spore dots
-      for (const s of c.spores) {
-        ctx.beginPath();
-        ctx.arc(s.ox, s.oy, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = c.gold ? 'rgba(255,210,70,0.65)' : 'rgba(0,255,90,0.7)';
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(b.ox,b.oy,b.r,0,Math.PI*2);
+        ctx.fillStyle = g; ctx.fill();
       }
       ctx.restore();
     }
   }
 
-  // ── Scan wave — the glowing horizontal light band ──
   function drawWave(sy, t) {
-    // Outer soft glow (wide)
-    const outer = ctx.createLinearGradient(0, sy-180, 0, sy+180);
-    outer.addColorStop(0,   'rgba(0,140,30,0)');
-    outer.addColorStop(0.3, 'rgba(0,200,55,0.06)');
-    outer.addColorStop(0.48,'rgba(0,255,82,0.15)');
-    outer.addColorStop(0.5, 'rgba(0,255,82,0.22)');
-    outer.addColorStop(0.52,'rgba(0,255,82,0.15)');
-    outer.addColorStop(0.7, 'rgba(0,200,55,0.06)');
-    outer.addColorStop(1,   'rgba(0,140,30,0)');
-    ctx.fillStyle = outer;
-    ctx.fillRect(0, sy-180, W, 360);
+    // Wide outer soft glow
+    const g = ctx.createLinearGradient(0, sy-220, 0, sy+220);
+    g.addColorStop(0,    'rgba(0,120,25,0)');
+    g.addColorStop(0.25, 'rgba(0,180,45,0.07)');
+    g.addColorStop(0.44, 'rgba(0,245,75,0.18)');
+    g.addColorStop(0.5,  'rgba(0,255,82,0.32)');
+    g.addColorStop(0.56, 'rgba(0,245,75,0.18)');
+    g.addColorStop(0.75, 'rgba(0,180,45,0.07)');
+    g.addColorStop(1,    'rgba(0,120,25,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, sy-220, W, 440);
 
-    // Bright wavy centerline
+    // Bright wavy line — the actual scan beam
     ctx.save();
-    ctx.shadowBlur  = 22;
-    ctx.shadowColor = '#00ff82';
-    ctx.strokeStyle = 'rgba(80,255,130,0.88)';
-    ctx.lineWidth   = 3;
+    ctx.shadowBlur = 28; ctx.shadowColor = '#00ff52';
+    ctx.strokeStyle = 'rgba(100,255,150,0.92)';
+    ctx.lineWidth = 3.5;
     ctx.beginPath();
     for (let x = 0; x <= W; x += 3) {
-      const wy = sy
-        + Math.sin(x * 0.016 + t * 0.0006) * 10
-        + Math.sin(x * 0.042 + t * 0.0011) * 4;
-      x === 0 ? ctx.moveTo(x, wy) : ctx.lineTo(x, wy);
+      const wy = sy + Math.sin(x*0.015+t*0.0005)*11 + Math.sin(x*0.038+t*0.0009)*5;
+      x===0 ? ctx.moveTo(x,wy) : ctx.lineTo(x,wy);
     }
     ctx.stroke();
-
-    // Inner core line (extra bright)
-    ctx.shadowBlur  = 10;
-    ctx.strokeStyle = 'rgba(180,255,200,0.55)';
-    ctx.lineWidth   = 1;
+    // Bright core
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = 'rgba(200,255,220,0.7)';
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
     for (let x = 0; x <= W; x += 3) {
-      const wy = sy
-        + Math.sin(x * 0.016 + t * 0.0006) * 10
-        + Math.sin(x * 0.042 + t * 0.0011) * 4;
-      x === 0 ? ctx.moveTo(x, wy) : ctx.lineTo(x, wy);
+      const wy = sy + Math.sin(x*0.015+t*0.0005)*11 + Math.sin(x*0.038+t*0.0009)*5;
+      x===0 ? ctx.moveTo(x,wy) : ctx.lineTo(x,wy);
     }
     ctx.stroke();
-    ctx.restore();
-
-    // Sparkle particles riding the wave
-    ctx.save();
-    ctx.shadowColor = '#00ff52';
-    for (let i = 0; i < 8; i++) {
-      const px = Math.random() * W;
-      const py = sy + Math.sin(px*0.016 + t*0.0006)*10 + Math.sin(px*0.042+t*0.0011)*4;
-      const pr = 0.8 + Math.random() * 2.8;
-      ctx.shadowBlur = 6 + Math.random()*8;
-      ctx.beginPath();
-      ctx.arc(px, py, pr, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(140,255,170,${0.45+Math.random()*0.5})`;
+    // Sparkles
+    for (let i = 0; i < 10; i++) {
+      const px = Math.random()*W;
+      const py = sy + Math.sin(px*0.015+t*0.0005)*11;
+      ctx.beginPath(); ctx.arc(px,py,0.8+Math.random()*2.5,0,Math.PI*2);
+      ctx.fillStyle = `rgba(180,255,200,${0.5+Math.random()*0.5})`;
+      ctx.shadowBlur = 8;
       ctx.fill();
     }
     ctx.restore();
@@ -1245,13 +1266,10 @@ function addMsg(txt, type) {
     tick++;
     scanY += (targetScanY - scanY) * 0.10;
     ctx.clearRect(0, 0, W, H);
-    drawColonies(scanY);
+    drawField(scanY);
     drawWave(scanY, tick);
   }
 
-  window.addEventListener('resize', resize);
-  resize();
-  onScroll();
   setInterval(draw, 40);
 })();
 
