@@ -38,34 +38,43 @@ h1,h2,h3,h4{font-family:'Oswald',sans-serif;line-height:1.15}
 
 .notif-bar,header,main,footer,.chat-widget,.fab-phone,.fab-chat{position:relative;z-index:1}
 
-/* ── SCANNER LINE (right side) — glowing beam follows scroll ── */
+/* ── RIGHT-SIDE SCANNER — subtle indicator ── */
 .scan-line{
-  position:fixed;right:4px;top:0;bottom:0;width:3px;
-  background:rgba(0,200,60,0.10);z-index:500;pointer-events:none;
+  position:fixed;right:3px;top:0;bottom:0;width:2px;
+  background:rgba(0,200,60,0.08);z-index:500;pointer-events:none;
 }
 .scan-beam{
-  position:absolute;left:-10px;right:-10px;height:130px;
-  top:0;
+  position:absolute;left:-4px;right:-4px;height:60px;top:0;
   background:linear-gradient(to bottom,
     rgba(0,200,60,0) 0%,
-    rgba(0,255,82,0.65) 30%,
+    rgba(0,255,82,0.55) 40%,
     #00ff52 50%,
-    rgba(0,255,82,0.65) 70%,
+    rgba(0,255,82,0.55) 60%,
     rgba(0,200,60,0) 100%);
-  box-shadow:0 0 22px #00ff52, 0 0 55px rgba(0,255,82,0.55), -28px 0 50px rgba(0,255,82,0.22);
+  box-shadow:0 0 12px #00ff52, 0 0 28px rgba(0,255,82,0.4);
   transition:top .08s linear;
 }
 .scan-dot{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:14px;height:14px;border-radius:50%;
+  width:10px;height:10px;border-radius:50%;
   background:#00ff52;
-  box-shadow:0 0 12px #00ff52,0 0 30px rgba(0,255,82,0.9),0 0 6px #fff;
+  box-shadow:0 0 8px #00ff52,0 0 20px rgba(0,255,82,0.8);
 }
-/* Background spotlight — wide glow that follows scroll */
+
+/* ── HORIZONTAL SCROLL GLOW — full-width band that sweeps top to bottom ── */
 #scroll-light{
-  position:fixed;right:-120px;width:340px;height:340px;
-  border-radius:50%;pointer-events:none;z-index:1;
-  background:radial-gradient(circle,rgba(0,220,70,0.11) 0%,rgba(0,180,50,0.05) 45%,transparent 70%);
+  position:fixed;
+  left:0;right:0;
+  height:220px;
+  top:0;
+  pointer-events:none;
+  z-index:2;
+  background:
+    radial-gradient(ellipse 80% 100% at 50% 50%,
+      rgba(0,255,82,0.18) 0%,
+      rgba(0,200,60,0.10) 35%,
+      rgba(0,150,40,0.04) 65%,
+      transparent 100%);
   transition:top .1s linear;
 }
 
@@ -1221,30 +1230,30 @@ function addMsg(txt, type) {
   setInterval(draw, 40);
 })();
 
-// ── SCANNER LINE — glowing beam + background spotlight follow scroll ──
+// ── SCROLL GLOW — horizontal band sweeps full width top→bottom as you scroll ──
 (function() {
-  const beam   = document.getElementById('scan-beam');
-  const light  = document.getElementById('scroll-light');
-  const BEAM_H = 130;
-  const LIGHT_H = 340;
+  const beam  = document.getElementById('scan-beam');
+  const light = document.getElementById('scroll-light');
+  const BEAM_H  = 60;
+  const LIGHT_H = 220;
 
-  function updateScan() {
+  function update() {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const docH   = document.documentElement.scrollHeight - window.innerHeight;
-    const lineH  = window.innerHeight;
-    const pct    = docH > 0 ? scrollTop / docH : 0;
+    const docH  = document.documentElement.scrollHeight - window.innerHeight;
+    const lineH = window.innerHeight;
+    const pct   = docH > 0 ? scrollTop / docH : 0;
 
-    // Beam: stays within viewport height
+    // Right-side mini beam
     const beamTop = Math.round(pct * (lineH - BEAM_H));
     beam.style.top = beamTop + 'px';
 
-    // Spotlight: center it on the beam midpoint
-    const lightTop = beamTop + (BEAM_H / 2) - (LIGHT_H / 2);
+    // Full-width horizontal glow band — sweeps viewport top to bottom
+    const lightTop = Math.round(pct * (lineH - LIGHT_H));
     light.style.top = lightTop + 'px';
   }
 
-  window.addEventListener('scroll', updateScan, {passive:true});
-  updateScan();
+  window.addEventListener('scroll', update, {passive:true});
+  update();
 })();
 
 // ── SECTION REVEAL ──
