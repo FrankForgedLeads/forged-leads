@@ -61,22 +61,6 @@ h1,h2,h3,h4{font-family:'Oswald',sans-serif;line-height:1.15}
   box-shadow:0 0 8px #00ff52,0 0 20px rgba(0,255,82,0.8);
 }
 
-/* ── HORIZONTAL SCROLL GLOW — full-width band that sweeps top to bottom ── */
-#scroll-light{
-  position:fixed;
-  left:0;right:0;
-  height:220px;
-  top:0;
-  pointer-events:none;
-  z-index:2;
-  background:
-    radial-gradient(ellipse 80% 100% at 50% 50%,
-      rgba(0,255,82,0.18) 0%,
-      rgba(0,200,60,0.10) 35%,
-      rgba(0,150,40,0.04) 65%,
-      transparent 100%);
-  transition:top .1s linear;
-}
 
 /* ── NOTIFICATION BAR ── */
 .notif-bar{
@@ -503,8 +487,6 @@ footer{
     <div class="scan-dot"></div>
   </div>
 </div>
-<!-- Background scroll spotlight -->
-<div id="scroll-light"></div>
 
 <!-- ── NOTIFICATION BAR ── -->
 <div class="notif-bar">
@@ -1108,11 +1090,12 @@ function addMsg(txt, type) {
   body.scrollTop = body.scrollHeight;
 }
 
-// ── MOLD COLONY GLOW BACKGROUND ──
+// ── MOLD COLONY GLOW + SCROLL SCAN WAVE ──
 (function() {
   const canvas = document.getElementById('matrix-canvas');
-  const ctx = canvas.getContext('2d');
+  const ctx    = canvas.getContext('2d');
   let W, H;
+  let scanY = 0, targetScanY = 0, tick = 0;
 
   function resize() {
     W = canvas.width  = window.innerWidth;
@@ -1121,137 +1104,171 @@ function addMsg(txt, type) {
   resize();
   window.addEventListener('resize', resize);
 
-  // A single mold colony — cluster of organic blobs that glow in and out
-  function MoldColony() {
+  // Track scroll → move scan wave
+  function onScroll() {
+    const st  = window.scrollY || document.documentElement.scrollTop;
+    const dH  = document.documentElement.scrollHeight - window.innerHeight;
+    targetScanY = dH > 0 ? (st / dH) * H : 0;
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  // ── Mold Colony ──
+  function Colony() {
     this.spawn = function() {
       this.x = Math.random() * W;
       this.y = Math.random() * H;
-      const sz = 18 + Math.random() * 55;
+      const sz = 16 + Math.random() * 52;
       this.blobs = [];
       const n = 5 + Math.floor(Math.random() * 7);
       for (let i = 0; i < n; i++) {
         const a = Math.random() * Math.PI * 2;
-        const d = Math.random() * sz * 0.65;
-        this.blobs.push({
-          ox: Math.cos(a) * d,
-          oy: Math.sin(a) * d,
-          r: 6 + Math.random() * sz * 0.52
-        });
+        const d = Math.random() * sz * 0.6;
+        this.blobs.push({ ox:Math.cos(a)*d, oy:Math.sin(a)*d, r:5+Math.random()*sz*0.5 });
       }
-      // Spore dots around the colony
       this.spores = [];
-      const ns = 3 + Math.floor(Math.random() * 5);
-      for (let i = 0; i < ns; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const d = sz * (0.8 + Math.random() * 0.7);
-        this.spores.push({ ox: Math.cos(a)*d, oy: Math.sin(a)*d, r: 1.5 + Math.random()*3 });
+      for (let i = 0; i < 4 + Math.floor(Math.random()*4); i++) {
+        const a = Math.random()*Math.PI*2, d = sz*(0.8+Math.random()*0.8);
+        this.spores.push({ ox:Math.cos(a)*d, oy:Math.sin(a)*d, r:1+Math.random()*2.5 });
       }
-      this.alpha   = 0;
-      this.maxAlpha = 0.10 + Math.random() * 0.18;
-      this.speed   = 0.002 + Math.random() * 0.004;
-      this.hold    = 0;
-      this.maxHold = 80 + Math.random() * 160;
-      this.phase   = 'in';
-      // Slight pulsing
-      this.pulse = 0;
-      this.pulseSpeed = 0.02 + Math.random() * 0.03;
-      // Color — mostly green, occasional gold tint
-      this.hue = Math.random() > 0.85 ? 'gold' : 'green';
+      this.alpha    = 0;
+      this.maxAlpha = 0.08 + Math.random() * 0.14;
+      this.speed    = 0.0018 + Math.random() * 0.003;
+      this.hold = 0; this.maxHold = 90 + Math.random() * 180;
+      this.pulse = Math.random()*Math.PI*2;
+      this.pulseSpd = 0.018 + Math.random()*0.025;
+      this.phase = 'in';
+      this.gold = Math.random() > 0.82;
     };
-
     this.update = function() {
-      this.pulse += this.pulseSpeed;
-      if (this.phase === 'in') {
-        this.alpha += this.speed;
-        if (this.alpha >= this.maxAlpha) { this.alpha = this.maxAlpha; this.phase = 'hold'; }
-      } else if (this.phase === 'hold') {
-        this.alpha = this.maxAlpha * (0.88 + 0.12 * Math.sin(this.pulse));
-        if (++this.hold >= this.maxHold) this.phase = 'out';
-      } else {
-        this.alpha -= this.speed * 0.7;
-        if (this.alpha <= 0) { this.alpha = 0; this.spawn(); }
-      }
+      this.pulse += this.pulseSpd;
+      if (this.phase==='in')  { this.alpha += this.speed; if (this.alpha>=this.maxAlpha){this.alpha=this.maxAlpha;this.phase='hold';} }
+      else if (this.phase==='hold') { this.alpha=this.maxAlpha*(0.9+0.1*Math.sin(this.pulse)); if(++this.hold>=this.maxHold)this.phase='out'; }
+      else { this.alpha -= this.speed*0.65; if(this.alpha<=0){this.alpha=0;this.spawn();} }
     };
-
-    this.draw = function(ctx) {
+    this.draw = function(ctx, sy) {
       if (this.alpha <= 0) return;
+      // Boost alpha when scan wave is nearby
+      const dist  = Math.abs(this.y - sy);
+      const boost = Math.max(0, 1 - dist / 160) * 0.25;
       ctx.save();
       ctx.translate(this.x, this.y);
-      ctx.globalAlpha = this.alpha;
-
+      ctx.globalAlpha = Math.min(this.alpha + boost, 0.42);
       for (const b of this.blobs) {
-        const g = ctx.createRadialGradient(b.ox, b.oy, 0, b.ox, b.oy, b.r);
-        if (this.hue === 'green') {
-          g.addColorStop(0,   'rgba(80,255,120,0.9)');
-          g.addColorStop(0.35,'rgba(0,200,60,0.7)');
-          g.addColorStop(0.7, 'rgba(0,120,30,0.3)');
-          g.addColorStop(1,   'rgba(0,40,10,0)');
+        const g = ctx.createRadialGradient(b.ox,b.oy,0,b.ox,b.oy,b.r);
+        if (!this.gold) {
+          g.addColorStop(0,  'rgba(80,255,120,0.92)');
+          g.addColorStop(0.35,'rgba(0,210,60,0.7)');
+          g.addColorStop(0.7,'rgba(0,110,28,0.28)');
+          g.addColorStop(1,  'rgba(0,30,8,0)');
         } else {
-          g.addColorStop(0,   'rgba(255,220,80,0.8)');
-          g.addColorStop(0.4, 'rgba(200,140,10,0.5)');
-          g.addColorStop(1,   'rgba(60,30,0,0)');
+          g.addColorStop(0,  'rgba(255,220,80,0.85)');
+          g.addColorStop(0.4,'rgba(195,135,10,0.5)');
+          g.addColorStop(1,  'rgba(50,25,0,0)');
         }
-        ctx.beginPath();
-        ctx.arc(b.ox, b.oy, b.r, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(b.ox,b.oy,b.r,0,Math.PI*2);
+        ctx.fillStyle = g; ctx.fill();
       }
-
-      // Spore dots
       for (const s of this.spores) {
-        ctx.beginPath();
-        ctx.arc(s.ox, s.oy, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = this.hue === 'green'
-          ? 'rgba(0,255,82,0.6)' : 'rgba(255,200,60,0.5)';
+        ctx.beginPath(); ctx.arc(s.ox,s.oy,s.r,0,Math.PI*2);
+        ctx.fillStyle = this.gold ? 'rgba(255,200,60,0.55)' : 'rgba(0,255,82,0.6)';
         ctx.fill();
       }
-
       ctx.restore();
     };
-
     this.spawn();
-    // Stagger initial positions so they don't all fade in together
-    this.alpha    = Math.random() * this.maxAlpha;
-    this.phase    = Math.random() > 0.5 ? 'hold' : 'in';
-    this.hold     = Math.floor(Math.random() * this.maxHold);
+    this.alpha = Math.random() * this.maxAlpha;
+    this.phase = Math.random()>0.5 ? 'hold' : 'in';
+    this.hold  = Math.floor(Math.random() * this.maxHold);
   }
 
-  // Create colony pool
-  const COUNT = 22;
   const colonies = [];
-  for (let i = 0; i < COUNT; i++) colonies.push(new MoldColony());
+  for (let i = 0; i < 24; i++) colonies.push(new Colony());
+
+  // ── Draw the scroll scan wave ──
+  function drawScanWave(sy, t) {
+    // Wide soft glow band
+    const bh = 110;
+    const bg = ctx.createLinearGradient(0, sy - bh*2, 0, sy + bh*2);
+    bg.addColorStop(0,    'rgba(0,160,40,0)');
+    bg.addColorStop(0.28, 'rgba(0,210,55,0.07)');
+    bg.addColorStop(0.45, 'rgba(0,255,82,0.20)');
+    bg.addColorStop(0.5,  'rgba(0,255,82,0.28)');
+    bg.addColorStop(0.55, 'rgba(0,255,82,0.20)');
+    bg.addColorStop(0.72, 'rgba(0,210,55,0.07)');
+    bg.addColorStop(1,    'rgba(0,160,40,0)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, sy - bh*2, W, bh*4);
+
+    // Bright wavy center line
+    ctx.save();
+    ctx.shadowBlur  = 18;
+    ctx.shadowColor = '#00ff52';
+    ctx.strokeStyle = 'rgba(60,255,110,0.82)';
+    ctx.lineWidth   = 2.5;
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 4) {
+      const w = Math.sin(x * 0.018 + t * 0.0007) * 9
+              + Math.sin(x * 0.045 + t * 0.0012) * 4;
+      x === 0 ? ctx.moveTo(x, sy + w) : ctx.lineTo(x, sy + w);
+    }
+    ctx.stroke();
+
+    // Second dimmer wave slightly offset
+    ctx.globalAlpha = 0.35;
+    ctx.shadowBlur  = 8;
+    ctx.strokeStyle = 'rgba(0,255,82,0.5)';
+    ctx.lineWidth   = 1.2;
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 4) {
+      const w = Math.sin(x * 0.022 + t * 0.0009 + 1.2) * 7
+              + Math.sin(x * 0.05  + t * 0.0015) * 3;
+      x === 0 ? ctx.moveTo(x, sy + w + 18) : ctx.lineTo(x, sy + w + 18);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // Sparkle particles along the wave
+    ctx.save();
+    for (let i = 0; i < 6; i++) {
+      const px = Math.random() * W;
+      const pw = Math.sin(px*0.018 + t*0.0007)*9;
+      const pr = 1 + Math.random() * 2.5;
+      ctx.beginPath(); ctx.arc(px, sy + pw, pr, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(120,255,160,${0.4+Math.random()*0.5})`;
+      ctx.shadowBlur = 8; ctx.shadowColor = '#00ff52';
+      ctx.fill();
+    }
+    ctx.restore();
+  }
 
   function draw() {
-    // Clear to solid dark — no trails, colonies fade via alpha
+    tick++;
+    // Smooth interpolation toward target scroll position
+    scanY += (targetScanY - scanY) * 0.12;
+
     ctx.clearRect(0, 0, W, H);
-    for (const c of colonies) { c.update(); c.draw(ctx); }
+
+    // Colonies (dim in background, boost near scan wave)
+    for (const c of colonies) { c.update(); c.draw(ctx, scanY); }
+
+    // Scan wave drawn on top of colonies
+    drawScanWave(scanY, tick);
   }
 
   setInterval(draw, 40);
 })();
 
-// ── SCROLL GLOW — horizontal band sweeps full width top→bottom as you scroll ──
+// ── RIGHT-SIDE BEAM — follows scroll ──
 (function() {
-  const beam  = document.getElementById('scan-beam');
-  const light = document.getElementById('scroll-light');
-  const BEAM_H  = 60;
-  const LIGHT_H = 220;
-
+  const beam   = document.getElementById('scan-beam');
+  const BEAM_H = 60;
   function update() {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const docH  = document.documentElement.scrollHeight - window.innerHeight;
-    const lineH = window.innerHeight;
-    const pct   = docH > 0 ? scrollTop / docH : 0;
-
-    // Right-side mini beam
-    const beamTop = Math.round(pct * (lineH - BEAM_H));
-    beam.style.top = beamTop + 'px';
-
-    // Full-width horizontal glow band — sweeps viewport top to bottom
-    const lightTop = Math.round(pct * (lineH - LIGHT_H));
-    light.style.top = lightTop + 'px';
+    const st  = window.scrollY || document.documentElement.scrollTop;
+    const dH  = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = dH > 0 ? st / dH : 0;
+    beam.style.top = Math.round(pct * (window.innerHeight - BEAM_H)) + 'px';
   }
-
   window.addEventListener('scroll', update, {passive:true});
   update();
 })();
