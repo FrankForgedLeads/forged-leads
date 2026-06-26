@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Benside Contractors Group | Roofing & Home Improvements | Miami, FL</title>
+<meta name="description" content="Florida-licensed roofing contractor. New roof installations, roof repair, siding, gutters, and home improvements. Serving Miami and South Florida. License #CCC1328155.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Open Sans',sans-serif;font-size:16px;line-height:1.65;color:#1a1a2e;background:#fff;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+
+/* ── DESIGN TOKENS ── */
+:root{
+  --navy:#1b2d6b;
+  --navy-dark:#111e4a;
+  --navy-light:#243580;
+  --red:#c41230;
+  --red-dark:#9c0e26;
+  --white:#ffffff;
+  --off-white:#f5f6fa;
+  --border:#dde2f0;
+  --text:#1a1a2e;
+  --muted:#5a6080;
+  --gold:#d4a017;
+}
+
+/* ── LOGO WATERMARK BACKGROUND ── */
+/* SVG house/roof icon tiled very faintly behind content */
+.logo-bg{
+  position:relative;
+}
+.logo-bg::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg opacity='0.045' fill='%231b2d6b'%3E%3Cpolygon points='60,10 10,50 20,50 20,100 100,100 100,50 110,50' fill='none' stroke='%231b2d6b' stroke-width='4'/%3E%3Cline x1='20' y1='100' x2='100' y2='100' stroke='%231b2d6b' stroke-width='4'/%3E%3Cline x1='45' y1='100' x2='45' y2='68' stroke='%231b2d6b' stroke-width='3'/%3E%3Cline x1='75' y1='100' x2='75' y2='68' stroke='%231b2d6b' stroke-width='3'/%3E%3Cline x1='45' y1='68' x2='75' y2='68' stroke='%231b2d6b' stroke-width='3'/%3E%3Cline x1='22' y1='58' x2='98' y2='58' stroke='%231b2d6b' stroke-width='2.5'/%3E%3Cline x1='25' y1='68' x2='95' y2='68' stroke='%231b2d6b' stroke-width='2'/%3E%3Cline x1='18' y1='78' x2='102' y2='78' stroke='%231b2d6b' stroke-width='2'/%3E%3Cline x1='16' y1='88' x2='104' y2='88' stroke='%231b2d6b' stroke-width='2'/%3E%3Cpolygon points='60,10 110,50 60,10' fill='none' stroke='%23c41230' stroke-width='3'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:repeat;
+  background-size:120px 120px;
+  pointer-events:none;
+  z-index:0;
+}
+.logo-bg > *{position:relative;z-index:1}
+
+/* ── NOTIFICATION BAR ── */
+.notif-bar{background:var(--red);color:var(--white);text-align:center;padding:8px 16px;font-size:.78rem;font-family:'Oswald',sans-serif;font-weight:500;letter-spacing:.05em;text-transform:uppercase;}
+.notif-bar a{color:var(--white);text-decoration:underline}
+
+/* ── HEADER ── */
+.site-header{background:var(--white);border-bottom:3px solid var(--navy);position:sticky;top:0;z-index:900;box-shadow:0 2px 12px rgba(27,45,107,.10)}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo-wrap{display:flex;align-items:center;gap:12px}
+.logo-svg{width:52px;height:52px;flex-shrink:0}
+.logo-text-block{}
+.logo-name{font-family:'Oswald',sans-serif;font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1.1;letter-spacing:.03em;text-transform:uppercase}
+.logo-tagline{font-size:.68rem;color:var(--red);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{font-family:'Oswald',sans-serif;font-size:.88rem;font-weight:500;color:var(--navy);letter-spacing:.04em;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--red)}
+.btn-nav{background:var(--red);color:var(--white)!important;padding:10px 22px;border-radius:4px;font-family:'Oswald',sans-serif;font-size:.88rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;transition:background .2s;cursor:pointer;border:none;display:inline-block}
+.btn-nav:hover{background:var(--red-dark)!important}
+.hamburger{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px;padding:4px}
+.hamburger span{display:block;width:25px;height:2px;background:var(--navy);border-radius:2px;transition:.3s}
+.mobile-menu{display:none;background:var(--white);border-bottom:3px solid var(--navy);padding:16px 20px}
+.mobile-menu a{display:block;padding:10px 0;font-family:'Oswald',sans-serif;font-size:1rem;font-weight:500;color:var(--navy);border-bottom:1px solid var(--border);letter-spacing:.03em;text-transform:uppercase}
+.mobile-menu a:last-child{border-bottom:none;margin-top:10px;background:var(--red);color:var(--white)!important;text-align:center;padding:12px;border-radius:4px}
+@media(max-width:820px){.nav-links{display:none}.hamburger{display:flex}}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,var(--navy-dark) 0%,var(--navy) 55%,var(--navy-light) 100%);position:relative;overflow:hidden;padding:80px 20px 90px}
+.hero::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg opacity='0.06' fill='%23ffffff'%3E%3Cpolygon points='30,4 6,22 10,22 10,50 50,50 50,22 54,22' fill='none' stroke='%23ffffff' stroke-width='2'/%3E%3Cline x1='10' y1='32' x2='50' y2='32' stroke='%23ffffff' stroke-width='1.5'/%3E%3Cline x1='10' y1='40' x2='50' y2='40' stroke='%23ffffff' stroke-width='1.5'/%3E%3C/g%3E%3C/svg%3E") repeat;background-size:60px 60px;pointer-events:none;z-index:0}
+/* Stars/flag accent */
+.hero-stars{position:absolute;top:0;left:0;width:100%;height:6px;background:repeating-linear-gradient(90deg,var(--red) 0,var(--red) 33.3%,var(--white) 33.3%,var(--white) 66.6%,var(--navy-dark) 66.6%,var(--navy-dark) 100%);z-index:1;opacity:.6}
+.hero-inner{max-width:900px;margin:0 auto;position:relative;z-index:2;text-align:center}
+.hero-badge{display:inline-block;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);font-family:'Oswald',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:5px 16px;border-radius:20px;margin-bottom:22px}
+.hero-h1{font-family:'Oswald',sans-serif;font-size:clamp(2rem,5.5vw,3.6rem);font-weight:700;color:var(--white);line-height:1.12;margin-bottom:18px;text-transform:uppercase;letter-spacing:.02em}
+.hero-h1 .accent{color:var(--red);display:block}
+.hero-sub{font-size:clamp(.98rem,2vw,1.15rem);color:rgba(255,255,255,.85);max-width:680px;margin:0 auto 30px;line-height:1.7}
+.hero-cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:36px}
+.btn-hero-primary{background:var(--red);color:var(--white);padding:17px 38px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;border:none;transition:.2s;display:inline-block}
+.btn-hero-primary:hover{background:var(--red-dark)}
+.btn-hero-secondary{background:transparent;color:var(--white);padding:17px 34px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:2px solid rgba(255,255,255,.5);transition:.2s;display:inline-block}
+.btn-hero-secondary:hover{border-color:var(--white);background:rgba(255,255,255,.08)}
+.hero-trust-strip{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.15);padding-top:28px}
+.hero-trust-item{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.8);font-size:.8rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.hero-trust-item .ico{font-size:1rem}
+
+/* ── TRUST STRIP ── */
+.trust-strip{background:var(--off-white);border-bottom:3px solid var(--navy);padding:18px 20px}
+.trust-strip-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap}
+.ts-item{display:flex;align-items:center;gap:9px;font-family:'Oswald',sans-serif;font-size:.85rem;font-weight:600;color:var(--navy);letter-spacing:.04em;text-transform:uppercase}
+.ts-item .tico{color:var(--red);font-size:1.1rem}
+
+/* ── SECTION SHARED ── */
+.section{padding:72px 20px}
+.container{max-width:1100px;margin:0 auto}
+.sec-label{font-family:'Oswald',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--red);margin-bottom:10px}
+.sec-h{font-family:'Oswald',sans-serif;font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:700;color:var(--navy);margin-bottom:14px;line-height:1.2;text-transform:uppercase}
+.sec-sub{font-size:1rem;color:var(--muted);max-width:680px;margin-bottom:44px;line-height:1.7}
+.sec-h.white{color:var(--white)}
+.sec-sub.white{color:rgba(255,255,255,.8)}
+.sec-label.gold{color:var(--gold)}
+
+/* fade in on scroll */
+.fade-in{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
+.fade-in.visible{opacity:1;transform:none}
+
+/* ── PAIN SECTION ── */
+.pain-sec{background:linear-gradient(135deg,var(--navy-dark) 0%,#0d1a45 100%);padding:72px 20px}
+.pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:rgba(255,255,255,.1);border-radius:8px;overflow:hidden}
+.pain-card{background:rgba(255,255,255,.04);padding:28px 24px;border:none}
+.pain-card:hover{background:rgba(255,255,255,.07)}
+.pain-icon{font-size:1.8rem;margin-bottom:12px}
+.pain-title{font-family:'Oswald',sans-serif;font-size:1.05rem;font-weight:700;color:var(--white);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+.pain-text{font-size:.88rem;color:rgba(255,255,255,.72);line-height:1.65}
+
+/* ── SERVICES ── */
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.service-card{background:var(--white);border:2px solid var(--border);border-radius:8px;padding:28px 24px;transition:.2s;cursor:default}
+.service-card:hover{border-color:var(--navy);box-shadow:0 6px 28px rgba(27,45,107,.12)}
+.srv-icon{width:48px;height:48px;background:var(--navy);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:16px;color:var(--white)}
+.srv-name{font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase}
+.srv-desc{font-size:.88rem;color:var(--muted);line-height:1.65}
+.srv-tag{display:inline-block;margin-top:12px;font-size:.72rem;font-weight:700;color:var(--red);letter-spacing:.07em;text-transform:uppercase;border-top:1px solid var(--border);padding-top:10px;width:100%}
+
+/* ── HOW IT WORKS ── */
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));border:2px solid var(--border);border-radius:8px;overflow:hidden}
+.how-step{padding:28px 20px;background:var(--white);border-right:1px solid var(--border);transition:.2s}
+.how-step:last-child{border-right:none}
+.how-step:hover{background:var(--off-white)}
+.how-num{font-family:'Oswald',sans-serif;font-size:2.5rem;font-weight:700;color:rgba(27,45,107,.12);line-height:1;margin-bottom:10px}
+.how-icon{font-size:1.6rem;margin-bottom:10px}
+.how-title{font-family:'Oswald',sans-serif;font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:6px;text-transform:uppercase}
+.how-desc{font-size:.82rem;color:var(--muted);line-height:1.6}
+@media(max-width:600px){.how-grid{grid-template-columns:1fr 1fr}.how-step{border-right:1px solid var(--border);border-bottom:1px solid var(--border)}.how-step:nth-child(even){border-right:none}}
+
+/* ── INSURANCE SECTION ── */
+.insurance-sec{background:linear-gradient(135deg,var(--navy-dark) 0%,#101f50 100%);padding:72px 20px}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.ins-points{display:flex;flex-direction:column;gap:18px;margin-top:28px}
+.ins-point{display:flex;align-items:flex-start;gap:14px}
+.ins-check{width:28px;height:28px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:.85rem;flex-shrink:0;margin-top:1px}
+.ins-text strong{display:block;font-family:'Oswald',sans-serif;font-size:.95rem;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:.02em;margin-bottom:3px}
+.ins-text span{font-size:.85rem;color:rgba(255,255,255,.72)}
+.ins-cta-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:32px}
+.ins-cta-box h3{font-family:'Oswald',sans-serif;font-size:1.4rem;font-weight:700;color:var(--white);text-transform:uppercase;margin-bottom:10px}
+.ins-cta-box p{font-size:.9rem;color:rgba(255,255,255,.75);margin-bottom:24px;line-height:1.65}
+.btn-white{background:var(--white);color:var(--navy);padding:14px 32px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:none;transition:.2s;display:inline-block;width:100%;text-align:center}
+.btn-white:hover{background:var(--off-white)}
+@media(max-width:700px){.ins-grid{grid-template-columns:1fr}}
+
+/* ── WHY BENSIDE ── */
+.why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.why-card{background:var(--off-white);border:1px solid var(--border);border-radius:8px;padding:26px 22px;border-top:3px solid var(--navy)}
+.why-icon{font-size:1.6rem;margin-bottom:12px}
+.why-title{font-family:'Oswald',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase}
+.why-text{font-size:.87rem;color:var(--muted);line-height:1.65}
+
+/* ── BEFORE/AFTER ── */
+.ba-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.ba-card{border-radius:10px;overflow:hidden;border:2px solid var(--border)}
+.ba-imgs{display:grid;grid-template-columns:1fr 1fr}
+.ba-img{background:var(--off-white);height:200px;display:flex;align-items:center;justify-content:center;position:relative}
+.ba-img.before-img{border-right:2px solid var(--border)}
+.ba-label-before,.ba-label-after{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-family:'Oswald',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:3px}
+.ba-label-before{background:rgba(180,30,30,.85);color:#fff}
+.ba-label-after{background:rgba(27,45,107,.85);color:#fff}
+.ba-placeholder{color:var(--border);font-size:2.5rem}
+.ba-caption{padding:14px 16px;background:var(--white)}
+.ba-caption strong{font-family:'Oswald',sans-serif;font-size:.9rem;font-weight:700;color:var(--navy);text-transform:uppercase}
+.ba-caption span{font-size:.8rem;color:var(--muted);display:block;margin-top:3px}
+.ba-notice{background:var(--off-white);border:2px dashed var(--border);border-radius:8px;padding:24px;text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:24px}
+
+/* ── ABOUT NOEL ── */
+.about-grid{display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start}
+.about-photo{background:var(--off-white);border:2px solid var(--border);border-radius:10px;height:320px;display:flex;align-items:center;justify-content:center;color:var(--border);font-size:3rem}
+.about-text{}
+.about-name{font-family:'Oswald',sans-serif;font-size:1.6rem;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:4px}
+.about-title{font-size:.85rem;color:var(--red);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:18px}
+.about-body{font-size:.95rem;color:var(--muted);line-height:1.75;margin-bottom:16px}
+.about-bullets{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.about-bullet{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--text)}
+.about-bullet::before{content:'✔';color:var(--red);font-weight:700;flex-shrink:0}
+@media(max-width:700px){.about-grid{grid-template-columns:1fr}}
+
+/* ── SERVICE AREAS ── */
+.areas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.area-pill{background:var(--off-white);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.85rem;font-weight:600;color:var(--navy);text-align:center;font-family:'Oswald',sans-serif;letter-spacing:.03em;text-transform:uppercase}
+
+/* ── FAQ ── */
+.faq-list{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-item:last-child{border-bottom:none}
+.faq-q{width:100%;text-align:left;background:var(--white);border:none;padding:20px 22px;font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--navy);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;text-transform:uppercase;letter-spacing:.02em;transition:background .2s}
+.faq-q:hover{background:var(--off-white)}
+.faq-q .arr{font-size:.75rem;color:var(--muted);transition:transform .3s;flex-shrink:0}
+.faq-q[aria-expanded="true"]{background:var(--off-white);color:var(--red)}
+.faq-q[aria-expanded="true"] .arr{transform:rotate(180deg);color:var(--red)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.faq-a-in{padding:0 22px 20px;font-size:.92rem;color:var(--muted);line-height:1.75}
+.faq-a-in strong{color:var(--navy)}
+
+/* ── BOTTOM CTA ── */
+.bottom-cta{background:linear-gradient(135deg,var(--red-dark) 0%,var(--red) 100%);padding:72px 20px;text-align:center;position:relative;overflow:hidden}
+.bottom-cta::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg opacity='0.08' fill='%23ffffff'%3E%3Cpolygon points='30,4 6,22 10,22 10,50 50,50 50,22 54,22' fill='none' stroke='%23ffffff' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") repeat;background-size:60px 60px;pointer-events:none}
+.bottom-cta-inner{position:relative;z-index:1;max-width:760px;margin:0 auto}
+.bottom-cta h2{font-family:'Oswald',sans-serif;font-size:clamp(1.7rem,4vw,2.8rem);font-weight:700;color:var(--white);text-transform:uppercase;margin-bottom:16px;line-height:1.15}
+.bottom-cta p{color:rgba(255,255,255,.88);font-size:1.05rem;margin-bottom:30px;line-height:1.65}
+.bottom-cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-cta-white{background:var(--white);color:var(--red);padding:16px 36px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;border:none;transition:.2s;display:inline-block}
+.btn-cta-white:hover{background:var(--off-white)}
+.btn-cta-outline{background:transparent;color:var(--white);padding:16px 32px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:2px solid rgba(255,255,255,.6);transition:.2s;display:inline-block}
+.btn-cta-outline:hover{background:rgba(255,255,255,.12);border-color:#fff}
+
+/* ── FOOTER ── */
+.footer{background:var(--navy-dark);color:rgba(255,255,255,.7);padding:50px 20px 28px}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:36px}
+.footer-brand{}
+.footer-logo-name{font-family:'Oswald',sans-serif;font-size:1.15rem;font-weight:700;color:var(--white);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+.footer-tagline{font-size:.83rem;color:rgba(255,255,255,.55);margin-bottom:16px;line-height:1.6}
+.footer-lic{font-size:.75rem;color:rgba(255,255,255,.4);letter-spacing:.04em}
+.footer-h{font-family:'Oswald',sans-serif;font-size:.85rem;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.footer-links{display:flex;flex-direction:column;gap:8px}
+.footer-links a{font-size:.83rem;color:rgba(255,255,255,.6);transition:color .2s}
+.footer-links a:hover{color:var(--white)}
+.footer-contact-items{display:flex;flex-direction:column;gap:10px}
+.fci{display:flex;align-items:center;gap:8px;font-size:.83rem}
+.fci .ico{color:var(--red)}
+.footer-bottom{max-width:1100px;margin:0 auto;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.76rem;color:rgba(255,255,255,.35)}
+@media(max-width:700px){.footer-grid{grid-template-columns:1fr;gap:24px}}
+
+/* ── BOOKING MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.active{display:flex}
+.modal-box{background:var(--white);border-radius:12px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative}
+.modal-header{background:var(--navy);color:var(--white);padding:22px 28px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Oswald',sans-serif;font-size:1.2rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.modal-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;transition:color .2s}
+.modal-close:hover{color:#fff}
+.modal-body{padding:28px}
+
+/* form steps */
+.form-step{display:none}
+.form-step.active{display:block}
+.step-indicator{display:flex;gap:6px;margin-bottom:24px}
+.step-dot{height:4px;flex:1;background:var(--border);border-radius:2px;transition:.3s}
+.step-dot.done{background:var(--navy)}
+.step-dot.active{background:var(--red)}
+.form-title{font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:.77rem;font-weight:700;color:var(--navy);letter-spacing:.05em;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{border:1.5px solid var(--border);border-radius:5px;padding:11px 13px;font-family:'Open Sans',sans-serif;font-size:.9rem;color:var(--text);transition:border .2s;background:var(--white)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--navy)}
+.form-group input.err,.form-group select.err{border-color:var(--red)}
+.form-nav{display:flex;justify-content:space-between;margin-top:22px;gap:12px}
+.btn-next,.btn-submit{background:var(--navy);color:var(--white);padding:13px 28px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:none;transition:.2s;flex:1}
+.btn-next:hover,.btn-submit:hover{background:var(--navy-dark)}
+.btn-back{background:var(--off-white);color:var(--muted);padding:13px 22px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;border:none;transition:.2s}
+.btn-back:hover{background:var(--border)}
+.form-success{text-align:center;padding:20px 0}
+.form-success .check{font-size:3rem;color:var(--navy);margin-bottom:16px}
+.form-success h3{font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:10px}
+.form-success p{font-size:.9rem;color:var(--muted);line-height:1.65}
+@media(max-width:500px){.form-grid{grid-template-columns:1fr}}
+
+/* ── ACE CHATBOT ── */
+.ace-fab{position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.ace-btn{width:60px;height:60px;background:var(--navy);border-radius:50%;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(27,45,107,.35);display:flex;align-items:center;justify-content:center;transition:.2s}
+.ace-btn:hover{background:var(--navy-light);transform:scale(1.05)}
+.ace-btn svg{width:28px;height:28px;fill:var(--white)}
+.ace-bubble{background:var(--navy);color:var(--white);padding:9px 14px;border-radius:20px 20px 4px 20px;font-size:.8rem;font-weight:600;white-space:nowrap;opacity:0;transform:translateY(8px);transition:.3s;pointer-events:none}
+.ace-fab:hover .ace-bubble{opacity:1;transform:none}
+
+.ace-window{display:none;position:fixed;bottom:96px;right:20px;width:340px;max-height:520px;background:var(--white);border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,.2);z-index:1001;flex-direction:column;overflow:hidden}
+.ace-window.open{display:flex}
+.ace-header{background:var(--navy);color:var(--white);padding:16px 18px;display:flex;align-items:center;gap:12px}
+.ace-avatar{width:38px;height:38px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;flex-shrink:0}
+.ace-name{font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.05em}
+.ace-status{font-size:.72rem;color:rgba(255,255,255,.65)}
+.ace-close-btn{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.6);font-size:1.2rem;cursor:pointer}
+.ace-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:300px}
+.msg{max-width:85%;padding:10px 13px;border-radius:14px;font-size:.85rem;line-height:1.55}
+.msg.bot{background:var(--off-white);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.user{background:var(--navy);color:var(--white);align-self:flex-end;border-bottom-right-radius:4px}
+.ace-quickies{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px}
+.ace-q{background:transparent;border:1.5px solid var(--border);color:var(--navy);padding:6px 11px;border-radius:14px;font-size:.75rem;font-weight:600;cursor:pointer;transition:.2s;font-family:'Open Sans',sans-serif}
+.ace-q:hover{border-color:var(--navy);background:var(--off-white)}
+.ace-input-row{display:flex;gap:8px;padding:10px 14px 14px;border-top:1px solid var(--border)}
+.ace-input{flex:1;border:1.5px solid var(--border);border-radius:20px;padding:9px 14px;font-size:.85rem;font-family:'Open Sans',sans-serif;transition:border .2s}
+.ace-input:focus{outline:none;border-color:var(--navy)}
+.ace-send{background:var(--navy);color:var(--white);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.ace-send:hover{background:var(--navy-light)}
+
+/* ── CALL FAB ── */
+.call-fab{position:fixed;bottom:24px;left:24px;z-index:1000}
+.call-btn{display:flex;align-items:center;gap:9px;background:var(--red);color:var(--white);padding:12px 20px;border-radius:30px;font-family:'Oswald',sans-serif;font-weight:700;font-size:.9rem;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 18px rgba(196,18,48,.35);transition:.2s}
+.call-btn:hover{background:var(--red-dark)}
+.call-btn .ico{font-size:1.1rem}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .hero{padding:60px 16px 70px}
+  .section{padding:52px 16px}
+  .pain-sec{padding:52px 16px}
+  .insurance-sec{padding:52px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- NOTIFICATION BAR -->
+<div class="notif-bar">
+  &#127909; Free Estimates &nbsp;|&nbsp; &#9989; Licensed &amp; Fully Insured &nbsp;|&nbsp; &#128222; (305) 910-6272 &nbsp;|&nbsp; License #CCC1328155
+</div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="#" class="logo-wrap">
+      <!-- Inline SVG Logo -->
+      <svg class="logo-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="80" height="80" rx="8" fill="#1b2d6b"/>
+        <!-- House outline -->
+        <polygon points="40,8 8,32 14,32 14,68 66,68 66,32 72,32" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- Shingle lines -->
+        <line x1="14" y1="43" x2="66" y2="43" stroke="#ffffff" stroke-width="2.5"/>
+        <line x1="14" y1="55" x2="66" y2="55" stroke="#ffffff" stroke-width="2.5"/>
+        <!-- Door -->
+        <rect x="32" y="52" width="16" height="16" rx="2" fill="#c41230"/>
+        <!-- Red roof accent -->
+        <polygon points="40,8 72,32" fill="none" stroke="#c41230" stroke-width="3.5" stroke-linecap="round"/>
+        <polygon points="40,8 8,32" fill="none" stroke="#c41230" stroke-width="3.5" stroke-linecap="round"/>
+      </svg>
+      <div class="logo-text-block">
+        <div class="logo-name">Benside Contractors</div>
+        <div class="logo-tagline">Roofing &amp; Home Improvements</div>
+      </div>
+    </a>
+
+    <nav class="nav-links">
+      <a href="#services">Services</a>
+      <a href="#insurance">Insurance</a>
+      <a href="#about">About</a>
+      <a href="#faq">FAQ</a>
+      <button class="btn-nav" onclick="openModal()">Free Estimate</button>
+    </nav>
+
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu">
+    <a href="#services" onclick="toggleMenu()">Services</a>
+    <a href="#insurance" onclick="toggleMenu()">Insurance</a>
+    <a href="#about" onclick="toggleMenu()">About</a>
+    <a href="#faq" onclick="toggleMenu()">FAQ</a>
+    <a href="#" onclick="openModal();toggleMenu()">Get Free Estimate</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-stars"></div>
+  <div class="hero-inner fade-in">
+    <div class="hero-badge">&#127961; Florida-Licensed Roofing · License #CCC1328155</div>
+    <h1 class="hero-h1">
+      When the Storm Hits —
+      <span class="accent">Your Roof Either Holds<br>Or It Doesn't.</span>
+    </h1>
+    <p class="hero-sub">
+      The roof over your family's head is not the place to gamble on the lowest bid.
+      Benside Contractors Group installs, repairs, and protects roofs that last —
+      backed by a Florida license, full insurance, and a reputation built one honest job at a time.
+    </p>
+    <div class="hero-cta-row">
+      <button class="btn-hero-primary" onclick="openModal()">Get My Free Estimate</button>
+      <a href="tel:3059106272" class="btn-hero-secondary">&#128222; Call (305) 910-6272</a>
+    </div>
+    <div class="hero-trust-strip">
+      <div class="hero-trust-item"><span class="ico">✅</span> FL Licensed &amp; Insured</div>
+      <div class="hero-trust-item"><span class="ico">🏠</span> Residential &amp; Commercial</div>
+      <div class="hero-trust-item"><span class="ico">⚡</span> Storm Damage Specialists</div>
+      <div class="hero-trust-item"><span class="ico">📋</span> Insurance Claims Welcome</div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="trust-strip-inner">
+    <div class="ts-item"><span class="tico">🏛️</span> FL License #CCC1328155</div>
+    <div class="ts-item"><span class="tico">🛡️</span> Fully Insured</div>
+    <div class="ts-item"><span class="tico">🏠</span> New Roofs &amp; Repairs</div>
+    <div class="ts-item"><span class="tico">📋</span> Free Estimates</div>
+    <div class="ts-item"><span class="tico">⭐</span> Serving All of South Florida</div>
+  </div>
+</div>
+
+<!-- PAIN SECTION -->
+<section class="pain-sec">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px">
+      <div class="sec-label gold fade-in">The Moment You Stop Ignoring It</div>
+      <h2 class="sec-h white fade-in">A Failing Roof Doesn't Wait For You to Be Ready</h2>
+      <p class="sec-sub white fade-in" style="margin:0 auto">Every month you delay is another month the water is working against you — silently rotting the decking, feeding mold in your attic, and dropping your home's value.</p>
+    </div>
+    <div class="pain-grid fade-in">
+      <div class="pain-card">
+        <div class="pain-icon">💧</div>
+        <div class="pain-title">That "small leak" cost one family $40,000</div>
+        <p class="pain-text">What started as a stained ceiling turned into full roof replacement plus mold remediation. The homeowner waited 14 months to call. Water doesn't care about your timeline.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">🌀</div>
+        <div class="pain-title">One Florida storm can end what two decades built</div>
+        <p class="pain-text">An aging roof with compromised flashing or missing shingles isn't just a repair issue — it's a liability. When the next storm comes through Miami, there are no second chances.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">🏚️</div>
+        <div class="pain-title">Unlicensed contractors leave you holding the bill</div>
+        <p class="pain-text">Florida homeowners lose millions every year to contractors who disappear after taking deposits. A license number protects you. License #CCC1328155 — look it up.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">📋</div>
+        <div class="pain-title">Your insurance company is not on your side</div>
+        <p class="pain-text">They'll send an adjuster who's paid to minimize your claim. You need a contractor who knows how to document storm damage properly and fight for what you're owed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section logo-bg" id="services">
+  <div class="container">
+    <div class="sec-label fade-in">What We Do</div>
+    <h2 class="sec-h fade-in">Complete Roofing &amp; Home Improvement Services</h2>
+    <p class="sec-sub fade-in">From the first inspection to the final nail — we handle every piece of the job ourselves. No subcontracting your roof to a crew we don't know.</p>
+    <div class="services-grid">
+      <div class="service-card fade-in">
+        <div class="srv-icon">🏗️</div>
+        <div class="srv-name">New Roof Installation</div>
+        <p class="srv-desc">Full tear-off and replacement with premium materials. Asphalt shingle, metal, tile — we install what works best for your home, your climate, and your budget. Every installation meets Florida Building Code.</p>
+        <div class="srv-tag">Residential &amp; Commercial</div>
+      </div>
+      <div class="service-card fade-in">
+        <div class="srv-icon">🔧</div>
+        <div class="srv-name">Roof Repair</div>
+        <p class="srv-desc">A bad repair is worse than no repair. We find the actual source of the leak — not just patch the symptom — and fix it right the first time. Storm damage, worn flashing, failed sealant. We've seen all of it.</p>
+        <div class="srv-tag">Emergency &amp; Scheduled</div>
+      </div>
+      <div class="service-card fade-in">
+        <div class="srv-icon">🌪️</div>
+        <div class="srv-name">Storm Damage &amp; Insurance Claims</div>
+        <p class="srv-desc">We've worked alongside hundreds of homeowners navigating the insurance process after a storm. We document damage properly, write detailed estimates, and work directly with your adjuster to get you what you deserve.</p>
+        <div class="srv-tag">Full Documentation Support</div>
+      </div>
+      <div class="service-card fade-in">
+        <div class="srv-icon">🏠</div>
+        <div class="srv-name">Siding</div>
+        <p class="srv-desc">Curb appeal and protection in one upgrade. Damaged or outdated siding makes your home vulnerable to Florida heat, moisture, and storm winds. We install and repair siding that lasts.</p>
+        <div class="srv-tag">Residential &amp; Commercial</div>
+      </div>
+      <div class="service-card fade-in">
+        <div class="srv-icon">🌧️</div>
+        <div class="srv-name">Gutters</div>
+        <p class="srv-desc">Gutters are the unsung hero of roof protection. When they fail, water runs down your foundation and into your crawl space. Proper installation and maintenance protects everything below.</p>
+        <div class="srv-tag">Installation &amp; Maintenance</div>
+      </div>
+      <div class="service-card fade-in">
+        <div class="srv-icon">🔨</div>
+        <div class="srv-name">Home Improvements</div>
+        <p class="srv-desc">Interior and exterior. We're not a one-trick shop. When your home needs more than a roof, we're already there. Work with a contractor you trust across multiple projects.</p>
+        <div class="srv-tag">Interior &amp; Exterior</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" style="background:var(--off-white);padding-top:60px;padding-bottom:60px">
+  <div class="container">
+    <div class="sec-label fade-in">The Process</div>
+    <h2 class="sec-h fade-in">What Happens After You Call</h2>
+    <p class="sec-sub fade-in">No mystery. No pressure. Just a clear path from your first call to a protected home.</p>
+    <div class="how-grid fade-in">
+      <div class="how-step">
+        <div class="how-num">01</div>
+        <div class="how-icon">📞</div>
+        <div class="how-title">Free Estimate</div>
+        <p class="how-desc">We come out, inspect your roof, and give you an honest assessment — no charge, no pressure.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">02</div>
+        <div class="how-icon">📋</div>
+        <div class="how-title">Damage Report</div>
+        <p class="how-desc">We document everything — photos, measurements, materials — and give you a written estimate.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">03</div>
+        <div class="how-icon">🏦</div>
+        <div class="how-title">Insurance Claim</div>
+        <p class="how-desc">If insurance is involved, we work with your adjuster directly and fight for what you're owed.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">04</div>
+        <div class="how-icon">🏗️</div>
+        <div class="how-title">We Do the Work</div>
+        <p class="how-desc">Our crew handles the job start to finish. No strangers subcontracted without your knowledge.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">05</div>
+        <div class="how-icon">✅</div>
+        <div class="how-title">Final Walkthrough</div>
+        <p class="how-desc">We walk the job with you before we leave. You see the work. You approve the work. Done.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSURANCE SECTION -->
+<section class="insurance-sec" id="insurance">
+  <div class="container">
+    <div class="ins-grid">
+      <div>
+        <div class="sec-label gold fade-in">Insurance Claims</div>
+        <h2 class="sec-h white fade-in">Your Insurance Should Pay For This — Let's Make Sure It Does</h2>
+        <p style="font-size:.95rem;color:rgba(255,255,255,.75);line-height:1.75;margin-bottom:10px" class="fade-in">Most homeowners don't realize that storm damage to their roof is covered under their homeowners policy. And most don't realize how often insurance adjusters undervalue those claims.</p>
+        <p style="font-size:.95rem;color:rgba(255,255,255,.75);line-height:1.75" class="fade-in">We've seen it happen too many times. A homeowner accepts a check that doesn't cover the real cost of the job — and ends up out of pocket for the difference. We know how to document damage properly and advocate for you through the claims process.</p>
+        <div class="ins-points fade-in">
+          <div class="ins-point">
+            <div class="ins-check">✔</div>
+            <div class="ins-text"><strong>Comprehensive Damage Documentation</strong><span>Photos, measurements, and a detailed written estimate your adjuster can't dismiss</span></div>
+          </div>
+          <div class="ins-point">
+            <div class="ins-check">✔</div>
+            <div class="ins-text"><strong>We Work Directly With Your Adjuster</strong><span>You don't have to fight alone — we know how the process works</span></div>
+          </div>
+          <div class="ins-point">
+            <div class="ins-check">✔</div>
+            <div class="ins-text"><strong>No Surprises on Your End</strong><span>We're clear about what insurance will and won't cover before we start</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="fade-in">
+        <div class="ins-cta-box">
+          <h3>Had a Storm Recently?</h3>
+          <p>Don't wait for the next rain to confirm what you already suspect. Most storm damage claims have a window. Call today and let us inspect your roof before that window closes.</p>
+          <button class="btn-white" onclick="openModal()">Schedule Free Inspection</button>
+          <div style="text-align:center;margin-top:14px">
+            <a href="tel:3059106272" style="color:rgba(255,255,255,.65);font-size:.83rem;display:block">or call (305) 910-6272</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY BENSIDE -->
+<section class="section logo-bg">
+  <div class="container">
+    <div class="sec-label fade-in">Why Choose Us</div>
+    <h2 class="sec-h fade-in">The Difference Between a Contractor and a Professional</h2>
+    <p class="sec-sub fade-in">In South Florida, anyone with a truck calls themselves a roofer. Here's what separates Benside Contractors Group from the rest.</p>
+    <div class="why-grid">
+      <div class="why-card fade-in">
+        <div class="why-icon">🏛️</div>
+        <div class="why-title">Florida Licensed — Verifiable</div>
+        <p class="why-text">License #CCC1328155. Look it up at myfloridalicense.com. Any contractor who can't give you a license number isn't worth another minute of your time.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon">🛡️</div>
+        <div class="why-title">Fully Insured — Always</div>
+        <p class="why-text">If something goes wrong on your property, our insurance handles it. An uninsured crew on your roof means you're the one filing the claim.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon">📝</div>
+        <div class="why-title">Written Estimates, No Surprises</div>
+        <p class="why-text">You get a detailed written estimate before anyone touches your roof. The price we quote is the price you pay. We don't discover "additional problems" once we're on your roof.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon">👷</div>
+        <div class="why-title">Our Crew Does Your Job</div>
+        <p class="why-text">We don't take your job and hand it to a stranger. The team you meet is the team that shows up. That's accountability you can't get from a company that subs everything out.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon">📞</div>
+        <div class="why-title">You Can Reach Us</div>
+        <p class="why-text">Call Noel directly at (305) 910-6272. Not a call center. Not a voicemail system. The person responsible for your job answers the phone.</p>
+      </div>
+      <div class="why-card fade-in">
+        <div class="why-icon">🏠</div>
+        <div class="why-title">Interior &amp; Exterior — One Company</div>
+        <p class="why-text">Roofing, siding, gutters, and home improvements. When your home needs more than one thing fixed, you work with one trusted contractor — not a different crew for every job.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BEFORE/AFTER GALLERY -->
+<section class="section" style="background:var(--off-white)" id="gallery">
+  <div class="container">
+    <div class="sec-label fade-in">Our Work</div>
+    <h2 class="sec-h fade-in">Before &amp; After</h2>
+    <p class="sec-sub fade-in">Real jobs. Real results. Photos coming soon — the work speaks for itself.</p>
+    <div class="ba-notice fade-in">
+      📸 Job photos being added — check back soon, or call us at (305) 910-6272 to see examples of completed projects similar to yours.
+    </div>
+    <div class="ba-grid">
+      <div class="ba-card fade-in">
+        <div class="ba-imgs">
+          <div class="ba-img before-img"><span class="ba-placeholder">🏚️</span><span class="ba-label-before">Before</span></div>
+          <div class="ba-img"><span class="ba-placeholder">🏠</span><span class="ba-label-after">After</span></div>
+        </div>
+        <div class="ba-caption"><strong>Full Roof Replacement</strong><span>Miami-Dade County · Asphalt Shingle</span></div>
+      </div>
+      <div class="ba-card fade-in">
+        <div class="ba-imgs">
+          <div class="ba-img before-img"><span class="ba-placeholder">🌀</span><span class="ba-label-before">Before</span></div>
+          <div class="ba-img"><span class="ba-placeholder">🏠</span><span class="ba-label-after">After</span></div>
+        </div>
+        <div class="ba-caption"><strong>Storm Damage Repair</strong><span>Hialeah · Insurance Claim</span></div>
+      </div>
+      <div class="ba-card fade-in">
+        <div class="ba-imgs">
+          <div class="ba-img before-img"><span class="ba-placeholder">💧</span><span class="ba-label-before">Before</span></div>
+          <div class="ba-img"><span class="ba-placeholder">🏠</span><span class="ba-label-after">After</span></div>
+        </div>
+        <div class="ba-caption"><strong>Leak Repair &amp; Siding</strong><span>Doral · Residential</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT NOEL -->
+<section class="section logo-bg" id="about">
+  <div class="container">
+    <div class="sec-label fade-in">About</div>
+    <h2 class="sec-h fade-in">Noel Bendana — Director, Benside Contractors Group</h2>
+    <div class="about-grid fade-in">
+      <div class="about-photo">👷</div>
+      <div class="about-text">
+        <div class="about-name">Noel Bendana</div>
+        <div class="about-title">Director · Licensed Roofing Contractor</div>
+        <p class="about-body">Noel started Benside Contractors Group with one principle: do the job right, tell the truth, and stand behind your work. That hasn't changed.</p>
+        <p class="about-body">What South Florida homeowners deal with isn't what homeowners in other states face. The heat, the humidity, the hurricane seasons — your roof works harder here than it does anywhere else in the country. Noel built this company specifically to serve homeowners in this environment, with the materials, the techniques, and the code knowledge that Florida requires.</p>
+        <p class="about-body">Every estimate Noel gives is honest. If your roof can be repaired instead of replaced, he'll tell you that. If it needs to be replaced, he'll show you exactly why. He doesn't sell jobs — he solves problems.</p>
+        <div class="about-bullets">
+          <div class="about-bullet">Florida Roofing Contractor License #CCC1328155 — verifiable at myfloridalicense.com</div>
+          <div class="about-bullet">Fully licensed and insured — residential &amp; commercial</div>
+          <div class="about-bullet">New roof installations, storm repairs, siding, gutters, home improvements</div>
+          <div class="about-bullet">Direct line to Noel: (305) 910-6272</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICE AREAS -->
+<section class="section" style="background:var(--navy);padding:52px 20px">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:32px">
+      <div class="sec-label gold fade-in">Where We Work</div>
+      <h2 class="sec-h white fade-in">Serving All of South Florida</h2>
+    </div>
+    <div class="areas-grid fade-in">
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Miami</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Hialeah</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Doral</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Homestead</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Coral Gables</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Kendall</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Miramar</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Pembroke Pines</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Hollywood</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Fort Lauderdale</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Boca Raton</div>
+      <div class="area-pill" style="color:var(--white);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07)">Miami Beach</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="container">
+    <div class="sec-label fade-in">FAQ</div>
+    <h2 class="sec-h fade-in">Questions Homeowners Ask Before They Call</h2>
+    <p class="sec-sub fade-in">Honest answers. No runaround.</p>
+    <div class="faq-list fade-in">
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Do I really need a full roof replacement, or can it be repaired?
+          <span class="arr">&#9660;</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-in">
+            That depends entirely on what we find when we get up there — not on what's easier to sell you. If your roof structure is solid and the damage is isolated, a repair is the right call and we'll tell you that. If the decking is rotted, the flashing is failing in multiple spots, and the shingles have lost their integrity, a replacement is the honest answer. We don't replace roofs that don't need replacing. We also don't patch roofs that are past their useful life and send you a bill every season. We give you the real picture and let you decide.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Will my homeowners insurance cover this?
+          <span class="arr">&#9660;</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-in">
+            In most cases, yes — if the damage is storm-related. Florida homeowners insurance typically covers wind, hail, and hurricane damage. What insurance doesn't cover is wear and aging. That's the first question we ask when we inspect: is this storm damage or deferred maintenance? If it's storm damage, we document it completely and work with your adjuster. If your insurance company is low-balling the estimate, that's a conversation we've had before — and we know how to have it on your behalf.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          How do I know your estimate is fair?
+          <span class="arr">&#9660;</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-in">
+            Get multiple estimates — we encourage it. A written estimate from a licensed contractor is a professional document. It specifies materials, scope of work, labor, and timeline. If another contractor gives you a verbal number and says they can start tomorrow, walk away. Our estimates detail every line item so you understand exactly what you're paying for and can compare it directly to any other quote you receive.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          How long does a roof replacement take?
+          <span class="arr">&#9660;</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-in">
+            For most residential homes, a full tear-off and replacement takes one to three days depending on the size and complexity of the roof. We don't leave a job half-done. Once we start, we finish — and we don't disappear between rain delays without communicating with you. You'll know our timeline before we start and you'll know about any changes before they happen.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          How can I verify your license?
+          <span class="arr">&#9660;</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-in">
+            Go to <strong>myfloridalicense.com</strong> and search for license number <strong>CCC1328155</strong>. You'll see Benside Contractors Group, the license status, and the license holder. We're not hiding anything. Every licensed contractor in Florida is in that database — and every unlicensed contractor is conspicuously absent from it.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          What areas do you serve?
+          <span class="arr">&#9660;</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-in">
+            We serve all of South Florida — Miami-Dade, Broward, and Palm Beach counties. Miami, Hialeah, Doral, Homestead, Coral Gables, Kendall, Miramar, Pembroke Pines, Hollywood, Fort Lauderdale, Boca Raton, and surrounding areas. If you're not sure whether we cover your area, call Noel directly at (305) 910-6272.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          Do you do commercial roofing as well?
+          <span class="arr">&#9660;</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-in">
+            Yes. Benside Contractors Group handles both residential and commercial projects. Commercial roofing involves different materials, systems, and code requirements than residential — flat roofs, modified bitumen, TPO, metal. We have experience with all of it. If you manage commercial property and need an honest assessment of your roof's condition, we provide that too.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          What if it rains during my job?
+          <span class="arr">&#9660;</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-in">
+            We monitor the weather and plan around it. If we have to pause due to rain, your roof is properly tarped and protected before we stop — we don't leave open decking exposed. We'll communicate any delays with you directly and adjust the schedule. We've been doing roofing in South Florida long enough to know how to work around Florida weather.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- BOTTOM CTA -->
+<section class="bottom-cta">
+  <div class="bottom-cta-inner fade-in">
+    <h2>The Roof Over Your Family<br>Deserves a Real Contractor</h2>
+    <p>Stop putting it off. One free estimate costs you nothing. A damaged roof left unaddressed costs you everything. Call Noel today or fill out the form — we'll get back to you same day.</p>
+    <div class="bottom-cta-btns">
+      <button class="btn-cta-white" onclick="openModal()">Get My Free Estimate</button>
+      <a href="tel:3059106272" class="btn-cta-outline">&#128222; (305) 910-6272</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="footer-logo-name">Benside Contractors Group</div>
+      <div class="footer-tagline">Roofing &amp; Home Improvements · Serving South Florida since day one. Licensed, insured, and built on honest work.</div>
+      <div class="footer-lic">FL Roofing License #CCC1328155 · Fully Insured · Residential &amp; Commercial</div>
+    </div>
+    <div>
+      <div class="footer-h">Services</div>
+      <div class="footer-links">
+        <a href="#services">New Roof Installation</a>
+        <a href="#services">Roof Repair</a>
+        <a href="#services">Storm Damage</a>
+        <a href="#services">Siding</a>
+        <a href="#services">Gutters</a>
+        <a href="#services">Home Improvements</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-h">Contact</div>
+      <div class="footer-contact-items">
+        <div class="fci"><span class="ico">📞</span> <a href="tel:3059106272">(305) 910-6272</a></div>
+        <div class="fci"><span class="ico">📠</span> (786) 999-8856</div>
+        <div class="fci"><span class="ico">📧</span> <a href="mailto:bensidecontractors@hotmail.com">bensidecontractors@hotmail.com</a></div>
+        <div class="fci"><span class="ico">📍</span> South Florida</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2025 Benside Contractors Group. All rights reserved.</div>
+    <div>FL License #CCC1328155</div>
+  </div>
+</footer>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOnBg(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">🏠 Get Your Free Estimate</div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="step-indicator" id="step-dots">
+        <div class="step-dot active" id="d1"></div>
+        <div class="step-dot" id="d2"></div>
+        <div class="step-dot" id="d3"></div>
+      </div>
+
+      <!-- STEP 1 -->
+      <div class="form-step active" id="s1">
+        <div class="form-title">Your Contact Info</div>
+        <div class="form-grid">
+          <div class="form-group"><label for="fname">First Name *</label><input type="text" id="fname" placeholder="First name"></div>
+          <div class="form-group"><label for="flname">Last Name *</label><input type="text" id="flname" placeholder="Last name"></div>
+          <div class="form-group"><label for="fphone">Phone *</label><input type="tel" id="fphone" placeholder="(305) 000-0000"></div>
+          <div class="form-group"><label for="femail">Email</label><input type="email" id="femail" placeholder="your@email.com"></div>
+          <div class="form-group full"><label for="faddress">Property Address *</label><input type="text" id="faddress" placeholder="Street address"></div>
+          <div class="form-group"><label for="fcity">City *</label><input type="text" id="fcity" placeholder="City"></div>
+          <div class="form-group"><label for="fzip">Zip Code</label><input type="text" id="fzip" placeholder="33101"></div>
+        </div>
+        <div class="form-nav"><div></div><button class="btn-next" onclick="goStep(2)">Next Step →</button></div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="form-step" id="s2">
+        <div class="form-title">About Your Roof</div>
+        <div class="form-grid">
+          <div class="form-group full"><label for="fservice">Service Needed *</label>
+            <select id="fservice">
+              <option value="">Select a service...</option>
+              <option>New Roof Installation</option>
+              <option>Roof Repair</option>
+              <option>Storm Damage Inspection</option>
+              <option>Insurance Claim Help</option>
+              <option>Siding</option>
+              <option>Gutters</option>
+              <option>Home Improvement</option>
+              <option>Not Sure — Need Inspection</option>
+            </select>
+          </div>
+          <div class="form-group full"><label for="fproptype">Property Type *</label>
+            <select id="fproptype">
+              <option value="">Select type...</option>
+              <option>Single Family Home</option>
+              <option>Townhouse</option>
+              <option>Condo / Apartment Building</option>
+              <option>Commercial Property</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group full"><label for="froofage">Approximate Roof Age</label>
+            <select id="froofage">
+              <option value="">Unknown / Not Sure</option>
+              <option>Under 5 years</option>
+              <option>5–10 years</option>
+              <option>10–15 years</option>
+              <option>15–20 years</option>
+              <option>Over 20 years</option>
+            </select>
+          </div>
+          <div class="form-group full"><label for="fissues">What's the issue? (optional)</label>
+            <textarea id="fissues" rows="3" placeholder="Describe what's happening — leaks, missing shingles, storm damage, anything you've noticed..."></textarea>
+          </div>
+        </div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="goStep(1)">← Back</button>
+          <button class="btn-next" onclick="goStep(3)">Next Step →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="form-step" id="s3">
+        <div class="form-title">Schedule &amp; Submit</div>
+        <div class="form-grid">
+          <div class="form-group full"><label for="fwhen">Best Time to Call</label>
+            <select id="fwhen">
+              <option>Morning (8am–12pm)</option>
+              <option>Afternoon (12pm–5pm)</option>
+              <option>Evening (5pm–7pm)</option>
+              <option>Anytime</option>
+            </select>
+          </div>
+          <div class="form-group full"><label for="finsurance">Is this an insurance claim?</label>
+            <select id="finsurance">
+              <option>Not sure</option>
+              <option>Yes — I have a claim open</option>
+              <option>Yes — I haven't filed yet</option>
+              <option>No — paying out of pocket</option>
+            </select>
+          </div>
+          <div class="form-group full"><label for="fhow">How did you hear about us?</label>
+            <select id="fhow">
+              <option>Google</option>
+              <option>Referral from friend/family</option>
+              <option>Facebook</option>
+              <option>Nextdoor</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div style="background:var(--off-white);border-radius:6px;padding:14px 16px;margin:18px 0;font-size:.82rem;color:var(--muted);line-height:1.6">
+          ✅ <strong>What happens next:</strong> Noel or a member of the Benside team will call you within one business day to confirm your free estimate appointment.
+        </div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="goStep(2)">← Back</button>
+          <button class="btn-submit" onclick="submitForm()">Submit Request ✓</button>
+        </div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="form-step" id="s-success">
+        <div class="form-success">
+          <div class="check">🏠</div>
+          <h3>Request Received!</h3>
+          <p>Noel will call you to confirm your free estimate appointment. We look forward to earning your trust.</p>
+          <p style="margin-top:12px">Need to reach us now? <a href="tel:3059106272" style="color:var(--navy);font-weight:700">(305) 910-6272</a></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ACE CHATBOT WINDOW -->
+<div class="ace-window" id="aceWindow">
+  <div class="ace-header">
+    <div class="ace-avatar">ACE</div>
+    <div>
+      <div class="ace-name">ACE — Benside Assistant</div>
+      <div class="ace-status">Ask me anything about your roof</div>
+    </div>
+    <button class="ace-close-btn" onclick="toggleAce()" aria-label="Close">&times;</button>
+  </div>
+  <div class="ace-messages" id="aceMessages">
+    <div class="msg bot">Hey there! I'm ACE, the Benside Contractors assistant. I'm here to help you figure out if your roof needs attention and what to expect when you call. What's going on with your roof?</div>
+  </div>
+  <div class="ace-quickies" id="aceQuickies">
+    <button class="ace-q" onclick="aceQuick('I think I have a leak')">I have a leak</button>
+    <button class="ace-q" onclick="aceQuick('Storm damage')">Storm damage</button>
+    <button class="ace-q" onclick="aceQuick('How much does a new roof cost?')">Roof cost?</button>
+    <button class="ace-q" onclick="aceQuick('Can my insurance pay for this?')">Insurance?</button>
+    <button class="ace-q" onclick="aceQuick('Book estimate')">Book estimate</button>
+  </div>
+  <div class="ace-input-row">
+    <input type="text" class="ace-input" id="aceInput" placeholder="Type your question..." onkeydown="if(event.key==='Enter')aceSend()">
+    <button class="ace-send" onclick="aceSend()" aria-label="Send">
+      <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- FABs -->
+<div class="ace-fab">
+  <div class="ace-bubble">Ask ACE a question</div>
+  <button class="ace-btn" onclick="toggleAce()" aria-label="Chat with ACE">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+  </button>
+</div>
+<div class="call-fab">
+  <a href="tel:3059106272" class="call-btn"><span class="ico">📞</span>(305) 910-6272</a>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+// ── SCROLL ANIMATIONS ──────────────────────────────────────────────────────
+(function(){
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});
+  },{threshold:.12});
+  document.querySelectorAll('.fade-in').forEach(el=>io.observe(el));
+})();
+
+// ── MOBILE MENU ────────────────────────────────────────────────────────────
+function toggleMenu(){
+  const m = document.getElementById('mobile-menu');
+  m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+
+// ── MODAL ──────────────────────────────────────────────────────────────────
+function openModal(){
+  document.getElementById('modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  goStep(1);
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function closeModalOnBg(e){if(e.target===document.getElementById('modal'))closeModal();}
+
+// ── FORM STEPS ─────────────────────────────────────────────────────────────
+let currentStep = 1;
+function goStep(n){
+  const steps = ['s1','s2','s3','s-success'];
+  steps.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('active');
+  });
+  if(n === 1){
+    document.getElementById('s1').classList.add('active');
+    setDots(1);
+  } else if(n === 2){
+    if(!validateStep1()) return;
+    document.getElementById('s2').classList.add('active');
+    setDots(2);
+  } else if(n === 3){
+    if(!validateStep2()) return;
+    document.getElementById('s3').classList.add('active');
+    setDots(3);
+  }
+  currentStep = n;
+}
+function setDots(active){
+  for(let i=1;i<=3;i++){
+    const d = document.getElementById('d'+i);
+    if(!d) continue;
+    d.className = 'step-dot' + (i < active ? ' done' : i === active ? ' active' : '');
+  }
+}
+function validateStep1(){
+  let ok = true;
+  [['fname','First name'],['flname','Last name'],['fphone','Phone number'],['faddress','Property address'],['fcity','City']].forEach(([id,label])=>{
+    const el = document.getElementById(id);
+    if(!el.value.trim()){el.classList.add('err');ok=false;} else {el.classList.remove('err');}
+  });
+  if(!ok) alert('Please fill in all required fields.');
+  return ok;
+}
+function validateStep2(){
+  let ok = true;
+  [['fservice','Service needed'],['fproptype','Property type']].forEach(([id,label])=>{
+    const el = document.getElementById(id);
+    if(!el.value){el.classList.add('err');ok=false;} else {el.classList.remove('err');}
+  });
+  if(!ok) alert('Please select a service and property type.');
+  return ok;
+}
+function submitForm(){
+  sendLeadNotification();
+  // hide dots
+  const dots = document.getElementById('step-dots');
+  if(dots) dots.style.display = 'none';
+  ['s1','s2','s3'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  document.getElementById('s-success').classList.add('active');
+}
+
+// ── WEB3FORMS NOTIFICATION ─────────────────────────────────────────────────
+// To activate:
+//   1. Go to web3forms.com/create
+//   2. Enter: bensidecontractors@hotmail.com
+//   3. Click the verification link in your email inbox
+//   4. Copy the access key and paste it below
+const BENSIDE_NOTIFY_KEY = 'YOUR_KEY_HERE';
+
+function sendLeadNotification(){
+  if(!BENSIDE_NOTIFY_KEY || BENSIDE_NOTIFY_KEY === 'YOUR_KEY_HERE') return;
+  const name    = (document.getElementById('fname').value + ' ' + document.getElementById('flname').value).trim();
+  const phone   = document.getElementById('fphone').value.trim();
+  const email   = document.getElementById('femail').value.trim();
+  const address = document.getElementById('faddress').value.trim();
+  const city    = document.getElementById('fcity').value.trim();
+  const service = document.getElementById('fservice').value;
+  const proptype= document.getElementById('fproptype').value;
+  const insurance=document.getElementById('finsurance').value;
+  const timing  = document.getElementById('fwhen').value;
+  fetch('https://api.web3forms.com/submit',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      access_key:       BENSIDE_NOTIFY_KEY,
+      subject:          `New Estimate Request — ${name} | ${phone}`,
+      from_name:        'Benside Contractors Website',
+      replyto:          email || 'no-reply@bensidecontractors.com',
+      cc:               '3059106272@vtext.com',
+      'Name':           name,
+      'Phone':          phone,
+      'Email':          email || '(not provided)',
+      'Address':        address + ', ' + city,
+      'Service':        service,
+      'Property Type':  proptype,
+      'Insurance':      insurance,
+      'Best Time':      timing
+    })
+  }).catch(()=>{});
+}
+
+// ── FAQ ACCORDION ──────────────────────────────────────────────────────────
+function toggleFaq(btn){
+  const expanded = btn.getAttribute('aria-expanded') === 'true';
+  document.querySelectorAll('.faq-q').forEach(b=>{
+    b.setAttribute('aria-expanded','false');
+    b.nextElementSibling.style.maxHeight = '0';
+  });
+  if(!expanded){
+    btn.setAttribute('aria-expanded','true');
+    const a = btn.nextElementSibling;
+    a.style.maxHeight = a.scrollHeight + 'px';
+  }
+}
+
+// ── ACE CHATBOT ────────────────────────────────────────────────────────────
+function toggleAce(){
+  const w = document.getElementById('aceWindow');
+  w.classList.toggle('open');
+}
+function aceQuick(txt){
+  document.getElementById('aceInput').value = txt;
+  aceSend();
+}
+function aceSend(){
+  const inp = document.getElementById('aceInput');
+  const txt = inp.value.trim();
+  if(!txt) return;
+  addMsg(txt,'user');
+  inp.value = '';
+  document.getElementById('aceQuickies').style.display = 'none';
+  setTimeout(()=>{ addMsg(aceReply(txt),'bot'); }, 600);
+}
+function addMsg(text, who){
+  const msgs = document.getElementById('aceMessages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + who;
+  div.innerHTML = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function aceReply(txt){
+  const t = txt.toLowerCase();
+  if(/(leak|water|drip|wet|stain|ceiling)/i.test(t))
+    return 'A leak that\'s visible inside your home means water has already moved through your roof decking or flashing. The damage is likely larger than what you can see. Call Noel at <a href="tel:3059106272" style="color:var(--navy);font-weight:700">(305) 910-6272</a> — we can usually get out for an inspection same week and show you exactly where it\'s coming from.';
+  if(/(storm|hurricane|wind|hail|damage)/i.test(t))
+    return 'Storm damage is the most common reason homeowners need roof repairs in South Florida — and the most commonly underpaid by insurance. We inspect your roof, document the damage in detail, and work directly with your adjuster to make sure you get a fair claim. Call us or submit a free estimate request.';
+  if(/(cost|price|much|how much|charge|fee)/i.test(t))
+    return 'Roofing cost depends on roof size, materials, pitch, and what we find underneath during the tear-off. What we won\'t do is throw out a number over the phone. A real estimate requires eyes on your roof — and ours is free. Call Noel at <a href="tel:3059106272" style="color:var(--navy);font-weight:700">(305) 910-6272</a> or schedule online.';
+  if(/(insurance|claim|adjuster|cover)/i.test(t))
+    return 'Yes — homeowners insurance typically covers storm-related roof damage. The key is proper documentation. We come out, photograph everything, write a detailed report, and work directly with your adjuster. We\'ve helped many South Florida homeowners get claims approved that their insurance company initially pushed back on.';
+  if(/(license|licensed|insure|insured|legit|verify)/i.test(t))
+    return 'Benside Contractors Group holds Florida Roofing License #CCC1328155. You can verify it yourself at <strong>myfloridalicense.com</strong>. We carry full liability insurance on every job. If a contractor can\'t give you a license number — stop the conversation.';
+  if(/(book|estimate|schedule|appointment|come out)/i.test(t))
+    return 'Let\'s get you scheduled. Click the button below or call Noel directly at <a href="tel:3059106272" style="color:var(--navy);font-weight:700">(305) 910-6272</a>. Free estimate, no pressure, no obligation. <br><br><button onclick="openModal();toggleAce()" style="background:var(--navy);color:white;border:none;padding:9px 18px;border-radius:5px;font-family:Oswald,sans-serif;font-weight:700;font-size:.85rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;margin-top:6px">Get Free Estimate</button>';
+  if(/(area|serve|location|miami|florida|broward|dade)/i.test(t))
+    return 'We serve all of South Florida — Miami-Dade, Broward, and Palm Beach counties. If you\'re in the area, we cover you. Not sure? Call and ask — (305) 910-6272.';
+  if(/(replace|replacement|new roof)/i.test(t))
+    return 'A full roof replacement typically takes one to three days depending on the size and complexity. We don\'t leave jobs halfway done. Once we start, we see it through — and we\'ll protect your home properly if we have to pause for weather.';
+  return 'That\'s a great question. Every roof situation is different, and the honest answer is that I\'d rather Noel tell you directly after seeing your roof than me guess. Call him at <a href="tel:3059106272" style="color:var(--navy);font-weight:700">(305) 910-6272</a> — he picks up. Or fill out the estimate form and he\'ll call you.';
+}
+</script>
+
+</body>
+</html>
