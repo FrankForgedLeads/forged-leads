@@ -54,7 +54,7 @@ nav a:hover{color:#fff}
   background:linear-gradient(135deg,var(--navy-dark) 0%,var(--navy) 55%,var(--navy-light) 100%);
   position:relative;overflow:hidden;padding:80px 20px 90px;
 }
-.hero-inner{max-width:900px;margin:0 auto;position:relative;z-index:2;text-align:center}
+.hero-inner{max-width:900px;margin:0 auto;position:relative;z-index:3;text-align:center}
 .hero-logo-wrap{margin-bottom:28px;text-align:center}
 .hero-logo-card{display:inline-block;background:rgba(255,255,255,.95);border-radius:14px;padding:10px 18px;box-shadow:0 8px 36px rgba(0,0,0,.32)}
 .hero-logo-card img{height:200px;width:auto;display:block}
@@ -351,6 +351,10 @@ footer{background:var(--navy-dark);color:#fff;padding:52px 20px 28px}
 .call-btn .ico{font-size:1.1rem}
 
 
+
+/* hero house overlay — sits inside hero above its background */
+.hero-houses{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+.hero-houses svg{width:100%;height:100%}
 /* animated houses background */
 .house-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .house-canvas svg{width:100%;height:100%}
@@ -361,10 +365,10 @@ footer{background:var(--navy-dark);color:#fff;padding:52px 20px 28px}
 .hrow:nth-child(3n){animation-duration:12s;animation-delay:-8s}
 .hrow:nth-child(4n){animation-duration:19s;animation-delay:-12s}
 @keyframes hDrift{0%{transform:translate(0,0)}50%{transform:translate(5px,-7px)}100%{transform:translate(-4px,6px)}}
-.hx{fill:none;stroke:rgba(255,255,255,0.11);stroke-width:1;animation:hPulse 7s ease-in-out infinite;transform-origin:center}
+.hx{fill:none;stroke:rgba(255,255,255,0.32);stroke-width:2.2;animation:hPulse 7s ease-in-out infinite;transform-origin:center}
 .hx:nth-child(odd){animation-delay:-2.5s;animation-duration:9s}
 .hx:nth-child(3n){animation-delay:-5s;animation-duration:6s}
-@keyframes hPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes hPulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 @media(prefers-reduced-motion:reduce){.house-pan,.hrow,.hx{animation:none!important;opacity:.4!important;transform:none!important}}
 
 section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index:1}
@@ -459,6 +463,43 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
 
 <!-- HERO -->
 <section class="hero">
+<div class="hero-houses" aria-hidden="true">
+<svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <symbol id="hh" viewBox="0 0 60 56">
+    <polyline points="0,28 30,0 60,28" stroke="rgba(255,255,255,0.32)" fill="none" stroke-width="2.2"/>
+    <rect x="6" y="28" width="48" height="28" stroke="rgba(255,255,255,0.32)" fill="none" stroke-width="1.8"/>
+    <rect x="22" y="38" width="16" height="18" stroke="rgba(255,255,255,0.32)" fill="none" stroke-width="1.4"/>
+    <rect x="42" y="12" width="7" height="14" stroke="rgba(255,255,255,0.32)" fill="none" stroke-width="1.4"/>
+  </symbol>
+</defs>
+<g class="house-pan" id="heroPan"></g>
+</svg>
+</div>
+<script>
+(function(){
+  var pan=document.getElementById('heroPan');
+  if(!pan)return;
+  var NS='http://www.w3.org/2000/svg';
+  var dx=120,dy=110,r=0;
+  for(var y=-120;y<=1100;y+=dy,r++){
+    var g=document.createElementNS(NS,'g');
+    g.setAttribute('class','hrow');
+    var off=(r%2)?dx/2:0;
+    for(var x=-120;x<=1600;x+=dx){
+      var u=document.createElementNS(NS,'use');
+      u.setAttribute('href','#hh');
+      u.setAttribute('class','hx');
+      u.setAttribute('x',x+off);
+      u.setAttribute('y',y);
+      u.setAttribute('width','60');
+      u.setAttribute('height','56');
+      g.appendChild(u);
+    }
+    pan.appendChild(g);
+  }
+})();
+</script>
   <div class="hero-inner fade-in">
     <div class="hero-logo-wrap">
       <div class="hero-logo-card">
@@ -924,7 +965,7 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
   <div class="container fade-in">
     <div class="sec-label" style="color:rgba(255,255,255,.6)">Where We Work</div>
     <h2 class="sec-title">Serving All of Florida</h2>
-    <p class="sec-sub">Our primary service area covers Miami-Dade, Broward, and Palm Beach counties. Not sure if we cover your area? Call and ask — we'll tell you honestly or refer you to someone we trust.</p>
+    <p class="sec-sub">If you're in Florida, we can be there. We work from Miami to Jacksonville, Tampa to Orlando, and everywhere in between. Call us — we'll tell you straight if we can't make it work.</p>
     <div class="areas-grid">
       <div class="area-tag">Miami</div><div class="area-tag">Hialeah</div><div class="area-tag">Doral</div>
       <div class="area-tag">Homestead</div><div class="area-tag">Coral Gables</div><div class="area-tag">Kendall</div>
