@@ -11,7 +11,7 @@
 <style>
 :root{
   --navy:#1b2d6b;--navy-dark:#111d44;--navy-light:#243680;
-  --red:#c41230;--white:#ffffff;--off-white:#f8f7f4;
+  --red:#c41230;--red-dark:#9c0e26;--white:#ffffff;--off-white:#f8f7f4;--text:#1a1a2e;--muted:#5a6080;
   --charcoal:#2c2c2c;--steel:#6b7280;--border:#dde3ec;
   --gold:#d4a017;
 }
@@ -280,6 +280,76 @@ footer{background:var(--navy-dark);color:#fff;padding:52px 20px 28px}
   .hero-logo-card img{height:160px}
   .emergency-inner{flex-direction:column;gap:12px}
 }
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.active{display:flex}
+.modal-box{background:var(--white);border-radius:12px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative}
+.modal-header{background:var(--navy);color:var(--white);padding:22px 28px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Oswald',sans-serif;font-size:1.2rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.modal-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;transition:color .2s}
+.modal-close:hover{color:#fff}
+.modal-body{padding:28px}
+
+/* form steps */
+.form-step{display:none}
+.form-step.active{display:block}
+.step-indicator{display:flex;gap:6px;margin-bottom:24px}
+.step-dot{height:4px;flex:1;background:var(--border);border-radius:2px;transition:.3s}
+.step-dot.done{background:var(--navy)}
+.step-dot.active{background:var(--red)}
+.form-title{font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:.77rem;font-weight:700;color:var(--navy);letter-spacing:.05em;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{border:1.5px solid var(--border);border-radius:5px;padding:11px 13px;font-family:'Open Sans',sans-serif;font-size:.9rem;color:var(--text);transition:border .2s;background:var(--white)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--navy)}
+.form-group input.err,.form-group select.err{border-color:var(--red)}
+.form-nav{display:flex;justify-content:space-between;margin-top:22px;gap:12px}
+.btn-next,.btn-submit{background:var(--navy);color:var(--white);padding:13px 28px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:none;transition:.2s;flex:1}
+.btn-next:hover,.btn-submit:hover{background:var(--navy-dark)}
+.btn-back{background:var(--off-white);color:var(--muted);padding:13px 22px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;border:none;transition:.2s}
+.btn-back:hover{background:var(--border)}
+.form-success{text-align:center;padding:20px 0}
+.form-success .check{font-size:3rem;color:var(--navy);margin-bottom:16px}
+.form-success h3{font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:700;color:var(--navy);text-transform:uppercase;margin-bottom:10px}
+.form-success p{font-size:.9rem;color:var(--muted);line-height:1.65}
+@media(max-width:500px){.form-grid{grid-template-columns:1fr}}
+
+/* ── ACE CHATBOT ── */
+.ace-fab{position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.ace-btn{width:60px;height:60px;background:var(--navy);border-radius:50%;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(27,45,107,.35);display:flex;align-items:center;justify-content:center;transition:.2s}
+.ace-btn:hover{background:var(--navy-light);transform:scale(1.05)}
+.ace-btn svg{width:28px;height:28px;fill:var(--white)}
+.ace-bubble{background:var(--navy);color:var(--white);padding:9px 14px;border-radius:20px 20px 4px 20px;font-size:.8rem;font-weight:600;white-space:nowrap;opacity:0;transform:translateY(8px);transition:.3s;pointer-events:none}
+.ace-fab:hover .ace-bubble{opacity:1;transform:none}
+
+.ace-window{display:none;position:fixed;bottom:96px;right:20px;width:340px;max-height:520px;background:var(--white);border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,.2);z-index:1001;flex-direction:column;overflow:hidden}
+.ace-window.open{display:flex}
+.ace-header{background:var(--navy);color:var(--white);padding:16px 18px;display:flex;align-items:center;gap:12px}
+.ace-avatar{width:38px;height:38px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;flex-shrink:0}
+.ace-name{font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.05em}
+.ace-status{font-size:.72rem;color:rgba(255,255,255,.65)}
+.ace-close-btn{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.6);font-size:1.2rem;cursor:pointer}
+.ace-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:300px}
+.msg{max-width:85%;padding:10px 13px;border-radius:14px;font-size:.85rem;line-height:1.55}
+.msg.bot{background:var(--off-white);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.user{background:var(--navy);color:var(--white);align-self:flex-end;border-bottom-right-radius:4px}
+.ace-quickies{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px}
+.ace-q{background:transparent;border:1.5px solid var(--border);color:var(--navy);padding:6px 11px;border-radius:14px;font-size:.75rem;font-weight:600;cursor:pointer;transition:.2s;font-family:'Open Sans',sans-serif}
+.ace-q:hover{border-color:var(--navy);background:var(--off-white)}
+.ace-input-row{display:flex;gap:8px;padding:10px 14px 14px;border-top:1px solid var(--border)}
+.ace-input{flex:1;border:1.5px solid var(--border);border-radius:20px;padding:9px 14px;font-size:.85rem;font-family:'Open Sans',sans-serif;transition:border .2s}
+.ace-input:focus{outline:none;border-color:var(--navy)}
+.ace-send{background:var(--navy);color:var(--white);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.ace-send:hover{background:var(--navy-light)}
+
+/* ── CALL FAB ── */
+.call-fab{position:fixed;bottom:24px;left:24px;z-index:1000}
+.call-btn{display:flex;align-items:center;gap:9px;background:var(--red);color:var(--white);padding:12px 20px;border-radius:30px;font-family:'Oswald',sans-serif;font-weight:700;font-size:.9rem;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 18px rgba(196,18,48,.35);transition:.2s}
+.call-btn:hover{background:var(--red-dark)}
+.call-btn .ico{font-size:1.1rem}
+
 
 /* animated houses background */
 .house-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
