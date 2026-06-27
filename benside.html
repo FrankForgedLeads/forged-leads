@@ -280,9 +280,69 @@ footer{background:var(--navy-dark);color:#fff;padding:52px 20px 28px}
   .hero-logo-card img{height:160px}
   .emergency-inner{flex-direction:column;gap:12px}
 }
+
+/* animated houses background */
+.house-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.house-canvas svg{width:100%;height:100%}
+.house-pan{animation:hPan 35s linear infinite}
+@keyframes hPan{from{transform:translate(0,0)}to{transform:translate(-200px,-300px)}}
+.hrow{animation:hDrift 16s ease-in-out infinite alternate}
+.hrow:nth-child(2n){animation-duration:21s;animation-delay:-4s}
+.hrow:nth-child(3n){animation-duration:12s;animation-delay:-8s}
+.hrow:nth-child(4n){animation-duration:19s;animation-delay:-12s}
+@keyframes hDrift{0%{transform:translate(0,0)}50%{transform:translate(5px,-7px)}100%{transform:translate(-4px,6px)}}
+.hx{fill:none;stroke:rgba(255,255,255,0.11);stroke-width:1;animation:hPulse 7s ease-in-out infinite;transform-origin:center}
+.hx:nth-child(odd){animation-delay:-2.5s;animation-duration:9s}
+.hx:nth-child(3n){animation-delay:-5s;animation-duration:6s}
+@keyframes hPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+@media(prefers-reduced-motion:reduce){.house-pan,.hrow,.hx{animation:none!important;opacity:.4!important;transform:none!important}}
+
+section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index:1}
 </style>
 </head>
 <body>
+<div class="house-canvas" aria-hidden="true">
+<svg viewBox="0 0 2600 1600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <!-- Simple house silhouette: roof peak + walls + door -->
+  <symbol id="hs" viewBox="0 0 60 56">
+    <!-- roof -->
+    <polyline points="0,28 30,0 60,28" stroke="inherit" fill="none" stroke-width="2"/>
+    <!-- walls -->
+    <rect x="6" y="28" width="48" height="28" stroke="inherit" fill="none" stroke-width="1.5"/>
+    <!-- door -->
+    <rect x="22" y="38" width="16" height="18" stroke="inherit" fill="none" stroke-width="1.2"/>
+    <!-- chimney -->
+    <rect x="42" y="12" width="7" height="14" stroke="inherit" fill="none" stroke-width="1.2"/>
+  </symbol>
+</defs>
+<g class="house-pan" id="housePan"></g>
+</svg>
+</div>
+<script>
+(function(){
+  var pan=document.getElementById('housePan');
+  if(!pan)return;
+  var NS='http://www.w3.org/2000/svg';
+  var dx=120,dy=110,r=0;
+  for(var y=-120;y<=2000;y+=dy,r++){
+    var g=document.createElementNS(NS,'g');
+    g.setAttribute('class','hrow');
+    var off=(r%2)?dx/2:0;
+    for(var x=-120;x<=3000;x+=dx){
+      var u=document.createElementNS(NS,'use');
+      u.setAttribute('href','#hs');
+      u.setAttribute('class','hx');
+      u.setAttribute('x',x+off);
+      u.setAttribute('y',y);
+      u.setAttribute('width','60');
+      u.setAttribute('height','56');
+      g.appendChild(u);
+    }
+    pan.appendChild(g);
+  }
+})();
+</script>
 
 <!-- NOTIFICATION BAR -->
 <div class="notif-bar">
