@@ -372,6 +372,50 @@ footer{background:var(--navy-dark);color:#fff;padding:52px 20px 28px}
 @media(prefers-reduced-motion:reduce){.house-pan,.hrow,.hx{animation:none!important;opacity:.4!important;transform:none!important}}
 
 section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index:1}
+
+/* ── OWNER BANNER ─────────────────────────────── */
+.owner-banner{background:var(--navy);padding:18px 20px}
+.owner-banner-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.owner-banner-icon{font-size:1.8rem;flex-shrink:0}
+.owner-banner-text{flex:1;min-width:220px}
+.owner-banner-text strong{display:block;color:#fff;font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.owner-banner-text span{color:rgba(255,255,255,.75);font-size:.88rem;line-height:1.5}
+.owner-banner-btn{background:var(--red);color:#fff;font-family:'Oswald',sans-serif;font-size:.9rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:11px 22px;border-radius:8px;text-decoration:none;white-space:nowrap;transition:.2s}
+.owner-banner-btn:hover{background:var(--red-dark)}
+
+/* ── FEAR LIST ────────────────────────────────── */
+.fear-list{list-style:none;padding:0;margin:0}
+.fear-list li{font-size:.9rem;color:var(--charcoal);line-height:1.55;padding:5px 0 5px 20px;position:relative}
+.fear-list li::before{content:'→';position:absolute;left:0;color:var(--red);font-weight:700}
+
+/* ── COMPARISON SECTION ───────────────────────── */
+.compare{background:var(--off-white);padding:80px 20px}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;max-width:780px;margin:40px auto 0;border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.1)}
+.compare-col-head{font-family:'Oswald',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:18px 22px;background:#e8ecf5;color:var(--navy)}
+.benside-head{background:var(--navy);color:#fff}
+.compare-row{padding:13px 22px;font-size:.9rem;line-height:1.4;border-bottom:1px solid rgba(0,0,0,.06)}
+.compare-row.bad{background:#fff;color:var(--steel)}
+.compare-row.good{background:#f0f4ff;color:var(--charcoal);font-weight:500}
+.compare-col-other .compare-row:last-child,.compare-col-benside .compare-row:last-child{border-bottom:none}
+@media(max-width:600px){.compare-grid{grid-template-columns:1fr}.compare-col-other{display:none}}
+
+/* ── GOOGLE REVIEWS ───────────────────────────── */
+.google-rating-bar{text-align:center;margin-bottom:36px}
+.google-logo{height:28px;margin-bottom:6px}
+.google-overall{display:inline-flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:2px solid var(--border);border-radius:12px;padding:20px 36px}
+.google-score{font-family:'Oswald',sans-serif;font-size:2.8rem;font-weight:700;color:var(--navy);line-height:1}
+.google-stars-big{color:#f59e0b;font-size:1.4rem;letter-spacing:2px}
+.google-review-count{font-size:.8rem;color:var(--steel);margin-top:2px}
+.review-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.review-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:22px;position:relative}
+.review-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.reviewer-avatar{width:42px;height:42px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;flex-shrink:0}
+.reviewer-name{font-weight:700;color:var(--charcoal);font-size:.95rem}
+.reviewer-date{font-size:.78rem;color:var(--steel);margin-top:2px}
+.review-google-icon{margin-left:auto;font-family:'Oswald',sans-serif;font-size:1.2rem;font-weight:900;color:#4285f4;flex-shrink:0}
+.review-stars{color:#f59e0b;font-size:1rem;letter-spacing:1px;margin-bottom:10px}
+.review-text{font-size:.9rem;color:var(--charcoal);line-height:1.65;margin:0}
+
 </style>
 </head>
 <body>
@@ -508,68 +552,106 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
     </div>
     <div class="hero-badge">&#127963; FL Certified Roofing Contractor #CCC1328155 · Miami-Dade Approved · 25+ Years</div>
     <h1 class="hero-h1">
-      <span class="accent">We've Replaced Thousands of Florida Roofs.</span>
-      <span>We'll Give You an Honest Assessment of Yours.</span>
+      <span class="accent">Your Home Deserves a Roofer You Can Actually Trust.</span>
+      <span>Benside Has Protected Florida Families for Over 25 Years.</span>
     </h1>
-    <p class="hero-sub">
-      Noel Bendana has been installing, repairing, and inspecting roofs across Florida for over 25 years —
-      shingle, metal, tile, flat, and everything in between. He knows how Florida roofs fail, what your insurance company
-      is looking for, and what it actually takes to do the job right. He gives every estimate personally. He answers his own phone.
-    </p>
+    <p class="hero-sub">No call centers. No sales reps. When you call, Noel answers — the owner, the licensed contractor, the person who shows up and stands behind the work.</p>
     <div class="hero-cta-row">
-      <button class="btn-hero-primary" onclick="openModal()">Get My Free Inspection</button>
-      <a href="tel:3059106272" class="btn-hero-secondary">📞 Call Noel: (305) 910-6272</a>
+      <button class="btn-hero-primary" onclick="openModal()">Book My Free Roof Inspection</button>
+      <a href="tel:3059106272" class="btn-hero-secondary">📞 Call Noel Directly: (305) 910-6272</a>
     </div>
     <div class="hero-trust-strip">
       <div class="hero-trust-item"><span class="ico">✅</span> FL Licensed &amp; Insured</div>
       <div class="hero-trust-item"><span class="ico">🏠</span> 1,000+ Roofs Completed</div>
-      <div class="hero-trust-item"><span class="ico">📋</span> Written Warranty on Every Job</div>
-      <div class="hero-trust-item"><span class="ico">💰</span> Financing Available</div>
-      <div class="hero-trust-item"><span class="ico">🗺️</span> Serving All of Florida</div>
+      <div class="hero-trust-item"><span class="ico">📋</span> Written Warranty — Every Job</div>
+      <div class="hero-trust-item"><span class="ico">💰</span> Insurance &amp; Financing Available</div>
+      <div class="hero-trust-item"><span class="ico">📞</span> Owner Answers the Phone</div>
     </div>
   </div>
 </section>
+
+<!-- OWNER DIRECT LINE BANNER -->
+<div class="owner-banner">
+  <div class="owner-banner-inner">
+    <div class="owner-banner-icon">📞</div>
+    <div class="owner-banner-text">
+      <strong>No Call Centers. No Sales Reps. No Runaround.</strong>
+      <span>When you call Benside, you speak directly with Noel — the licensed owner who will personally inspect your roof, write your estimate, and stand behind the work.</span>
+    </div>
+    <a href="tel:3059106272" class="owner-banner-btn">Call Noel Now</a>
+  </div>
+</div>
 
 <!-- TRUST NUMBERS -->
 <div class="trust-numbers">
   <div class="trust-numbers-inner">
     <div class="trust-num"><div class="trust-num-value">25+</div><div class="trust-num-label">Years in Florida Roofing</div></div>
-    <div class="trust-num"><div class="trust-num-value">1,000+</div><div class="trust-num-label">Roofs Replaced &amp; Repaired</div></div>
-    <div class="trust-num"><div class="trust-num-value">100%</div><div class="trust-num-label">Licensed &amp; Insured</div></div>
-    <div class="trust-num"><div class="trust-num-value">✓</div><div class="trust-num-label">Financing Available</div></div>
+    <div class="trust-num"><div class="trust-num-value">1,000+</div><div class="trust-num-label">Roofs Completed</div></div>
+    <div class="trust-num"><div class="trust-num-value">24hr</div><div class="trust-num-label">Emergency Response</div></div>
+    <div class="trust-num"><div class="trust-num-value">$0</div><div class="trust-num-label">Cost for Inspection</div></div>
   </div>
 </div>
 
 <!-- HOMEOWNER FEARS / WHY THEY CALL -->
 <section class="fears" id="concerns">
   <div class="container fade-in">
-    <div class="sec-label">What Homeowners Tell Us</div>
-    <h2 class="sec-title">If Any of These Sound Familiar, You're in the Right Place.</h2>
-    <p class="sec-sub">We hear these every week. Here's exactly how we handle each one.</p>
+    <div class="sec-label">We Hear This Every Week</div>
+    <h2 class="sec-title">You Shouldn't Have to Worry About Your Roof.</h2>
+    <p class="sec-sub">Here's how Benside handles the concerns homeowners bring to us most.</p>
     <div class="fears-grid">
       <div class="fear-card">
         <h3>🔧 "My roof is leaking and I don't know how bad it is."</h3>
-        <p>Most leaks aren't where they look like they are. Water travels along rafters and sheathing before it shows up on your ceiling. We get on the roof, check every penetration, inspect the flashing at valleys and pipe boots, and show you photos of what we find before we write a single number.</p>
+        <ul class="fear-list">
+          <li>We get on the roof — not just look from the driveway</li>
+          <li>We check every penetration, flashing, valley, and pipe boot</li>
+          <li>We show you photos before we quote anything</li>
+          <li>Free. No obligation.</li>
+        </ul>
       </div>
       <div class="fear-card">
-        <h3>💰 "I don't know if I can afford a full replacement."</h3>
-        <p>A 20-year-old roof with worn-out shingles and failed underlayment won't benefit from another patch — it's throwing money away. We'll tell you straight whether a repair buys you real time or whether a full tear-off is the only honest answer. We don't upsell jobs that don't need it.</p>
+        <h3>💰 "I don't know if I can afford this."</h3>
+        <ul class="fear-list">
+          <li>We tell you honestly: repair or replace</li>
+          <li>We don't upsell jobs that aren't necessary</li>
+          <li>Flexible financing available — no insurance required</li>
+          <li>Insurance claims handled start to finish</li>
+        </ul>
       </div>
       <div class="fear-card">
-        <h3>🏦 "I don't know what my insurance covers."</h3>
-        <p>Most homeowners don't know the difference between ACV and RCV coverage — and insurance companies count on that. We've navigated hundreds of Florida claims, we know how to document damage the right way, and we know when an adjuster's estimate is leaving money on the table.</p>
+        <h3>🏦 "I don't know what my insurance will cover."</h3>
+        <ul class="fear-list">
+          <li>We've navigated hundreds of Florida claims</li>
+          <li>We document damage the way adjusters require it</li>
+          <li>We know the difference between ACV and RCV policies</li>
+          <li>We push back when offers are too low</li>
+        </ul>
       </div>
       <div class="fear-card">
         <h3>✅ "How do I know I can trust who I'm hiring?"</h3>
-        <p>Look us up before you call. License #CCC1328155 — verify it at myfloridalicense.com. We pull permits on every job that requires one, which means the work gets inspected by a licensed building inspector. Unlicensed contractors skip permits because they can't pass inspection.</p>
+        <ul class="fear-list">
+          <li>License #CCC1328155 — verify at myfloridalicense.com</li>
+          <li>Fully insured. Permits pulled on every job that requires one</li>
+          <li>Work inspected by a licensed building inspector</li>
+          <li>Written contract before we touch anything</li>
+        </ul>
       </div>
       <div class="fear-card">
-        <h3>👷 "I don't want strangers I've never met working on my home."</h3>
-        <p>We don't sub out to whoever picks up the phone that morning. Our installers are our crew — trained the way Noel installs, held to the same standard on every job. The people he describes when he sells the job are the people who show up to do it.</p>
+        <h3>👷 "I don't want unknown people on my roof."</h3>
+        <ul class="fear-list">
+          <li>Our crew is our crew — not day labor</li>
+          <li>Same team Noel describes is the team that shows up</li>
+          <li>Noel is on-site or reachable throughout the job</li>
+          <li>Full accountability from start to finish</li>
+        </ul>
       </div>
       <div class="fear-card">
-        <h3>⏰ "I need this handled quickly. I don't have time for delays."</h3>
-        <p>Same-day inspections when weather allows. We pull permits fast, we schedule tight, and we communicate every step. When we commit to a start date, we start. If weather moves us, you hear it from us first — not when you drive home and see your driveway empty.</p>
+        <h3>⏰ "I need this handled fast."</h3>
+        <ul class="fear-list">
+          <li>Same-day inspections when weather allows</li>
+          <li>Scheduling within days — not weeks</li>
+          <li>When we say Monday, we start Monday</li>
+          <li>You hear about any change from us first</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -579,7 +661,7 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
 <section class="services" id="services">
   <div class="container fade-in">
     <div class="sec-label">What We Do</div>
-    <h2 class="sec-title">Full-Service Roofing. Done the Right Way.</h2>
+    <h2 class="sec-title">Every Roofing Service Your Home Needs — Done Right.</h2>
     <p class="sec-sub">From tear-off to final inspection — we do it ourselves. Proper underlayment, correct flashing, the right nailing pattern. No shortcuts, no strangers on your roof.</p>
     <div class="services-grid">
       <div class="svc-card">
@@ -716,6 +798,43 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
   </div>
 </section>
 
+<!-- WHY CHOOSE BENSIDE -->
+<section class="compare" id="why-benside">
+  <div class="container fade-in">
+    <div class="sec-label">Why Homeowners Choose Us</div>
+    <h2 class="sec-title">Benside vs. The Typical Roofing Company</h2>
+    <p class="sec-sub">Most roofing companies look the same on the surface. Here's what actually separates Benside.</p>
+    <div class="compare-grid">
+      <div class="compare-col compare-col-other">
+        <div class="compare-col-head">Typical Contractor</div>
+        <div class="compare-row bad">❌ Voicemail or call center</div>
+        <div class="compare-row bad">❌ Sales rep sells, crew installs</div>
+        <div class="compare-row bad">❌ Verbal estimates, vague pricing</div>
+        <div class="compare-row bad">❌ Subcontracted labor</div>
+        <div class="compare-row bad">❌ Skips permits to cut time</div>
+        <div class="compare-row bad">❌ Disappears after payment</div>
+        <div class="compare-row bad">❌ Patch-on-patch repairs</div>
+        <div class="compare-row bad">❌ Low-ball insurance estimates</div>
+      </div>
+      <div class="compare-col compare-col-benside">
+        <div class="compare-col-head benside-head">✦ Benside Contractors</div>
+        <div class="compare-row good">✔ Owner answers the phone personally</div>
+        <div class="compare-row good">✔ Noel inspects, estimates &amp; oversees every job</div>
+        <div class="compare-row good">✔ Detailed written estimate — line by line</div>
+        <div class="compare-row good">✔ Our trained crew on every job</div>
+        <div class="compare-row good">✔ Permits pulled — work passes inspection</div>
+        <div class="compare-row good">✔ Written warranty — call us after the job</div>
+        <div class="compare-row good">✔ We find and fix the actual source</div>
+        <div class="compare-row good">✔ We fight for your full claim amount</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:36px">
+      <button class="btn-primary" onclick="openModal()" style="font-size:1.05rem;padding:16px 36px">Book My Free Roof Inspection</button>
+    </div>
+  </div>
+</section>
+
+
 <!-- INSURANCE CLAIMS -->
 <section class="insurance" id="insurance">
   <div class="container fade-in">
@@ -750,7 +869,7 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
         <div style="background:#f5f6fa;border:2px solid #dde3ec;border-radius:10px;padding:24px;text-align:center;margin-top:16px">
           <p style="font-family:Oswald,sans-serif;font-size:1rem;font-weight:700;color:#1b2d6b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">🏠 No Insurance Claim? No Problem.</p>
           <p style="font-size:.9rem;color:#2c2c2c;line-height:1.65;margin-bottom:16px">Many Florida homeowners replace aging or damaged roofs out of pocket — or simply want to upgrade to metal or tile. We offer flexible <strong>financing options</strong> so you don't have to put the whole job on yourself at once. Call us and we'll walk you through what works for your situation.</p>
-          <a onclick="openModal();return false;" href="#" class="btn-primary" style="display:inline-block;text-decoration:none;padding:13px 24px;cursor:pointer">Get a Free Estimate — No Obligation</a>
+          <a onclick="openModal();return false;" href="#" class="btn-primary" style="display:inline-block;text-decoration:none;padding:13px 24px;cursor:pointer">Get My Free Roof Assessment</a>
         </div>
       </div>
     </div>
@@ -865,14 +984,58 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
 <!-- TESTIMONIALS -->
 <section class="testimonials" id="testimonials">
   <div class="container fade-in">
-    <div class="sec-label">What Homeowners Say</div>
-    <h2 class="sec-title">Real Customers. Real Results.</h2>
-    <p class="sec-sub" style="margin-bottom:12px">We've protected thousands of Florida roofs. Here's what homeowners tell us after the job is done.</p>
-    <div style="text-align:center;padding:40px 20px;background:var(--white);border:2px solid var(--border);border-radius:14px;max-width:640px;margin:0 auto">
-      <div style="font-size:2.2rem;margin-bottom:14px">⭐</div>
-      <p style="font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Real Reviews Coming Soon</p>
-      <p style="font-size:.95rem;color:var(--charcoal);line-height:1.65;margin-bottom:20px">We've done thousands of roofs across Florida. Real customer reviews from real homeowners are on the way — from people Noel has worked with directly.</p>
-      <p style="font-size:.9rem;color:var(--steel);line-height:1.6">In the meantime, call Noel directly at <a href="tel:3059106272" style="color:var(--red);font-weight:700;text-decoration:none">(305) 910-6272</a> and ask him for references. He'll connect you with past customers who will tell you exactly what to expect.</p>
+    <div class="sec-label">Google Reviews</div>
+    <h2 class="sec-title">What Florida Homeowners Are Saying</h2>
+    <div class="google-rating-bar">
+      <div class="google-overall">
+        <img src="https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png" alt="Google" class="google-logo" onerror="this.style.display='none'">
+        <div class="google-score">5.0</div>
+        <div class="google-stars-big">★★★★★</div>
+        <div class="google-review-count">Based on our Google Reviews</div>
+      </div>
+    </div>
+    <!-- ═══ PASTE REAL GOOGLE REVIEWS BELOW — one .review-card per review ═══ -->
+    <div class="review-grid">
+      <div class="review-card">
+        <div class="review-top">
+          <div class="reviewer-avatar">?</div>
+          <div class="reviewer-info">
+            <div class="reviewer-name">Your Customer Name</div>
+            <div class="reviewer-date">Recent · Google Review</div>
+          </div>
+          <div class="review-google-icon">G</div>
+        </div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Paste the real customer review here. Real words from real homeowners build more trust than anything else on this page."</p>
+      </div>
+      <div class="review-card">
+        <div class="review-top">
+          <div class="reviewer-avatar">?</div>
+          <div class="reviewer-info">
+            <div class="reviewer-name">Your Customer Name</div>
+            <div class="reviewer-date">Recent · Google Review</div>
+          </div>
+          <div class="review-google-icon">G</div>
+        </div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Paste the real customer review here. Real words from real homeowners build more trust than anything else on this page."</p>
+      </div>
+      <div class="review-card">
+        <div class="review-top">
+          <div class="reviewer-avatar">?</div>
+          <div class="reviewer-info">
+            <div class="reviewer-name">Your Customer Name</div>
+            <div class="reviewer-date">Recent · Google Review</div>
+          </div>
+          <div class="review-google-icon">G</div>
+        </div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Paste the real customer review here. Real words from real homeowners build more trust than anything else on this page."</p>
+      </div>
+    </div>
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div style="text-align:center;margin-top:28px">
+      <p style="font-size:.9rem;color:var(--steel)">Real reviews from Noel's customers are coming soon. In the meantime — <a href="tel:3059106272" style="color:var(--red);font-weight:700;text-decoration:none">call (305) 910-6272</a> and ask for references directly.</p>
     </div>
   </div>
 </section>
@@ -1027,10 +1190,10 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
   <div class="container fade-in">
     <div class="final-cta-inner">
       <div class="sec-label" style="text-align:center">Ready to Talk?</div>
-      <h2 class="sec-title" style="text-align:center">Noel Answers His Own Phone.</h2>
+      <h2 class="sec-title" style="text-align:center">Ready to Protect Your Home? Call the Owner Directly.</h2>
       <p>25+ years in Florida roofing. No call centers. No pressure. One conversation about your roof and what it actually needs. That's all this is.</p>
       <div class="final-cta-btns">
-        <button class="btn-primary" onclick="openModal()">Get My Free Inspection</button>
+        <button class="btn-primary" onclick="openModal()">Book My Free Roof Inspection</button>
         <a href="tel:3059106272" class="btn-secondary">📞 (305) 910-6272</a>
       </div>
     </div>
