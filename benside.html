@@ -430,20 +430,20 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
 <svg viewBox="0 0 2600 1600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
 <defs>
   <!-- Simple house silhouette: roof peak + walls + door -->
-      <symbol id="hs" viewBox="0 0 48 58">
-    <polyline points="10,10 10,2 20,2" stroke="inherit" fill="none" stroke-width="2.5"/>
-    <polyline points="6,16 6,10 44,10 44,16" stroke="inherit" fill="none" stroke-width="2.2"/>
-    <line x1="10" y1="16" x2="10" y2="54" stroke="inherit" stroke-width="2"/>
-    <line x1="10" y1="54" x2="40" y2="54" stroke="inherit" stroke-width="2"/>
-    <path d="M40,16 C45,19 45,23 40,26 C45,29 45,33 40,36 C45,39 45,43 40,46 C45,49 45,53 40,56" stroke="inherit" fill="none" stroke-width="1.8"/>
-    <line x1="10" y1="20" x2="40" y2="20" stroke="inherit" stroke-width="1.1"/>
-    <line x1="10" y1="24" x2="40" y2="24" stroke="inherit" stroke-width="1.1"/>
-    <line x1="10" y1="28" x2="40" y2="28" stroke="inherit" stroke-width="1.1"/>
-    <line x1="10" y1="32" x2="40" y2="32" stroke="inherit" stroke-width="1.1"/>
-    <line x1="10" y1="36" x2="40" y2="36" stroke="inherit" stroke-width="1.1"/>
-    <line x1="10" y1="40" x2="40" y2="40" stroke="inherit" stroke-width="1.1"/>
-    <line x1="10" y1="44" x2="40" y2="44" stroke="inherit" stroke-width="1.1"/>
-    <line x1="10" y1="48" x2="40" y2="48" stroke="inherit" stroke-width="1.1"/>
+        <symbol id="hs" viewBox="0 0 56 60">
+    <polyline points="8,14 8,4 18,4" stroke="inherit" fill="none" stroke-width="2.4"/>
+    <line x1="4" y1="14" x2="46" y2="26" stroke="inherit" stroke-width="2.4"/>
+    <line x1="4" y1="20" x2="46" y2="32" stroke="inherit" stroke-width="1.4"/>
+    <line x1="4" y1="14" x2="4" y2="20" stroke="inherit" stroke-width="2"/>
+    <line x1="46" y1="26" x2="46" y2="32" stroke="inherit" stroke-width="2"/>
+    <line x1="8" y1="20" x2="8" y2="58" stroke="inherit" stroke-width="2"/>
+    <line x1="8" y1="58" x2="40" y2="58" stroke="inherit" stroke-width="1.8"/>
+    <path d="M40,32 Q45,35 40,38 Q45,41 40,44 Q45,47 40,50 Q45,53 40,56 Q45,59 40,62" stroke="inherit" fill="none" stroke-width="1.8"/>
+    <line x1="8" y1="36" x2="40" y2="36" stroke="inherit" stroke-width="1.1"/>
+    <line x1="8" y1="40" x2="40" y2="40" stroke="inherit" stroke-width="1.1"/>
+    <line x1="8" y1="44" x2="40" y2="44" stroke="inherit" stroke-width="1.1"/>
+    <line x1="8" y1="48" x2="40" y2="48" stroke="inherit" stroke-width="1.1"/>
+    <line x1="8" y1="52" x2="40" y2="52" stroke="inherit" stroke-width="1.1"/>
   </symbol>
 </defs>
 <g class="house-pan" id="housePan"></g>
@@ -465,8 +465,8 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
       u.setAttribute('class','hx');
       u.setAttribute('x',x+off);
       u.setAttribute('y',y);
-      u.setAttribute('width','28');
-      u.setAttribute('height','34');
+      u.setAttribute('width','30');
+      u.setAttribute('height','38');
       g.appendChild(u);
     }
     pan.appendChild(g);
@@ -522,26 +522,29 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
 <div class="hero-houses" aria-hidden="true">
 <svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
 <defs>
-    <symbol id="hh" viewBox="0 0 48 58">
-    <!-- Raised tab at top-left -->
-    <polyline points="10,10 10,2 20,2" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="2.5"/>
-    <!-- Drip edge cap across top -->
-    <polyline points="6,16 6,10 44,10 44,16" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="2.2"/>
-    <!-- Left vertical edge -->
-    <line x1="10" y1="16" x2="10" y2="54" stroke="rgba(150,165,185,0.5)" stroke-width="2"/>
-    <!-- Bottom edge -->
-    <line x1="10" y1="54" x2="40" y2="54" stroke="rgba(150,165,185,0.5)" stroke-width="2"/>
+      <symbol id="hh" viewBox="0 0 56 60">
+    <!-- Raised tab top-left -->
+    <polyline points="8,14 8,4 18,4" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="2.4"/>
+    <!-- Cap flashing top edge (angled: high-left to low-right) -->
+    <line x1="4" y1="14" x2="46" y2="26" stroke="rgba(150,165,185,0.5)" stroke-width="2.4"/>
+    <!-- Cap flashing bottom edge (parallel) -->
+    <line x1="4" y1="20" x2="46" y2="32" stroke="rgba(150,165,185,0.5)" stroke-width="1.4"/>
+    <!-- Cap left side -->
+    <line x1="4" y1="14" x2="4" y2="20" stroke="rgba(150,165,185,0.5)" stroke-width="2"/>
+    <!-- Cap right side -->
+    <line x1="46" y1="26" x2="46" y2="32" stroke="rgba(150,165,185,0.5)" stroke-width="2"/>
+    <!-- Shingle body left edge (vertical) -->
+    <line x1="8" y1="20" x2="8" y2="58" stroke="rgba(150,165,185,0.5)" stroke-width="2"/>
+    <!-- Shingle body bottom edge -->
+    <line x1="8" y1="58" x2="40" y2="58" stroke="rgba(150,165,185,0.5)" stroke-width="1.8"/>
     <!-- Right wavy edge (shingle tab profile) -->
-    <path d="M40,16 C45,19 45,23 40,26 C45,29 45,33 40,36 C45,39 45,43 40,46 C45,49 45,53 40,56" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="1.8"/>
+    <path d="M40,32 Q45,35 40,38 Q45,41 40,44 Q45,47 40,50 Q45,53 40,56 Q45,59 40,62" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="1.8"/>
     <!-- Horizontal shingle lines -->
-    <line x1="10" y1="20" x2="40" y2="20" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
-    <line x1="10" y1="24" x2="40" y2="24" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
-    <line x1="10" y1="28" x2="40" y2="28" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
-    <line x1="10" y1="32" x2="40" y2="32" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
-    <line x1="10" y1="36" x2="40" y2="36" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
-    <line x1="10" y1="40" x2="40" y2="40" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
-    <line x1="10" y1="44" x2="40" y2="44" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
-    <line x1="10" y1="48" x2="40" y2="48" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="8" y1="36" x2="40" y2="36" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="8" y1="40" x2="40" y2="40" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="8" y1="44" x2="40" y2="44" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="8" y1="48" x2="40" y2="48" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="8" y1="52" x2="40" y2="52" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
   </symbol>
 </defs>
 <g class="house-pan" id="heroPan"></g>
@@ -563,8 +566,8 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
       u.setAttribute('class','hx');
       u.setAttribute('x',x+off);
       u.setAttribute('y',y);
-      u.setAttribute('width','28');
-      u.setAttribute('height','34');
+      u.setAttribute('width','30');
+      u.setAttribute('height','38');
       g.appendChild(u);
     }
     pan.appendChild(g);
