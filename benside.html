@@ -430,12 +430,20 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
 <svg viewBox="0 0 2600 1600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
 <defs>
   <!-- Simple house silhouette: roof peak + walls + door -->
-    <symbol id="hs" viewBox="0 0 60 44">
-    <polyline points="2,30 30,4 58,30" stroke="inherit" fill="none" stroke-width="2.2"/>
-    <line x1="2" y1="30" x2="58" y2="30" stroke="inherit" stroke-width="1.6"/>
-    <line x1="15" y1="18" x2="45" y2="18" stroke="inherit" stroke-width="1.3"/>
-    <line x1="8" y1="24" x2="52" y2="24" stroke="inherit" stroke-width="1.3"/>
-    <polyline points="40,16 48,8 55,12" stroke="inherit" fill="none" stroke-width="2"/>
+      <symbol id="hs" viewBox="0 0 48 58">
+    <polyline points="10,10 10,2 20,2" stroke="inherit" fill="none" stroke-width="2.5"/>
+    <polyline points="6,16 6,10 44,10 44,16" stroke="inherit" fill="none" stroke-width="2.2"/>
+    <line x1="10" y1="16" x2="10" y2="54" stroke="inherit" stroke-width="2"/>
+    <line x1="10" y1="54" x2="40" y2="54" stroke="inherit" stroke-width="2"/>
+    <path d="M40,16 C45,19 45,23 40,26 C45,29 45,33 40,36 C45,39 45,43 40,46 C45,49 45,53 40,56" stroke="inherit" fill="none" stroke-width="1.8"/>
+    <line x1="10" y1="20" x2="40" y2="20" stroke="inherit" stroke-width="1.1"/>
+    <line x1="10" y1="24" x2="40" y2="24" stroke="inherit" stroke-width="1.1"/>
+    <line x1="10" y1="28" x2="40" y2="28" stroke="inherit" stroke-width="1.1"/>
+    <line x1="10" y1="32" x2="40" y2="32" stroke="inherit" stroke-width="1.1"/>
+    <line x1="10" y1="36" x2="40" y2="36" stroke="inherit" stroke-width="1.1"/>
+    <line x1="10" y1="40" x2="40" y2="40" stroke="inherit" stroke-width="1.1"/>
+    <line x1="10" y1="44" x2="40" y2="44" stroke="inherit" stroke-width="1.1"/>
+    <line x1="10" y1="48" x2="40" y2="48" stroke="inherit" stroke-width="1.1"/>
   </symbol>
 </defs>
 <g class="house-pan" id="housePan"></g>
@@ -446,7 +454,7 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
   var pan=document.getElementById('housePan');
   if(!pan)return;
   var NS='http://www.w3.org/2000/svg';
-  var dx=90,dy=80,r=0;
+  var dx=80,dy=72,r=0;
   for(var y=-120;y<=2000;y+=dy,r++){
     var g=document.createElementNS(NS,'g');
     g.setAttribute('class','hrow');
@@ -457,8 +465,8 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
       u.setAttribute('class','hx');
       u.setAttribute('x',x+off);
       u.setAttribute('y',y);
-      u.setAttribute('width','36');
-      u.setAttribute('height','33');
+      u.setAttribute('width','28');
+      u.setAttribute('height','34');
       g.appendChild(u);
     }
     pan.appendChild(g);
@@ -514,12 +522,26 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
 <div class="hero-houses" aria-hidden="true">
 <svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
 <defs>
-  <symbol id="hh" viewBox="0 0 60 44">
-    <polyline points="2,30 30,4 58,30" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="2.2"/>
-    <line x1="2" y1="30" x2="58" y2="30" stroke="rgba(150,165,185,0.5)" stroke-width="1.6"/>
-    <line x1="15" y1="18" x2="45" y2="18" stroke="rgba(150,165,185,0.5)" stroke-width="1.3"/>
-    <line x1="8" y1="24" x2="52" y2="24" stroke="rgba(150,165,185,0.5)" stroke-width="1.3"/>
-    <polyline points="40,16 48,8 55,12" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="2"/>
+    <symbol id="hh" viewBox="0 0 48 58">
+    <!-- Raised tab at top-left -->
+    <polyline points="10,10 10,2 20,2" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="2.5"/>
+    <!-- Drip edge cap across top -->
+    <polyline points="6,16 6,10 44,10 44,16" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="2.2"/>
+    <!-- Left vertical edge -->
+    <line x1="10" y1="16" x2="10" y2="54" stroke="rgba(150,165,185,0.5)" stroke-width="2"/>
+    <!-- Bottom edge -->
+    <line x1="10" y1="54" x2="40" y2="54" stroke="rgba(150,165,185,0.5)" stroke-width="2"/>
+    <!-- Right wavy edge (shingle tab profile) -->
+    <path d="M40,16 C45,19 45,23 40,26 C45,29 45,33 40,36 C45,39 45,43 40,46 C45,49 45,53 40,56" stroke="rgba(150,165,185,0.5)" fill="none" stroke-width="1.8"/>
+    <!-- Horizontal shingle lines -->
+    <line x1="10" y1="20" x2="40" y2="20" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="10" y1="24" x2="40" y2="24" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="10" y1="28" x2="40" y2="28" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="10" y1="32" x2="40" y2="32" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="10" y1="36" x2="40" y2="36" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="10" y1="40" x2="40" y2="40" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="10" y1="44" x2="40" y2="44" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
+    <line x1="10" y1="48" x2="40" y2="48" stroke="rgba(150,165,185,0.5)" stroke-width="1.1"/>
   </symbol>
 </defs>
 <g class="house-pan" id="heroPan"></g>
@@ -530,7 +552,7 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
   var pan=document.getElementById('heroPan');
   if(!pan)return;
   var NS='http://www.w3.org/2000/svg';
-  var dx=90,dy=80,r=0;
+  var dx=80,dy=72,r=0;
   for(var y=-120;y<=1100;y+=dy,r++){
     var g=document.createElementNS(NS,'g');
     g.setAttribute('class','hrow');
@@ -541,8 +563,8 @@ section,header,footer,.sticky-phone,.modal,.ace-widget{position:relative;z-index
       u.setAttribute('class','hx');
       u.setAttribute('x',x+off);
       u.setAttribute('y',y);
-      u.setAttribute('width','36');
-      u.setAttribute('height','33');
+      u.setAttribute('width','28');
+      u.setAttribute('height','34');
       g.appendChild(u);
     }
     pan.appendChild(g);
