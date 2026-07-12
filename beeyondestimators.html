@@ -155,6 +155,7 @@ table.cmp td.other{color:var(--muted)}
 .sketch{padding:6px 16px 14px}
 .mrow{display:flex;justify-content:space-between;font-size:.82rem;padding:6px 0;border-bottom:1px solid var(--border);color:var(--muted)}
 .mrow b{color:var(--navy)}
+.rchip{font-size:.75rem;font-weight:600;color:var(--navy);background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:5px 12px;white-space:nowrap}
 
 /* service pills */
 .pills{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;max-width:820px;margin:0 auto}
@@ -352,49 +353,65 @@ table.cmp td.other{color:var(--muted)}
   <div class="container">
     <span class="eyebrow" data-es='El Entregable'>The Deliverable</span>
     <h2 class="sec-title" data-es='C&oacute;mo Se Ve Tu Estimado en Xactimate'>What Your Xactimate Estimate Looks Like</h2>
-    <p class="sec-intro" data-es='Un archivo real (con datos del cliente eliminados): un reclamo por hurac&aacute;n en Florida con un Valor de Costo de Reemplazo de m&aacute;s de $101,000 &mdash; alcance por partida, medidas y totales, m&aacute;s el archivo ESX.'>A real file (client details removed): a Florida hurricane claim with a Replacement Cost Value over $101,000 &mdash; line-item scope, measurements, and totals, plus the ESX file.</p>
+    <p class="sec-intro" data-es='El croquis completo y el estimado de un archivo real por hurac&aacute;n en Florida (datos del cliente eliminados) &mdash; un reclamo con Valor de Costo de Reemplazo de $101,208 en todo el nivel principal.'>The full sketch and estimate from a real Florida hurricane file (client details removed) &mdash; a $101,208 Replacement Cost Value claim across the whole main level.</p>
     <div style="text-align:center"><span class="xbadge">Estimated in <b>Xactimate&reg;</b></span></div>
-    <div class="deliv-grid">
-      <div class="esbox">
-        <div class="esbox-h"><span data-es='Estimado &mdash; Hurac&aacute;n FL &middot; Nivel Principal'>Estimate &mdash; FL Hurricane &middot; Main Level</span><span>RCV $101,208</span></div>
-        <div style="overflow-x:auto"><table class="estable">
-          <thead><tr><th data-es='Descripci&oacute;n'>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Total</th></tr></thead>
-          <tbody>
-            <tr><td data-es='R&amp;R laminado Snaplock &mdash; imitaci&oacute;n madera, alta gama'>R&amp;R Snaplock laminate &mdash; simulated wood, high grade</td><td class="num">453.30</td><td class="num">SF</td><td class="num">$5,829.51</td></tr>
-            <tr><td data-es='Texturizar panel de yeso &mdash; textura pesada a mano'>Texture drywall &mdash; heavy hand texture</td><td class="num">1,316.25</td><td class="num">SF</td><td class="num">$2,623.90</td></tr>
-            <tr><td data-es='Sellar/imprimar y pintar paredes y techo (3 manos)'>Seal/prime &amp; paint walls &amp; ceiling (3 coats)</td><td class="num">1,316.25</td><td class="num">SF</td><td class="num">$2,557.67</td></tr>
-            <tr><td data-es='R&amp;R base de sonido/grietas &mdash; hasta 40 mil'>R&amp;R underlayment &mdash; sound/crack membrane</td><td class="num">453.30</td><td class="num">SF</td><td class="num">$1,989.17</td></tr>
-            <tr><td data-es='Enmascarar por SF para trabajo de yeso'>Mask per SF for drywall work</td><td class="num">1,316.25</td><td class="num">SF</td><td class="num">$485.62</td></tr>
-            <tr><td data-es='Limpiar el piso'>Clean the floor</td><td class="num">453.30</td><td class="num">SF</td><td class="num">$280.12</td></tr>
-            <tr><td data-es='Manipulaci&oacute;n de contenidos &mdash; por hora'>Content manipulation &mdash; per hour</td><td class="num">2.00</td><td class="num">HR</td><td class="num">$141.57</td></tr>
-          </tbody>
-        </table></div>
-        <div class="esum">
-          <div><span data-es='Total de partidas'>Line item total</span><span>$81,904.49</span></div>
-          <div><span data-es='Impuesto sobre materiales'>Material sales tax</span><span>$1,753.24</span></div>
-          <div><span data-es='Subtotal'>Subtotal</span><span>$83,663.88</span></div>
-          <div><span data-es='Gastos generales (10%)'>Overhead (10%)</span><span>$8,351.38</span></div>
-          <div><span data-es='Utilidad (10%)'>Profit (10%)</span><span>$9,186.51</span></div>
-          <div class="tot"><span data-es='Valor de Costo de Reemplazo'>Replacement Cost Value</span><span>$101,208.35</span></div>
+    <div class="esbox" style="margin-top:1.5rem">
+      <div class="esbox-h"><span data-es='Croquis &mdash; Nivel Principal'>Sketch &mdash; Main Level</span><span data-es='7 &aacute;reas &middot; 1,560 SF de piso'>7 areas &middot; 1,560 SF floor</span></div>
+      <div style="padding:16px">
+        <svg viewBox="0 0 480 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floor plan sketch" style="width:100%;height:auto;max-width:620px;display:block;margin:0 auto">
+          <rect x="20" y="20" width="210" height="130" fill="#1b2a4a08"/>
+          <rect x="20" y="150" width="210" height="130" fill="#1b2a4a14"/>
+          <rect x="230" y="20" width="230" height="155" fill="#1b2a4a14"/>
+          <rect x="230" y="175" width="115" height="105" fill="#1b2a4a08"/>
+          <rect x="345" y="175" width="115" height="105" fill="#1b2a4a14"/>
+          <rect x="20" y="20" width="440" height="260" fill="none" stroke="#1B2A4A" stroke-width="3.5"/>
+          <line x1="230" y1="20" x2="230" y2="280" stroke="#1B2A4A" stroke-width="1.5"/>
+          <line x1="20" y1="150" x2="230" y2="150" stroke="#1B2A4A" stroke-width="1.5"/>
+          <line x1="230" y1="175" x2="460" y2="175" stroke="#1B2A4A" stroke-width="1.5"/>
+          <line x1="345" y1="175" x2="345" y2="280" stroke="#1B2A4A" stroke-width="1.5"/>
+          <text x="125" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#1B2A4A">Living Room</text>
+          <text x="125" y="97" text-anchor="middle" font-size="10" fill="#6b7280">426 SF</text>
+          <text x="125" y="210" text-anchor="middle" font-size="13" font-weight="700" fill="#1B2A4A">Kitchen</text>
+          <text x="125" y="227" text-anchor="middle" font-size="10" fill="#6b7280">397 SF</text>
+          <text x="345" y="92" text-anchor="middle" font-size="13" font-weight="700" fill="#1B2A4A">Loft</text>
+          <text x="345" y="109" text-anchor="middle" font-size="10" fill="#6b7280">619 SF</text>
+          <text x="287" y="223" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1B2A4A">Hallway</text>
+          <text x="287" y="238" text-anchor="middle" font-size="9" fill="#6b7280">28 SF</text>
+          <text x="402" y="223" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1B2A4A">Stairs</text>
+          <text x="402" y="238" text-anchor="middle" font-size="9" fill="#6b7280">39 SF</text>
+        </svg>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:1rem">
+          <span class="rchip">Living Room &middot; 426 SF</span>
+          <span class="rchip">Kitchen &middot; 397 SF</span>
+          <span class="rchip">Loft &middot; 619 SF</span>
+          <span class="rchip">Hallway &middot; 28 SF</span>
+          <span class="rchip">Stairs &middot; 39 SF</span>
+          <span class="rchip">Landing &middot; 10 SF</span>
+          <span class="rchip">Stairwell &middot; 41 SF</span>
         </div>
       </div>
-      <div class="esbox">
-        <div class="esbox-h"><span data-es='Medidas y Croquis'>Measurements &amp; Sketch</span><span data-es='Sala'>Living Room</span></div>
-        <div class="sketch">
-          <svg viewBox="0 0 300 175" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Room sketch" style="width:100%;height:auto">
-            <rect x="46" y="40" width="208" height="108" fill="#1b2a4a0d" stroke="#1B2A4A" stroke-width="2"/>
-            <line x1="46" y1="28" x2="254" y2="28" stroke="#9aa4b2" stroke-width="1"/>
-            <text x="150" y="22" text-anchor="middle" font-size="11" fill="#6b7280">24&#39; 0&quot;</text>
-            <line x1="32" y1="40" x2="32" y2="148" stroke="#9aa4b2" stroke-width="1"/>
-            <text x="20" y="98" text-anchor="middle" font-size="11" fill="#6b7280" transform="rotate(-90 20 98)">17&#39; 9&quot;</text>
-            <text x="150" y="99" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1B2A4A">Living Room</text>
-          </svg>
-          <div class="mrow"><span data-es='Altura del techo'>Ceiling height</span><b>9&#39; 2&quot;</b></div>
-          <div class="mrow"><span data-es='&Aacute;rea de paredes'>Wall area</span><b>718 SF</b></div>
-          <div class="mrow"><span data-es='Techo'>Ceiling</span><b>426 SF</b></div>
-          <div class="mrow"><span data-es='Piso'>Floor</span><b>426 SF</b></div>
-          <div class="mrow" style="border-bottom:none"><span data-es='Per&iacute;metro de piso'>Floor perimeter</span><b>77 LF</b></div>
-        </div>
+    </div>
+    <div class="esbox" style="margin-top:1.2rem">
+      <div class="esbox-h"><span data-es='Estimado &mdash; Hurac&aacute;n FL &middot; Nivel Principal'>Estimate &mdash; FL Hurricane &middot; Main Level</span><span>RCV $101,208</span></div>
+      <div style="overflow-x:auto"><table class="estable">
+        <thead><tr><th data-es='Descripci&oacute;n'>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Total</th></tr></thead>
+        <tbody>
+          <tr><td data-es='R&amp;R laminado Snaplock &mdash; imitaci&oacute;n madera, alta gama'>R&amp;R Snaplock laminate &mdash; simulated wood, high grade</td><td class="num">453.30</td><td class="num">SF</td><td class="num">$5,829.51</td></tr>
+          <tr><td data-es='Texturizar panel de yeso &mdash; textura pesada a mano'>Texture drywall &mdash; heavy hand texture</td><td class="num">1,316.25</td><td class="num">SF</td><td class="num">$2,623.90</td></tr>
+          <tr><td data-es='Sellar/imprimar y pintar paredes y techo (3 manos)'>Seal/prime &amp; paint walls &amp; ceiling (3 coats)</td><td class="num">1,316.25</td><td class="num">SF</td><td class="num">$2,557.67</td></tr>
+          <tr><td data-es='R&amp;R base de sonido/grietas &mdash; hasta 40 mil'>R&amp;R underlayment &mdash; sound/crack membrane</td><td class="num">453.30</td><td class="num">SF</td><td class="num">$1,989.17</td></tr>
+          <tr><td data-es='Enmascarar por SF para trabajo de yeso'>Mask per SF for drywall work</td><td class="num">1,316.25</td><td class="num">SF</td><td class="num">$485.62</td></tr>
+          <tr><td data-es='Limpiar el piso'>Clean the floor</td><td class="num">453.30</td><td class="num">SF</td><td class="num">$280.12</td></tr>
+          <tr><td data-es='Manipulaci&oacute;n de contenidos &mdash; por hora'>Content manipulation &mdash; per hour</td><td class="num">2.00</td><td class="num">HR</td><td class="num">$141.57</td></tr>
+        </tbody>
+      </table></div>
+      <div class="esum">
+        <div><span data-es='Total de partidas'>Line item total</span><span>$81,904.49</span></div>
+        <div><span data-es='Impuesto sobre materiales'>Material sales tax</span><span>$1,753.24</span></div>
+        <div><span data-es='Subtotal'>Subtotal</span><span>$83,663.88</span></div>
+        <div><span data-es='Gastos generales (10%)'>Overhead (10%)</span><span>$8,351.38</span></div>
+        <div><span data-es='Utilidad (10%)'>Profit (10%)</span><span>$9,186.51</span></div>
+        <div class="tot"><span data-es='Valor de Costo de Reemplazo'>Replacement Cost Value</span><span>$101,208.35</span></div>
       </div>
     </div>
     <p style="text-align:center;color:var(--muted);font-size:.72rem;font-style:italic;margin-top:1rem" data-es='Archivo real de un reclamo por hurac&aacute;n en Florida; datos del cliente eliminados por privacidad. Xactimate&reg; es una marca registrada de Verisk; no estamos afiliados a Verisk.'>Real file from a Florida hurricane claim; client details removed for privacy. Xactimate&reg; is a registered trademark of Verisk; we are not affiliated with Verisk.</p>
