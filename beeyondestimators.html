@@ -129,7 +129,16 @@ table.cmp tr:nth-child(even) td{background:rgba(244,246,251,.6)}
 table.cmp td.feat{font-weight:700;color:var(--navy)}
 table.cmp td.fl{color:var(--red);font-weight:700}
 table.cmp td.other{color:var(--muted)}
-.cmp-note{text-align:center;color:var(--muted);font-size:.78rem;margin-top:1rem;max-width:760px;margin-left:auto;margin-right:auto}
+.cmp-note{text-align:center;color:var(--muted);font-size:.78rem;margin-top:1rem;max-width:760px;margin-left:auto;margin-right:auto}.cmp-note{text-align:center;color:var(--muted);font-size:.78rem;margin-top:1rem;max-width:760px;margin-left:auto;margin-right:auto}
+.price{font-family:'Playfair Display',serif;font-weight:800;color:var(--navy);font-size:2.1rem;line-height:1.1;margin:.3rem 0 .2rem}
+.price span{font-size:.82rem;color:var(--muted);font-weight:600;font-family:'DM Sans',sans-serif}
+.pcard{position:relative;text-align:center}
+.pcard.pop{border-top:4px solid var(--red)}
+.pbadge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:999px;white-space:nowrap}
+.pfeat{list-style:none;padding:0;margin:1rem 0 0;text-align:left;display:inline-block}
+.pfeat li{font-size:.88rem;color:var(--muted);padding:5px 0 5px 24px;position:relative}
+.pfeat li::before{content:"\2713";position:absolute;left:0;color:var(--red);font-weight:800}
+.paddon{text-align:center}.paddon .price{font-size:1.45rem;margin:.15rem 0}
 
 /* service pills */
 .pills{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;max-width:820px;margin:0 auto}
@@ -244,6 +253,7 @@ table.cmp td.other{color:var(--muted)}
     <div class="nav-links">
       <a href="#services" data-es='Servicios'>Services</a>
       <a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a>
+      <a href="#pricing" data-es='Precios'>Pricing</a>
       <a href="#why" data-es='Por Qu&eacute; Nosotros'>Why Us</a>
       <a href="#contact" data-es='Contacto'>Contact</a>
       <a href="#founder" data-es='Nosotros'>About</a>
@@ -259,6 +269,7 @@ table.cmp td.other{color:var(--muted)}
   <button id="mob-close" aria-label="Close">&times;</button>
   <a href="#services" data-es='Servicios'>Services</a>
   <a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a>
+  <a href="#pricing" data-es='Precios'>Pricing</a>
   <a href="#why" data-es='Por Qu&eacute; Nosotros'>Why Us</a>
   <a href="#contact" data-es='Contacto'>Contact</a>
   <a href="#founder" data-es='Nosotros'>About</a>
@@ -334,6 +345,57 @@ table.cmp td.other{color:var(--muted)}
 </section>
 
 
+
+<section id="pricing" class="section bg2">
+  <div class="container">
+    <span class="eyebrow" data-es='Precios'>Pricing</span>
+    <h2 class="sec-title" data-es='Precios Fijos y Claros Seg&uacute;n el Tama&ntilde;o del Reclamo'>Simple, Flat-Rate Pricing by Claim Size</h2>
+    <p class="sec-intro" data-es='Entre m&aacute;s grande la p&eacute;rdida, m&aacute;s habitaciones, partidas y documentaci&oacute;n toma construir un estimado defendible. Cada archivo se cotiza por adelantado &mdash; aqu&iacute; empiezan los precios.'>The bigger the loss, the more rooms, line items, and documentation it takes to build a defensible estimate. Every file is quoted up front &mdash; here&rsquo;s where pricing starts.</p>
+    <div class="grid g3">
+      <div class="card pcard fade-in">
+        <h3 data-es='P&eacute;rdida Peque&ntilde;a'>Small Loss</h3>
+        <div class="price">$99 <span data-es='desde'>starting</span></div>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Una habitaci&oacute;n o alcance simple'>Single-room or simple scope</p>
+        <ul class="pfeat">
+          <li data-es='P&eacute;rdidas peque&ntilde;as de agua, fugas de AC/electrodom&eacute;sticos'>Small water losses, AC/appliance leaks</li>
+          <li data-es='Fuego, moho o viento en una habitaci&oacute;n'>Single-room fire, mold, or wind</li>
+          <li data-es='Reclamos de techo simples'>Simple roof claims</li>
+          <li data-es='ESX + PDF en 24&ndash;48 h'>ESX + PDF in 24&ndash;48 hrs</li>
+        </ul>
+      </div>
+      <div class="card pcard pop fade-in">
+        <div class="pbadge" data-es='M&aacute;s Com&uacute;n'>Most Common</div>
+        <h3 data-es='P&eacute;rdida Est&aacute;ndar'>Standard Loss</h3>
+        <div class="price">$199 <span data-es='desde'>starting</span></div>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Varias habitaciones / piso completo'>Multi-room / whole-floor</p>
+        <ul class="pfeat">
+          <li data-es='Agua, moho o fuego t&iacute;pico en varias habitaciones'>Typical water, mold, or fire across several rooms</li>
+          <li data-es='Da&ntilde;os por viento y tormenta'>Wind &amp; storm damage</li>
+          <li data-es='Alcance por partida + croquis'>Line-item scope + sketch</li>
+          <li data-es='ESX + PDF en 24&ndash;48 h'>ESX + PDF in 24&ndash;48 hrs</li>
+        </ul>
+      </div>
+      <div class="card pcard fade-in">
+        <h3 data-es='P&eacute;rdida Grande / Compleja'>Large / Complex Loss</h3>
+        <div class="price">$349+ <span data-es='cotizaci&oacute;n personalizada'>custom quote</span></div>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Estructura completa'>Full structure</p>
+        <ul class="pfeat">
+          <li data-es='Reconstrucciones completas por fuego'>Whole-home fire rebuilds</li>
+          <li data-es='Hurac&aacute;n mayor y p&eacute;rdidas CAT'>Major hurricane &amp; CAT losses</li>
+          <li data-es='Reclamos grandes o comerciales'>Large or commercial claims</li>
+          <li data-es='Precio seg&uacute;n alcance y valor del reclamo'>Priced by scope &amp; claim value</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid g4" style="margin-top:1.5rem">
+      <div class="card paddon fade-in"><h3 data-es='Suplementos'>Supplements</h3><div class="price">$125 <span data-es='desde'>from</span></div><p style="color:var(--muted);font-size:.88rem" data-es='Recupera alcance omitido en un estimado existente de la aseguradora.'>Recover missed scope on an existing carrier estimate.</p></div>
+      <div class="card paddon fade-in"><h3 data-es='Revisi&oacute;n de Estimado'>Estimate Review</h3><div class="price">$75 <span data-es='desde'>from</span></div><p style="color:var(--muted);font-size:.88rem" data-es='Segunda opini&oacute;n o revisi&oacute;n de un estimado existente.'>Second opinion or review of an existing estimate.</p></div>
+      <div class="card paddon fade-in"><h3 data-es='Inventario de Contenidos'>Contents Inventory</h3><div class="price">$99 <span data-es='desde'>from</span></div><p style="color:var(--muted);font-size:.88rem" data-es='Propiedad personal habitaci&oacute;n por habitaci&oacute;n con RCV/ACV.'>Room-by-room personal property with RCV/ACV.</p></div>
+      <div class="card paddon fade-in"><h3 data-es='Urgente 24 h'>Rush 24 hr</h3><div class="price">+$50</div><p style="color:var(--muted);font-size:.88rem" data-es='&iquest;Lo necesitas ma&ntilde;ana? Priorizamos tu archivo.'>Need it tomorrow? We&rsquo;ll prioritize your file.</p></div>
+    </div>
+    <p class="cmp-note" data-es='Cada archivo se cotiza antes de empezar &mdash; el precio final depende del tama&ntilde;o y la complejidad de la p&eacute;rdida (habitaciones, partidas y documentaci&oacute;n). Opciones de volumen y retenedor mensual disponibles para ajustadores p&uacute;blicos y empresas de restauraci&oacute;n &mdash; consulta.'>Every file is quoted before we start &mdash; final price depends on the size and complexity of the loss (rooms, line items, and documentation). Volume &amp; monthly retainer options available for public adjusters and restoration firms &mdash; just ask.</p>
+  </div>
+</section>
 
 <section class="section">
   <div class="container">
