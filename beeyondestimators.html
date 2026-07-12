@@ -139,6 +139,22 @@ table.cmp td.other{color:var(--muted)}
 .pfeat li{font-size:.88rem;color:var(--muted);padding:5px 0 5px 24px;position:relative}
 .pfeat li::before{content:"\2713";position:absolute;left:0;color:var(--red);font-weight:800}
 .paddon{text-align:center}.paddon .price{font-size:1.45rem;margin:.15rem 0}
+.deliv-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:1.5rem;margin-top:1.5rem;align-items:start}
+@media(max-width:820px){.deliv-grid{grid-template-columns:1fr}}
+.esbox{background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(27,42,74,.1);overflow:hidden}
+.esbox-h{background:var(--navy);color:#fff;padding:11px 16px;font-weight:700;font-size:.85rem;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.estable{width:100%;border-collapse:collapse;font-size:.78rem}
+.estable th{background:var(--bg2);text-align:left;padding:8px 10px;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);white-space:nowrap}
+.estable td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.estable .num{text-align:right;white-space:nowrap}
+.esum{padding:10px 16px;font-size:.8rem;background:rgba(244,246,251,.5)}
+.esum>div{display:flex;justify-content:space-between;padding:3px 0;color:var(--muted)}
+.esum .tot{font-weight:800;color:var(--navy);border-top:2px solid var(--navy);margin-top:5px;padding-top:7px;font-size:.95rem}
+.xbadge{display:inline-flex;align-items:center;gap:.4rem;background:var(--navy);color:#fff;font-weight:600;font-size:.82rem;padding:8px 18px;border-radius:999px;margin-top:.4rem}
+.xbadge b{color:var(--gold-l);font-weight:800;letter-spacing:.02em}
+.sketch{padding:6px 16px 14px}
+.mrow{display:flex;justify-content:space-between;font-size:.82rem;padding:6px 0;border-bottom:1px solid var(--border);color:var(--muted)}
+.mrow b{color:var(--navy)}
 
 /* service pills */
 .pills{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;max-width:820px;margin:0 auto}
@@ -331,6 +347,57 @@ table.cmp td.other{color:var(--muted)}
 </section>
 
 
+
+<section id="sample" class="section">
+  <div class="container">
+    <span class="eyebrow" data-es='El Entregable'>The Deliverable</span>
+    <h2 class="sec-title" data-es='C&oacute;mo Se Ve Tu Estimado en Xactimate'>What Your Xactimate Estimate Looks Like</h2>
+    <p class="sec-intro" data-es='Cada archivo regresa como un estimado profesional listo para la aseguradora &mdash; alcance por partida, medidas y totales RCV/ACV &mdash; m&aacute;s el archivo ESX que puedes abrir o enviar.'>Every file comes back as a professional, carrier-ready estimate &mdash; line-item scope, measurements, and RCV/ACV totals &mdash; plus the ESX file you can open or submit.</p>
+    <div style="text-align:center"><span class="xbadge">Estimated in <b>Xactimate&reg;</b></span></div>
+    <div class="deliv-grid">
+      <div class="esbox">
+        <div class="esbox-h"><span data-es='Estimado &mdash; P&eacute;rdida de Agua en Cocina'>Estimate &mdash; Kitchen Water Loss</span><span>ESX + PDF</span></div>
+        <div style="overflow-x:auto"><table class="estable">
+          <thead><tr><th data-es='Descripci&oacute;n'>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">RCV</th><th class="num">ACV</th></tr></thead>
+          <tbody>
+            <tr><td data-es='R&amp;R panel de yeso 1/2" &mdash; colocado y acabado'>R&amp;R 1/2" drywall &mdash; hung, taped, floated</td><td class="num">320</td><td class="num">SF</td><td class="num">$848.00</td><td class="num">$780.16</td></tr>
+            <tr><td data-es='Sellar y pintar paredes &mdash; dos manos'>Seal &amp; paint walls &mdash; two coats</td><td class="num">320</td><td class="num">SF</td><td class="num">$313.60</td><td class="num">$288.51</td></tr>
+            <tr><td data-es='R&amp;R z&oacute;calo &mdash; 3 1/4"'>R&amp;R baseboard &mdash; 3 1/4"</td><td class="num">48</td><td class="num">LF</td><td class="num">$153.60</td><td class="num">$141.31</td></tr>
+            <tr><td data-es='Desmontar y reinstalar inodoro'>Detach &amp; reset toilet</td><td class="num">1</td><td class="num">EA</td><td class="num">$236.00</td><td class="num">$236.00</td></tr>
+            <tr><td data-es='Extracci&oacute;n de agua y remediaci&oacute;n'>Water extraction &amp; remediation</td><td class="num">1</td><td class="num">EA</td><td class="num">$425.00</td><td class="num">$425.00</td></tr>
+            <tr><td data-es='Ventilador de secado (por d&iacute;a)'>Air mover (per day)</td><td class="num">9</td><td class="num">DA</td><td class="num">$277.20</td><td class="num">$277.20</td></tr>
+          </tbody>
+        </table></div>
+        <div class="esum">
+          <div><span data-es='Total de partidas'>Line item total</span><span>$2,253.40</span></div>
+          <div><span data-es='Gastos generales y utilidad (10/10)'>Overhead &amp; profit (10/10)</span><span>$450.68</span></div>
+          <div><span data-es='Valor de Costo de Reemplazo (RCV)'>Replacement Cost Value (RCV)</span><span>$2,704.08</span></div>
+          <div><span data-es='Menos depreciaci&oacute;n'>Less depreciation</span><span>&minus;$155.90</span></div>
+          <div><span data-es='Menos deducible'>Less deductible</span><span>&minus;$1,000.00</span></div>
+          <div class="tot"><span data-es='Reclamo neto'>Net claim</span><span>$1,548.18</span></div>
+        </div>
+      </div>
+      <div class="esbox">
+        <div class="esbox-h"><span data-es='Medidas y Croquis'>Measurements &amp; Sketch</span><span data-es='Cocina'>Kitchen</span></div>
+        <div class="sketch">
+          <svg viewBox="0 0 300 175" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Room sketch" style="width:100%;height:auto">
+            <rect x="48" y="42" width="204" height="104" fill="#1b2a4a0d" stroke="#1B2A4A" stroke-width="2"/>
+            <line x1="48" y1="30" x2="252" y2="30" stroke="#9aa4b2" stroke-width="1"/>
+            <text x="150" y="24" text-anchor="middle" font-size="11" fill="#6b7280">16&#39; 0&quot;</text>
+            <line x1="34" y1="42" x2="34" y2="146" stroke="#9aa4b2" stroke-width="1"/>
+            <text x="22" y="98" text-anchor="middle" font-size="11" fill="#6b7280" transform="rotate(-90 22 98)">12&#39; 0&quot;</text>
+            <text x="150" y="99" text-anchor="middle" font-size="13" font-weight="700" fill="#1B2A4A">Kitchen</text>
+          </svg>
+          <div class="mrow"><span data-es='&Aacute;rea de piso'>Floor area</span><b>192 SF</b></div>
+          <div class="mrow"><span data-es='&Aacute;rea de paredes'>Wall area</span><b>448 SF</b></div>
+          <div class="mrow"><span data-es='Techo'>Ceiling</span><b>192 SF</b></div>
+          <div class="mrow" style="border-bottom:none"><span data-es='Per&iacute;metro'>Perimeter</span><b>56 LF</b></div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:.72rem;font-style:italic;margin-top:1rem" data-es='Ejemplo ilustrativo. Xactimate&reg; es una marca registrada de Verisk; no estamos afiliados a Verisk.'>Sample for illustration. Xactimate&reg; is a registered trademark of Verisk; we are not affiliated with Verisk.</p>
+  </div>
+</section>
 
 <section id="why" class="section">
   <div class="container">
