@@ -142,6 +142,9 @@ table.cmp td.other{color:var(--muted)}
 .deliv-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:1.5rem;margin-top:1.5rem;align-items:start}
 @media(max-width:820px){.deliv-grid{grid-template-columns:1fr}}
 .esbox{background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(27,42,74,.1);overflow:hidden}
+.esgrid{display:grid;grid-template-columns:1fr;gap:1.2rem;margin-top:1.5rem}
+@media(min-width:820px){.esgrid{grid-template-columns:1fr 1fr}}
+.esgrid .esbox-h span:last-child{font-weight:600;opacity:.85;font-size:.78rem}
 .esbox-h{background:var(--navy);color:#fff;padding:11px 16px;font-weight:700;font-size:.85rem;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .estable{width:100%;border-collapse:collapse;font-size:.78rem}
 .estable th{background:var(--bg2);text-align:left;padding:8px 10px;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);white-space:nowrap}
@@ -373,7 +376,8 @@ table.cmp td.other{color:var(--muted)}
     <h2 class="sec-title" data-es='C&oacute;mo Se Ve Tu Estimado en Xactimate'>What Your Xactimate Estimate Looks Like</h2>
     <p class="sec-intro" data-es='El plano, el croquis de techo y el estimado de un archivo real por hurac&aacute;n en Florida (datos del cliente eliminados) &mdash; un reclamo con Valor de Costo de Reemplazo de $101,208 en todo el nivel principal.'>The full floor plan, roof sketch, and estimate from a real Florida hurricane file (client details removed) &mdash; a $101,208 Replacement Cost Value claim across the whole main level.</p>
     <div style="text-align:center"><span class="xbadge">Estimated in <b>Xactimate&reg;</b></span></div>
-    <div class="esbox" style="margin-top:1.5rem">
+    <div class="esgrid">
+    <div class="esbox">
       <div class="esbox-h"><span data-es='Croquis &mdash; Nivel Principal'>Sketch &mdash; Main Level</span><span data-es='7 &aacute;reas &middot; 1,560 SF de piso'>7 areas &middot; 1,560 SF floor</span></div>
       <div style="padding:16px">
         <svg viewBox="0 0 590 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Floor plan sketch" style="width:100%;height:auto;max-width:720px;display:block;margin:0 auto">
@@ -444,7 +448,7 @@ table.cmp td.other{color:var(--muted)}
         </div>
       </div>
     </div>
-    <div class="esbox" style="margin-top:1.2rem">
+    <div class="esbox">
       <div class="esbox-h"><span data-es='Croquis de Techo &mdash; Medici&oacute;n A&eacute;rea'>Roof Sketch &mdash; Aerial Measurement</span><span>1,136 SF &middot; 11.4 SQ</span></div>
       <div style="padding:16px">
         <svg viewBox="0 0 480 372" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Roof plan sketch" style="width:100%;height:auto;max-width:660px;display:block;margin:0 auto">
@@ -490,6 +494,7 @@ table.cmp td.other{color:var(--muted)}
           <span class="rchip">4 facets &middot; hips &amp; ridges</span>
         </div>
       </div>
+    </div>
     </div>
     <div class="esbox" style="margin-top:1.2rem">
       <div class="esbox-h"><span data-es='Estimado &mdash; Hurac&aacute;n FL &middot; Nivel Principal'>Estimate &mdash; FL Hurricane &middot; Main Level</span><span>RCV $101,208</span></div>
