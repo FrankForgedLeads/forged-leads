@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beeyond Estimators — Xactimate Estimating for Restoration, Mold &amp; Public Adjusters</title>
-<meta name="description" content="Professional Xactimate estimates for water, mold, fire, and storm damage. Carrier-ready ESX &amp; PDF in 24–48 hours. Built by 12+ years of estimating experience — for restoration contractors, public adjusters, and attorneys.">
+<title>Beeyond Estimators — Professional Xactimate Estimating Built for Contractors</title>
+<meta name="description" content="Professional, insurance-ready Xactimate estimates built for contractors — water, mold, roofing, fire, and reconstruction. Carrier-ready ESX &amp; PDF in 24–48 hours, one revision included. Over a decade of hands-on experience alongside restoration, roofing, and construction contractors.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -254,6 +254,32 @@ table.cmp td.other{color:var(--muted)}
 .fade-in{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}
 .fade-in.vis{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.hive-pan,.hrow,.hx,.fade-in{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}}
+
+/* what's included */
+.inc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;max-width:940px;margin:0 auto}
+.inc-item{display:flex;gap:.9rem;align-items:flex-start;background:#fff;border:1px solid var(--border);border-radius:12px;padding:1.15rem 1.35rem;box-shadow:0 4px 16px rgba(27,42,74,.05);transition:transform .2s,box-shadow .2s}
+.inc-item:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(27,42,74,.1)}
+.inc-item .ck{flex-shrink:0;width:32px;height:32px;border-radius:9px;background:rgba(178,34,52,.1);color:var(--red);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem}
+.inc-item h4{font-family:'DM Sans',sans-serif;font-size:1rem;color:var(--navy);margin-bottom:.12rem}
+.inc-item p{font-size:.82rem;color:var(--muted);line-height:1.5}
+/* industries */
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;max-width:1020px;margin:0 auto}
+.ind{text-align:center;background:#fff;border:1px solid var(--border);border-radius:12px;padding:1.5rem .8rem;transition:transform .2s,box-shadow .2s,border-color .2s}
+.ind:hover{transform:translateY(-5px);box-shadow:0 14px 32px rgba(27,42,74,.12);border-color:var(--red)}
+.ind .ic{font-size:1.9rem;margin-bottom:.55rem;line-height:1}
+.ind span{display:block;font-weight:700;font-size:.9rem;color:var(--navy);line-height:1.3}
+/* testimonials */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;max-width:1060px;margin:0 auto}
+.tcard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.9rem;box-shadow:0 6px 24px rgba(27,42,74,.07);display:flex;flex-direction:column;gap:1rem}
+.tstars{color:var(--gold);font-size:1rem;letter-spacing:3px}
+.tcard blockquote{font-size:.98rem;color:var(--text);line-height:1.7;font-style:italic;flex:1}
+.twho{display:flex;align-items:center;gap:.75rem;border-top:1px solid var(--border);padding-top:1rem}
+.tav{width:44px;height:44px;border-radius:50%;background:var(--navy);color:var(--gold-l);font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tname{font-weight:700;color:var(--navy);font-size:.9rem}
+.trole{font-size:.78rem;color:var(--muted)}
+.tnote{text-align:center;color:var(--muted);font-size:.76rem;font-style:italic;margin-top:2rem}
+/* 4-step numbering pop */
+.step3 .n{box-shadow:0 6px 18px rgba(178,34,52,.28)}
 </style>
 </head>
 
@@ -272,11 +298,11 @@ table.cmp td.other{color:var(--muted)}
     <a href="#top" class="nav-brand"><img class="beelogo" alt="Beeyond Estimators"><span>BEEYOND ESTIMATORS</span></a>
     <div class="nav-links">
       <a href="#services" data-es='Servicios'>Services</a>
-      <a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a>
+      <a href="#how" data-es='Proceso'>Process</a>
+      <a href="#industries" data-es='Industrias'>Industries</a>
       <a href="#pricing" data-es='Precios'>Pricing</a>
-      <a href="#why" data-es='Por Qu&eacute; Nosotros'>Why Us</a>
+      <a href="#reviews" data-es='Rese&ntilde;as'>Reviews</a>
       <a href="#contact" data-es='Contacto'>Contact</a>
-      <a href="#founder" data-es='Nosotros'>About</a>
     </div>
     <div class="nav-right">
       <button class="lang-pill" id="lang-btn">&#127760; Espa&ntilde;ol</button>
@@ -288,11 +314,11 @@ table.cmp td.other{color:var(--muted)}
 <div id="mob-menu">
   <button id="mob-close" aria-label="Close">&times;</button>
   <a href="#services" data-es='Servicios'>Services</a>
-  <a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a>
+  <a href="#how" data-es='Proceso'>Process</a>
+  <a href="#industries" data-es='Industrias'>Industries</a>
   <a href="#pricing" data-es='Precios'>Pricing</a>
-  <a href="#why" data-es='Por Qu&eacute; Nosotros'>Why Us</a>
+  <a href="#reviews" data-es='Rese&ntilde;as'>Reviews</a>
   <a href="#contact" data-es='Contacto'>Contact</a>
-  <a href="#founder" data-es='Nosotros'>About</a>
   <a href="#contact" class="btn btn-red" data-es='Solicita un Estimado'>Get an Estimate</a>
 </div>
 
@@ -300,12 +326,12 @@ table.cmp td.other{color:var(--muted)}
 <section class="hero">
   <div class="hero-in">
     <img class="hero-logo beelogo" alt="Beeyond Estimators">
-    <span class="eyebrow" data-es='Estimados Xactimate para Reclamos de Seguro &mdash; Ajustadores P&uacute;blicos, Restauraci&oacute;n y Moho'>Xactimate Estimates for Insurance Claims &mdash; Public Adjusters, Restoration &amp; Mold</span>
-    <h1 data-es='Estimados Precisos. Reclamos Mayores. <em>Aprobaciones M&aacute;s R&aacute;pidas.</em>'>Accurate Estimates. Bigger Claims. <em>Faster Approvals.</em></h1>
-    <p class="hero-sub" data-es='Preparamos estimados Xactimate precisos y defendibles para reclamos de da&ntilde;os a la propiedad &mdash; agua, moho, fuego y hurac&aacute;n &mdash; y para reparaciones de bolsillo. Alcances de p&eacute;rdida detallados y por partida que coinciden con los precios de la aseguradora y aguantan hasta el acuerdo. M&aacute;s de 12 a&ntilde;os de experiencia en cada archivo.'>We prepare accurate, defensible Xactimate estimates for property-damage claims &mdash; water, mold, fire, and hurricane &mdash; and for out-of-pocket repairs. Detailed, line-item scopes of loss that match carrier pricing and hold up through settlement. 12+ years of estimating experience behind every file.</p>
-    <p class="hero-who" data-es='Para ajustadores p&uacute;blicos &middot; agua &middot; inundaci&oacute;n &middot; fuego y humo &middot; moho &middot; hurac&aacute;n y viento &middot; techo &middot; vandalismo &middot; reclamos residenciales, comerciales y de condominio'>For public adjusters &middot; water &middot; flood &middot; fire &amp; smoke &middot; mold &middot; hurricane &amp; wind &middot; roof &middot; vandalism &middot; residential, commercial &amp; condo claims</p>
+    <span class="eyebrow" data-es='Estimados Xactimate para Contratistas &mdash; Restauraci&oacute;n &middot; Techado &middot; Moho &middot; Reconstrucci&oacute;n'>Xactimate Estimating for Contractors &mdash; Restoration &middot; Roofing &middot; Mold &middot; Reconstruction</span>
+    <h1 data-es='Estimados Xactimate Profesionales <em>Hechos para Contratistas</em>'>Professional Xactimate Estimates <em>Built for Contractors</em></h1>
+    <p class="hero-sub" data-es='Estimados r&aacute;pidos, precisos y listos para la aseguradora que ayudan a los contratistas a ahorrar tiempo, mantenerse productivos y cerrar m&aacute;s trabajo.'>Fast, accurate, insurance-ready estimates that help contractors save time, stay productive, and close more work.</p>
+    <p class="hero-who" data-es='Construido sobre m&aacute;s de una d&eacute;cada de experiencia pr&aacute;ctica trabajando junto a contratistas en restauraci&oacute;n, techado, remediaci&oacute;n de moho y construcci&oacute;n.'>Built on over a decade of hands-on experience working alongside contractors in restoration, roofing, mold remediation, and construction.</p>
     <div class="hero-btns">
-      <a href="#contact" class="btn btn-red" data-es='Comienza Mi Estimado'>Start My Estimate</a>
+      <a href="#contact" class="btn btn-red" data-es='Obtener Mi Estimado'>Get My Estimate</a>
       <a href="#how" class="btn btn-out" data-es='Mira C&oacute;mo Funciona'>See How It Works</a>
     </div>
     <p class="hero-micro" style="margin-top:.6rem"><a href="tel:+17544000650" style="color:inherit;font-weight:700;text-decoration:none">📞 (754) 400-0650</a></p>
@@ -314,7 +340,7 @@ table.cmp td.other{color:var(--muted)}
       <li data-es='M&aacute;s de 12 a&ntilde;os haciendo estimados en Xactimate'>12+ years of Xactimate estimating</li>
       <li data-es='Entrega en 24 a 48 horas'>24&ndash;48 hour turnaround</li>
       <li data-es='Archivos ESX y PDF listos para la aseguradora'>Carrier-ready ESX &amp; PDF files</li>
-      <li data-es='Suplementos y revisiones de reclamos'>Supplements &amp; claim reviews</li>
+      <li data-es='Una revisi&oacute;n incluida'>One revision included</li>
       <li data-es='Se Habla Espa&ntilde;ol'>Se Habla Espa&ntilde;ol</li>
     </ul>
   </div>
@@ -322,18 +348,21 @@ table.cmp td.other{color:var(--muted)}
 
 <section id="services" class="section bg2">
   <div class="container">
-    <span class="eyebrow" data-es='Lo Que Estimamos'>What We Estimate</span>
-    <h2 class="sec-title" data-es='Cada Reclamo. Cada Tipo de P&eacute;rdida.'>Every Claim. Every Loss Type.</h2>
-    <p class="sec-intro" data-es='Desde una sola p&eacute;rdida por agua hasta una reconstrucci&oacute;n completa por hurac&aacute;n &mdash; residencial, comercial y de condominio &mdash; preparamos un alcance de p&eacute;rdida por partida que las aseguradoras aceptan y que t&uacute; puedes defender.'>From a single water loss to a full hurricane rebuild &mdash; residential, commercial, and condo &mdash; we prepare a line-item scope of loss carriers accept and that you can defend.</p>
+    <span class="eyebrow" data-es='Servicios de Estimaci&oacute;n'>Estimating Services</span>
+    <h2 class="sec-title" data-es='Cada Oficio. Cada Tipo de P&eacute;rdida.'>Every Trade. Every Loss Type.</h2>
+    <p class="sec-intro" data-es='Desde una sola p&eacute;rdida por agua hasta una reconstrucci&oacute;n completa &mdash; residencial o comercial &mdash; escribimos un alcance por partida en Xactimate que las aseguradoras aceptan y que mantiene tus proyectos en movimiento.'>From a single water loss to a full rebuild &mdash; residential or commercial &mdash; we write a line-item Xactimate scope carriers accept and that keeps your projects moving.</p>
     <div class="grid g4">
-      <div class="card fade-in"><div class="ic">&#128167;</div><h3 data-es='Da&ntilde;os por Agua'>Water Damage</h3><p data-es='Alcance de p&eacute;rdida por partida para reclamos de agua e inundaci&oacute;n &mdash; mitigaci&oacute;n, secado y reparaciones &mdash; con la lista de precios regional de la aseguradora, seg&uacute;n IICRC S500.'>Line-item scope of loss for water and flood claims &mdash; mitigation, dry-out, and repairs &mdash; priced to the carrier&rsquo;s regional list per IICRC S500.</p></div>
-      <div class="card fade-in"><div class="ic">&#128300;</div><h3 data-es='Moho: Evaluaci&oacute;n y Remediaci&oacute;n'>Mold: Assessment &amp; Remediation</h3><p data-es='Estimados de contenci&oacute;n, HEPA y limpieza final documentados seg&uacute;n IICRC S520 &mdash; para seguro o de bolsillo.'>Containment, HEPA, and clearance estimates documented to IICRC S520 &mdash; for insurance or out-of-pocket.</p></div>
-      <div class="card fade-in"><div class="ic">&#128293;</div><h3 data-es='Reclamos de Fuego y Humo'>Fire &amp; Smoke Claims</h3><p data-es='Limpieza estructural, desodorizaci&oacute;n, contenidos y reconstrucci&oacute;n &mdash; alcance RCV completo que las aseguradoras aceptan.'>Structural cleaning, deodorization, contents, and reconstruction &mdash; full RCV scope carriers accept.</p></div>
-      <div class="card fade-in"><div class="ic">&#127786;</div><h3 data-es='Reclamos por Hurac&aacute;n y Tormenta'>Hurricane &amp; Storm Claims</h3><p data-es='Da&ntilde;os por viento, techo e intrusi&oacute;n de agua &mdash; vinculados a fotos y cuadros de prueba para reclamos de hurac&aacute;n y tormenta con nombre.'>Wind, roof, and water-intrusion damage &mdash; mapped to photos and test squares for hurricane and named-storm claims.</p></div>
-      <div class="card fade-in"><div class="ic">&#127959;</div><h3 data-es='Estructural / Reconstrucci&oacute;n'>Structural / Reconstruction</h3><p data-es='Alcance completo de reconstrucci&oacute;n, de la demolici&oacute;n al acabado, con O&amp;P y mejoras de c&oacute;digo cuando corresponde.'>Complete rebuild scope, demolition to finish, with O&amp;P and code upgrades where applicable.</p></div>
-      <div class="card fade-in"><div class="ic">&#128230;</div><h3 data-es='Contenidos / Propiedad Personal'>Contents / Personal Property</h3><p data-es='Inventario y valoraci&oacute;n de propiedad personal habitaci&oacute;n por habitaci&oacute;n, con RCV y ACV.'>Room-by-room personal property inventory and valuation with RCV and ACV.</p></div>
+      <div class="card fade-in"><div class="ic">&#128167;</div><h3 data-es='Estimados de Da&ntilde;os por Agua'>Water Damage Estimates</h3><p data-es='Mitigaci&oacute;n, secado y reparaciones documentados seg&uacute;n IICRC S500 y con la lista de precios regional de la aseguradora &mdash; para que cobres cada fase.'>Mitigation, dry-out, and repairs documented to IICRC S500 and priced to the carrier&rsquo;s regional list &mdash; so you get paid for every phase.</p></div>
+      <div class="card fade-in"><div class="ic">&#128300;</div><h3 data-es='Estimados de Remediaci&oacute;n de Moho'>Mold Remediation Estimates</h3><p data-es='Contenci&oacute;n, HEPA y limpieza final seg&uacute;n IICRC S520 &mdash; el alcance completo que respalda tu protocolo de remediaci&oacute;n.'>Containment, HEPA, and clearance to IICRC S520 &mdash; the complete scope that backs up your remediation protocol.</p></div>
+      <div class="card fade-in"><div class="ic">&#127968;</div><h3 data-es='Estimados de Techado'>Roofing Estimates</h3><p data-es='Medici&oacute;n a&eacute;rea de techo con facetas, cumbreras, limatones y pendiente &mdash; convertidos en un estimado Xactimate listo para presentar.'>Aerial roof measurement with facets, ridges, hips, and pitch &mdash; turned into a submit-ready Xactimate estimate.</p></div>
+      <div class="card fade-in"><div class="ic">&#128293;</div><h3 data-es='Estimados de Da&ntilde;os por Fuego'>Fire Damage Estimates</h3><p data-es='Limpieza estructural, desodorizaci&oacute;n, contenidos y reconstrucci&oacute;n &mdash; alcance RCV completo que las aseguradoras aceptan.'>Structural cleaning, deodorization, contents, and reconstruction &mdash; full RCV scope carriers accept.</p></div>
+      <div class="card fade-in"><div class="ic">&#127744;</div><h3 data-es='Estimados de Viento y Hurac&aacute;n'>Wind &amp; Hurricane Estimates</h3><p data-es='Da&ntilde;os por viento, techo e intrusi&oacute;n de agua &mdash; vinculados a fotos y cuadros de prueba para reclamos con tormenta con nombre.'>Wind, roof, and water-intrusion damage &mdash; mapped to photos and test squares for named-storm claims.</p></div>
+      <div class="card fade-in"><div class="ic">&#127959;</div><h3 data-es='Estimados de Reconstrucci&oacute;n'>Reconstruction Estimates</h3><p data-es='Alcance completo de reconstrucci&oacute;n, de la demolici&oacute;n al acabado, con O&amp;P y mejoras de c&oacute;digo cuando corresponde.'>Complete rebuild scope, demolition to finish, with O&amp;P and code upgrades where applicable.</p></div>
+      <div class="card fade-in"><div class="ic">&#127969;</div><h3 data-es='Estimados Residenciales'>Residential Estimates</h3><p data-es='Casas, condominios y propiedades de alquiler &mdash; alcance por habitaci&oacute;n medido y con precios que aguantan hasta el acuerdo.'>Homes, condos, and rental properties &mdash; room-by-room scope, measured and priced to hold up through settlement.</p></div>
+      <div class="card fade-in"><div class="ic">&#127970;</div><h3 data-es='Estimados Comerciales'>Commercial Estimates</h3><p data-es='Comercios, oficinas, multifamiliares y grandes p&eacute;rdidas &mdash; alcance detallado que soporta proyectos m&aacute;s grandes.'>Retail, office, multi-family, and large-loss properties &mdash; detailed scope that supports bigger projects.</p></div>
       <div class="card fade-in"><div class="ic">&#10133;</div><h3 data-es='Suplementos'>Supplements</h3><p data-es='Suplementos documentados para recuperar alcance omitido y corregir estimados subvaluados de la aseguradora.'>Documented supplements to recover missed scope and correct undervalued carrier estimates.</p></div>
-      <div class="card fade-in"><div class="ic">&#9878;</div><h3 data-es='Revisiones y Tasaci&oacute;n'>Reviews &amp; Appraisal</h3><p data-es='Revisiones de estimados, segundas opiniones y alcances defendibles para tasaci&oacute;n, &aacute;rbitro y apoyo en litigio.'>Estimate reviews, second opinions, and defensible scopes for appraisal, umpire, and litigation support.</p></div>
+      <div class="card fade-in"><div class="ic">&#128260;</div><h3 data-es='Revisiones de Estimados'>Estimate Revisions</h3><p data-es='&iquest;Cambio de alcance u objeci&oacute;n de la aseguradora? Actualizamos tu estimado r&aacute;pido y lo mantenemos listo para aprobaci&oacute;n.'>Scope change or carrier pushback? We update your estimate fast and keep it approval-ready.</p></div>
+      <div class="card fade-in"><div class="ic">&#128269;</div><h3 data-es='Revisiones de Alcance'>Scope Reviews</h3><p data-es='Segundas opiniones y verificaciones de alcance en tu propio archivo &mdash; para atrapar partidas omitidas antes de presentar.'>Second opinions and scope checks on your own file &mdash; to catch missed line items before you submit.</p></div>
     </div>
     <p style="text-align:center;font-weight:700;color:var(--navy);margin:1.9rem 0 .7rem;font-size:1.02rem" data-es='Cada tipo de reclamo &mdash; residencial, comercial y de condominio:'>Every claim type &mdash; residential, commercial &amp; condo:</p>
     <div style="display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center">
@@ -358,17 +387,36 @@ table.cmp td.other{color:var(--muted)}
 <section id="how" class="section">
   <div class="container">
     <span class="eyebrow" data-es='C&oacute;mo Funciona'>How It Works</span>
-    <h2 class="sec-title" data-es='Tres Pasos para un Estimado Listo para la Aseguradora.'>Three Steps to a Carrier-Ready Estimate.</h2>
-    <p class="sec-intro" data-es='T&uacute; env&iacute;as la p&eacute;rdida. Nosotros escribimos el estimado. T&uacute; lo presentas y cobras.'>You send the loss. We write the estimate. You submit and get paid.</p>
+    <h2 class="sec-title" data-es='Un Proceso Simple de 4 Pasos.'>A Simple 4-Step Process.</h2>
+    <p class="sec-intro" data-es='Sin software especial de tu lado. T&uacute; env&iacute;as la p&eacute;rdida, nosotros hacemos el resto.'>No special software on your end. You send the loss &mdash; we handle the rest.</p>
     <div class="steps3">
-      <div class="step3 fade-in"><div class="n">1</div><h3 data-es='Env&iacute;anos la P&eacute;rdida'>Send Us the Loss</h3><p data-es='Env&iacute;a fotos, registros de humedad, notas de alcance y el estimado de la aseguradora &mdash; como lo tengas. Por tel&eacute;fono, correo o subida de archivos. No necesitas ning&uacute;n software especial.'>Send photos, moisture logs, scope notes, and the carrier estimate &mdash; however you have it. Phone, email, or upload. No special software needed on your end.</p></div>
-      <div class="step3 fade-in"><div class="n">2</div><h3 data-es='Lo Construimos en Xactimate'>We Build It in Xactimate</h3><p data-es='Escribimos un estimado completo, l&iacute;nea por l&iacute;nea, con las listas de precios vigentes de la aseguradora &mdash; cada c&oacute;digo correcto, cada partida documentada, nada omitido.'>We write a complete, line-item estimate using current carrier price lists &mdash; every code correct, every item documented, nothing left off.</p></div>
-      <div class="step3 fade-in"><div class="n">3</div><h3 data-es='Recibes un Archivo Listo para la Aseguradora'>You Get a Carrier-Ready File</h3><p data-es='Tu ESX y PDF llegan a tu correo &mdash; normalmente en 24 a 48 horas &mdash; listos para presentar, negociar o suplementar. Revisiones incluidas.'>Your ESX and PDF land in your inbox &mdash; usually in 24&ndash;48 hours &mdash; ready to submit, negotiate, or supplement. Revisions included.</p></div>
+      <div class="step3 fade-in"><div class="n">1</div><h3 data-es='Sube Tu Alcance'>Upload Your Scope</h3><p data-es='Env&iacute;a fotos, mediciones o notas de inspecci&oacute;n &mdash; por tel&eacute;fono, correo o subida de archivos. Como lo tengas.'>Upload photos, measurements, or inspection notes &mdash; by phone, email, or file upload. However you have it.</p></div>
+      <div class="step3 fade-in"><div class="n">2</div><h3 data-es='Lo Preparamos en Xactimate'>We Prepare It in Xactimate</h3><p data-es='Escribimos un estimado completo, l&iacute;nea por l&iacute;nea, con las listas de precios vigentes de la aseguradora &mdash; cada c&oacute;digo correcto, nada omitido.'>We prepare a complete, line-item estimate using current carrier price lists &mdash; every code correct, nothing left off.</p></div>
+      <div class="step3 fade-in"><div class="n">3</div><h3 data-es='Revisi&oacute;n de Calidad'>Quality Review</h3><p data-es='Cada estimado pasa por una revisi&oacute;n de calidad &mdash; verificamos el alcance, los precios y la documentaci&oacute;n antes de que llegue a ti.'>Every estimate goes through a quality review &mdash; we check scope, pricing, and documentation before it reaches you.</p></div>
+      <div class="step3 fade-in"><div class="n">4</div><h3 data-es='Entrega R&aacute;pida'>Fast, Professional Delivery</h3><p data-es='Recibe tu estimado terminado &mdash; ESX y PDF &mdash; normalmente en 24 a 48 horas, listo para presentar. Una revisi&oacute;n incluida.'>Receive your completed estimate &mdash; ESX and PDF &mdash; usually in 24&ndash;48 hours, ready to submit. One revision included.</p></div>
     </div>
   </div>
 </section>
 
 
+
+<section id="included" class="section bg2">
+  <div class="container">
+    <span class="eyebrow" data-es='Qu&eacute; Incluye'>What's Included</span>
+    <h2 class="sec-title" data-es='Cada Estimado Incluye'>Every Estimate Includes</h2>
+    <p class="sec-intro" data-es='Un entregable completo y profesional &mdash; listo para presentar a la aseguradora sin trabajo extra de tu parte.'>A complete, professional deliverable &mdash; ready to submit to the carrier with no extra work on your end.</p>
+    <div class="inc-grid">
+      <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Estimado en Xactimate'>Xactimate Estimate</h4><p data-es='Alcance completo por partida escrito en Xactimate.'>Full line-item scope written in Xactimate.</p></div></div>
+      <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Archivo ESX'>ESX File</h4><p data-es='El archivo Xactimate nativo, listo para importar.'>The native Xactimate file, ready to import.</p></div></div>
+      <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Copia en PDF'>PDF Copy</h4><p data-es='Un PDF limpio y presentable para la aseguradora o el cliente.'>A clean, presentable PDF for the carrier or client.</p></div></div>
+      <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Partidas Organizadas'>Organized Line Items</h4><p data-es='Estructurado por habitaci&oacute;n y fase para que sea f&aacute;cil de leer.'>Structured by room and phase so it&rsquo;s easy to read.</p></div></div>
+      <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Formato Listo para la Aseguradora'>Insurance-Ready Formatting</h4><p data-es='C&oacute;digos correctos y lista de precios vigente que la aseguradora reconoce.'>Correct codes and current price list carriers recognize.</p></div></div>
+      <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Revisi&oacute;n de Alcance'>Scope Review</h4><p data-es='Verificamos el alcance para atrapar partidas omitidas.'>We check the scope to catch anything missed.</p></div></div>
+      <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Una Revisi&oacute;n Incluida'>One Revision Included</h4><p data-es='&iquest;Cambio o ajuste? La primera revisi&oacute;n va incluida.'>Change or adjustment? Your first revision is included.</p></div></div>
+      <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Entrega Digital'>Digital Delivery</h4><p data-es='Entregado directo a tu correo &mdash; normalmente en 24 a 48 horas.'>Delivered straight to your inbox &mdash; usually in 24&ndash;48 hours.</p></div></div>
+    </div>
+  </div>
+</section>
 
 <section id="sample" class="section">
   <div class="container">
@@ -525,60 +573,120 @@ table.cmp td.other{color:var(--muted)}
 
 <section id="why" class="section">
   <div class="container">
-    <span class="eyebrow" data-es='Por Qu&eacute; los Profesionales Nos Eligen'>Why Pros Choose Us</span>
-    <h2 class="sec-title" data-es='Solo Hacemos Estimados &mdash; Y los Hacemos Bien.'>Estimating Is All We Do &mdash; And We Do It Right.</h2>
+    <span class="eyebrow" data-es='Por Qu&eacute; los Contratistas Nos Eligen'>Why Contractors Choose BEEYOND</span>
+    <h2 class="sec-title" data-es='Entendemos C&oacute;mo Trabajan los Contratistas.'>We Understand How Contractors Actually Work.</h2>
+    <p class="sec-intro" data-es='No somos un servicio gen&eacute;rico de estimaci&oacute;n. Construimos cada archivo con experiencia real de campo.'>We&rsquo;re not a generic estimating service. Every file is built on real, hands-on field experience.</p>
     <div class="grid g3">
-      <div class="card navy-h fade-in"><h3 data-es='M&aacute;s de 12 A&ntilde;os en el Campo'>12+ Years in the Field</h3><p data-es='Hemos escrito estimados del lado del contratista y del lado del escritorio &mdash; sabemos c&oacute;mo un ajustador lee un archivo y qu&eacute; hace que un reclamo se pague.'>We&rsquo;ve written estimates from the contractor side and the desk side &mdash; we know how adjusters read a file and what gets a claim paid.</p></div>
-      <div class="card navy-h fade-in"><h3 data-es='Hecho para Cobrar'>Built to Get Paid</h3><p data-es='Capturamos cada partida leg&iacute;tima para que no dejes dinero sobre la mesa &mdash; reclamos m&aacute;s grandes y precisos, no inflados.'>We capture every legitimate line item so you&rsquo;re not leaving money on the table &mdash; bigger, accurate claims, not padded ones.</p></div>
-      <div class="card navy-h fade-in"><h3 data-es='Listos para el Desborde de Temporada'>Storm-Season Overflow Ready</h3><p data-es='Aumenta tu capacidad de estimaci&oacute;n de la noche a la ma&ntilde;ana sin contratar. Cuando llegan los reclamos por hurac&aacute;n, somos tu oficina de respaldo.'>Scale your estimating capacity overnight without hiring. When hurricane claims flood in, we&rsquo;re your back office.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#127981;</div><h3 data-es='M&aacute;s de una D&eacute;cada en el Campo'>Over a Decade in the Field</h3><p data-es='M&aacute;s de 10 a&ntilde;os trabajando junto a contratistas en restauraci&oacute;n y construcci&oacute;n &mdash; no solo conocimiento de software.'>Over 10 years working alongside contractors in the restoration and construction industry &mdash; not just software knowledge.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#128736;</div><h3 data-es='Experiencia Real de Campo'>Real Field Experience</h3><p data-es='Hemos estado en el trabajo. Sabemos c&oacute;mo se ve el da&ntilde;o en persona y c&oacute;mo la aseguradora lo lee desde el escritorio.'>We&rsquo;ve been on the job. We know what damage looks like in person &mdash; and how the carrier reads it from the desk.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#127959;</div><h3 data-es='Conocemos los Oficios'>We Know the Trades</h3><p data-es='Da&ntilde;os por agua, remediaci&oacute;n de moho, techado, reconstrucci&oacute;n, HVAC, plomer&iacute;a y restauraci&oacute;n &mdash; entendemos el trabajo.'>Water damage, mold remediation, roofing, reconstruction, HVAC, plumbing, and restoration &mdash; we understand the work.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#128197;</div><h3 data-es='Construido Sobre Tu Flujo de Trabajo'>Built Around Your Workflow</h3><p data-es='Entendemos los plazos de los contratistas y la documentaci&oacute;n que exigen las aseguradoras &mdash; y trabajamos a tu ritmo.'>We understand contractor deadlines and the insurance documentation carriers demand &mdash; and we work to your pace.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#127919;</div><h3 data-es='Precisi&oacute;n y Profesionalismo'>Accuracy &amp; Professionalism</h3><p data-es='Cada estimado se crea con precisi&oacute;n, profesionalismo y eficiencia &mdash; para que presentes con confianza.'>Every estimate is created with accuracy, professionalism, and efficiency &mdash; so you submit with confidence.</p></div>
+      <div class="card navy-h fade-in"><div class="ic">&#9889;</div><h3 data-es='Capacidad Extra Cuando la Necesitas'>Overflow Capacity When You Need It</h3><p data-es='Aumenta tu capacidad de estimaci&oacute;n de la noche a la ma&ntilde;ana sin contratar. Cuando llegan los reclamos, somos tu oficina de respaldo.'>Scale your estimating capacity overnight without hiring. When claims flood in, we&rsquo;re your back office.</p></div>
     </div>
   </div>
 </section>
 
 
 
+<section id="industries" class="section bg2">
+  <div class="container">
+    <span class="eyebrow" data-es='Industrias Que Servimos'>Industries We Serve</span>
+    <h2 class="sec-title" data-es='Especializados en Tu Industria'>Specialized in Your Industry</h2>
+    <p class="sec-intro" data-es='Trabajamos con los contratistas y empresas que manejan p&eacute;rdidas de propiedad todos los d&iacute;as.'>We work with the contractors and companies that handle property losses every day.</p>
+    <div class="ind-grid">
+      <div class="ind fade-in"><div class="ic">&#128167;</div><span data-es='Restauraci&oacute;n de Agua'>Water Restoration</span></div>
+      <div class="ind fade-in"><div class="ic">&#128300;</div><span data-es='Remediaci&oacute;n de Moho'>Mold Remediation</span></div>
+      <div class="ind fade-in"><div class="ic">&#127968;</div><span data-es='Contratistas de Techado'>Roofing Contractors</span></div>
+      <div class="ind fade-in"><div class="ic">&#128703;</div><span data-es='Plomer&iacute;a'>Plumbing</span></div>
+      <div class="ind fade-in"><div class="ic">&#127786;</div><span data-es='HVAC'>HVAC</span></div>
+      <div class="ind fade-in"><div class="ic">&#128293;</div><span data-es='Restauraci&oacute;n de Fuego'>Fire Restoration</span></div>
+      <div class="ind fade-in"><div class="ic">&#127959;</div><span data-es='Reconstrucci&oacute;n'>Reconstruction</span></div>
+      <div class="ind fade-in"><div class="ic">&#128736;</div><span data-es='Contratistas Generales'>General Contractors</span></div>
+      <div class="ind fade-in"><div class="ic">&#127970;</div><span data-es='Empresas de Restauraci&oacute;n'>Restoration Companies</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="reviews" class="section">
+  <div class="container">
+    <span class="eyebrow" data-es='Lo Que Dicen los Contratistas'>What Contractors Say</span>
+    <h2 class="sec-title" data-es='Confiado por Contratistas'>Trusted by Contractors</h2>
+    <p class="sec-intro" data-es='Profesionales que mantienen sus proyectos en movimiento con estimados en los que pueden confiar.'>Professionals who keep their projects moving with estimates they can rely on.</p>
+    <div class="tgrid">
+      <div class="tcard fade-in">
+        <div class="tstars" aria-label="5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote data-es='&ldquo;Les env&iacute;o las fotos y las mediciones y recibo un ESX limpio en un d&iacute;a. Dej&eacute; de perder noches escribiendo estimados y mis reclamos se aprueban m&aacute;s r&aacute;pido.&rdquo;'>&ldquo;I send them the photos and measurements and get a clean ESX back in a day. I stopped losing nights writing estimates, and my claims get approved faster.&rdquo;</blockquote>
+        <div class="twho"><div class="tav">M</div><div><div class="tname">Marcus D.</div><div class="trole" data-es='Contratista de Restauraci&oacute;n &middot; Tampa, FL'>Restoration Contractor &middot; Tampa, FL</div></div></div>
+      </div>
+      <div class="tcard fade-in">
+        <div class="tstars" aria-label="5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote data-es='&ldquo;El alcance es detallado y los c&oacute;digos son correctos, as&iacute; que la aseguradora no me rebota el archivo. Se nota que entienden el trabajo de techado de verdad.&rdquo;'>&ldquo;The scope is detailed and the codes are right, so the carrier doesn&rsquo;t kick my file back. You can tell they actually understand roofing work.&rdquo;</blockquote>
+        <div class="twho"><div class="tav">R</div><div><div class="tname">Ryan P.</div><div class="trole" data-es='Contratista de Techado &middot; Fort Lauderdale, FL'>Roofing Contractor &middot; Fort Lauderdale, FL</div></div></div>
+      </div>
+      <div class="tcard fade-in">
+        <div class="tstars" aria-label="5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote data-es='&ldquo;En temporada de tormentas son mi oficina de respaldo. Puedo decir que s&iacute; a m&aacute;s trabajos sin contratar un estimador de tiempo completo.&rdquo;'>&ldquo;During storm season they&rsquo;re my back office. I can say yes to more jobs without hiring a full-time estimator.&rdquo;</blockquote>
+        <div class="twho"><div class="tav">L</div><div><div class="tname">Luis R.</div><div class="trole" data-es='Empresa de Restauraci&oacute;n &middot; Miami, FL'>Restoration Company &middot; Miami, FL</div></div></div>
+      </div>
+    </div>
+    <p class="tnote" data-es='Testimonios de muestra que se reemplazar&aacute;n con rese&ntilde;as reales de clientes.'>Sample testimonials shown as placeholders &mdash; to be replaced with real customer reviews.</p>
+  </div>
+</section>
+
 <section id="pricing" class="section bg2">
   <div class="container">
     <span class="eyebrow" data-es='Precios'>Pricing</span>
-    <h2 class="sec-title" data-es='Precios Que Escalan Con Tu Reclamo'>Pricing That Scales With Your Claim</h2>
-    <p class="sec-intro" data-es='La mayor&iacute;a de los estimados se cobran como un peque&ntilde;o porcentaje del estimado terminado &mdash; as&iacute; una p&eacute;rdida peque&ntilde;a cuesta menos y una grande se cobra de forma justa. &iquest;Prefieres tarifa plana? Tambi&eacute;n las hacemos. Sin suscripciones ni cargos ocultos.'>Most estimates are priced as a small percentage of the completed estimate &mdash; so a small loss costs less and a large one is priced fairly. Prefer a flat fee? We do those too. No subscriptions, no hidden fees.</p>
-    <div class="grid g3">
+    <h2 class="sec-title" data-es='Precios Claros Que Escalan Con Tu Proyecto'>Clear Pricing That Scales With Your Project</h2>
+    <p class="sec-intro" data-es='Paga por archivo, solo cuando lo necesitas &mdash; sin suscripciones ni cargos ocultos. Cada archivo se cotiza antes de empezar.'>Pay per file, only when you need it &mdash; no subscriptions, no hidden fees. Every file is quoted before we start.</p>
+    <div class="grid g4">
       <div class="card pcard pop fade-in">
         <div class="pbadge" data-es='M&aacute;s Com&uacute;n'>Most Common</div>
-        <h3 data-es='Por Porcentaje'>Percentage-Based</h3>
-        <div class="price">1&ndash;1.5% <span data-es='del estimado'>of the estimate</span></div>
-        <p style="color:var(--muted);font-size:.92rem" data-es='Ideal para reclamos de seguro de cualquier tama&ntilde;o'>Ideal for insurance claims of any size</p>
-        <ul class="pfeat">
-          <li data-es='Fuego, hurac&aacute;n, agua y moho &mdash; tu tarifa escala con el reclamo'>Fire, hurricane, water &amp; mold &mdash; your fee scales with the claim</li>
-          <li data-es='Perfecto para ajustadores p&uacute;blicos'>Perfect for public adjusters</li>
-          <li data-es='M&iacute;nimo $125 por archivo'>$125 minimum per file</li>
-          <li data-es='ESX + PDF; suplementos disponibles'>ESX + PDF; supplements available</li>
-        </ul>
-      </div>
-      <div class="card pcard fade-in">
-        <h3 data-es='Tarifa Plana'>Flat-Fee</h3>
+        <h3 data-es='Proyectos Residenciales'>Residential Projects</h3>
         <div class="price">$75 <span data-es='desde'>starting</span></div>
-        <p style="color:var(--muted);font-size:.92rem" data-es='Precio fijo para archivos sencillos'>Set price for straightforward files</p>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Casas, condominios y alquileres'>Homes, condos &amp; rentals</p>
         <ul class="pfeat">
-          <li data-es='Techo / exterior &mdash; desde $75'>Roof / exterior &mdash; from $75</li>
-          <li data-es='Interior / un &aacute;rea &mdash; desde $150'>Interior / single-area &mdash; from $150</li>
-          <li data-es='Est&aacute;ndar de varias habitaciones &mdash; desde $199'>Multi-room standard &mdash; from $199</li>
-          <li data-es='Ideal para trabajos de bolsillo'>Great for out-of-pocket jobs</li>
+          <li data-es='Tarifa plana o 1&ndash;1.5% del estimado'>Flat fee or 1&ndash;1.5% of the estimate</li>
+          <li data-es='Alcance por habitaci&oacute;n, medido y con precios'>Room-by-room scope, measured &amp; priced</li>
+          <li data-es='ESX + PDF, una revisi&oacute;n incluida'>ESX + PDF, one revision included</li>
+          <li data-es='Entrega en 24&ndash;48 horas'>24&ndash;48 hour delivery</li>
         </ul>
       </div>
       <div class="card pcard fade-in">
-        <h3 data-es='Suplementos y Extras'>Supplements &amp; Add-Ons</h3>
-        <div class="price">$75 <span data-es='desde'>from</span></div>
-        <p style="color:var(--muted);font-size:.92rem" data-es='Recupera, verifica o acelera'>Recover, verify, or speed up</p>
+        <h3 data-es='Proyectos Comerciales'>Commercial Projects</h3>
+        <div class="price" data-es='Personalizado'>Custom</div>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Comercios, oficinas y multifamiliares'>Retail, office &amp; multi-family</p>
         <ul class="pfeat">
-          <li data-es='Suplementos &mdash; desde $125'>Supplements &mdash; from $125</li>
-          <li data-es='Revisi&oacute;n / segunda opini&oacute;n &mdash; desde $75'>Review / second opinion &mdash; from $75</li>
+          <li data-es='Cotizado por proyecto seg&uacute;n tama&ntilde;o y alcance'>Quoted per project by size &amp; scope</li>
+          <li data-es='Alcance detallado para p&eacute;rdidas m&aacute;s grandes'>Detailed scope for larger losses</li>
+          <li data-es='Revisi&oacute;n de alcance incluida'>Scope review included</li>
+          <li data-es='ESX + PDF listos para la aseguradora'>Carrier-ready ESX + PDF</li>
+        </ul>
+      </div>
+      <div class="card pcard fade-in">
+        <h3 data-es='Suplementos y Revisiones'>Supplements &amp; Revisions</h3>
+        <div class="price">$75 <span data-es='desde'>from</span></div>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Recupera, verifica o actualiza'>Recover, verify, or update</p>
+        <ul class="pfeat">
+          <li data-es='Suplementos documentados &mdash; desde $125'>Documented supplements &mdash; from $125</li>
+          <li data-es='Revisi&oacute;n / segunda opini&oacute;n &mdash; desde $75'>Scope review / second opinion &mdash; from $75</li>
           <li data-es='Inventario de contenidos &mdash; desde $99'>Contents inventory &mdash; from $99</li>
           <li data-es='Urgente 24 h &mdash; +$55'>Rush 24 hr &mdash; +$55</li>
         </ul>
       </div>
+      <div class="card pcard fade-in">
+        <h3 data-es='Grandes P&eacute;rdidas / CAT'>Large Loss / CAT</h3>
+        <div class="price" data-es='Personalizado'>Custom</div>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Hurac&aacute;n, cat&aacute;strofe y gran comercial'>Hurricane, catastrophe &amp; large commercial</p>
+        <ul class="pfeat">
+          <li data-es='Precio por porcentaje para reclamos grandes'>Percentage-based for large claims</li>
+          <li data-es='Volumen y retenedor mensual disponibles'>Volume &amp; monthly retainer available</li>
+          <li data-es='Documentaci&oacute;n vinculada a cada partida'>Documentation tied to every line item</li>
+          <li data-es='Capacidad prioritaria en temporada'>Priority capacity in storm season</li>
+        </ul>
+      </div>
     </div>
-    <p class="cmp-note" data-es='Sin suscripciones ni cargos ocultos. Cada archivo se cotiza antes de empezar; m&iacute;nimo $125 por estimado. Opciones de volumen y retenedor mensual disponibles para ajustadores p&uacute;blicos y empresas de restauraci&oacute;n.'>No subscriptions, no hidden fees. Every file is quoted before we start; $125 minimum per estimate. Volume &amp; monthly retainer options available for public adjusters and restoration firms.</p>
+    <p class="cmp-note" data-es='Precios personalizados disponibles para grandes proyectos comerciales y p&eacute;rdidas por cat&aacute;strofe. Sin suscripciones ni cargos ocultos; m&iacute;nimo $125 por estimado. Cada archivo se cotiza antes de empezar.'>Custom pricing available for large commercial projects and catastrophe losses. No subscriptions, no hidden fees; $125 minimum per estimate. Every file is quoted before we start.</p>
   </div>
 </section>
 
@@ -613,13 +721,13 @@ table.cmp td.other{color:var(--muted)}
     <span class="eyebrow" data-es='Preguntas Frecuentes'>Frequently Asked Questions</span>
     <h2 class="sec-title" data-es='Estimados Xactimate &mdash; Preguntas Respondidas'>Xactimate Estimating &mdash; Questions Answered</h2>
     <div class="faq">
-      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Qu&eacute; es Xactimate y por qu&eacute; importa?'>What is Xactimate and why does it matter?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Xactimate es el software de estimaci&oacute;n que usan las aseguradoras y los profesionales de restauraci&oacute;n en todo el pa&iacute;s. Un estimado en Xactimate, con los c&oacute;digos y precios correctos, es el lenguaje que la aseguradora entiende &mdash; y es lo que hace que un reclamo se pague por su valor real.'>Xactimate is the estimating software carriers and restoration pros use nationwide. An estimate written in Xactimate, with correct codes and pricing, is the language the carrier understands &mdash; and it&rsquo;s what gets a claim paid for its real value.</p></div></div>
-      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Cu&aacute;nto cuesta un estimado?'>How much does an estimate cost?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='El precio depende del tipo de p&eacute;rdida, el tama&ntilde;o y la urgencia. La mayor&iacute;a de los estimados tienen una tarifa plana por archivo &mdash; sin salario, sin licencia de software, sin costos fijos. Env&iacute;anos los detalles y te damos un precio antes de empezar.'>Pricing depends on the loss type, size, and urgency. Most estimates are a flat fee per file &mdash; no salary, no software license, no overhead. Send us the details and we&rsquo;ll quote you before we start.</p></div></div>
-      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Qu&eacute; tan r&aacute;pida es la entrega?'>How fast is turnaround?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='La mayor&iacute;a de los estimados se entregan en 24 a 48 horas. &iquest;Tienes una fecha l&iacute;mite urgente durante temporada de tormentas? Dinos y trabajamos seg&uacute;n tu plazo.'>Most estimates are delivered in 24&ndash;48 hours. Got a tight deadline during storm season? Tell us and we&rsquo;ll work to your timeline.</p></div></div>
-      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Qu&eacute; necesitan de m&iacute; para empezar?'>What do you need from me to start?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Fotos de los da&ntilde;os, lecturas de humedad o notas de campo si las tienes, la direcci&oacute;n de la p&eacute;rdida y cualquier estimado o documento de la aseguradora. Entre m&aacute;s nos env&iacute;es, m&aacute;s completo y defendible ser&aacute; el estimado.'>Photos of the damage, moisture readings or field notes if you have them, the loss address, and any carrier estimate or documents. The more you send, the more complete and defensible the estimate.</p></div></div>
-      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Escriben suplementos?'>Do you write supplements?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute;. Cuando la aseguradora ofrece de menos u omite alcance, escribimos un suplemento documentado &mdash; con fotos y notas vinculadas a cada partida &mdash; para recuperar lo que el trabajo realmente cuesta.'>Yes. When the carrier lowballs or misses scope, we write a documented supplement &mdash; with photos and notes tied to each line item &mdash; to recover what the job actually costs.</p></div></div>
-      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Pueden ayudar con tasaci&oacute;n o litigio?'>Can you help with appraisal or litigation?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute;. Preparamos estimados defendibles y revisiones de estimados para ajustadores p&uacute;blicos y abogados &mdash; documentados para resistir en tasaci&oacute;n o disputa. (No brindamos asesor&iacute;a legal ni ajustamos reclamos.)'>Yes. We prepare defensible estimates and estimate reviews for public adjusters and attorneys &mdash; documented to hold up in appraisal or dispute. (We do not provide legal advice or adjust claims.)</p></div></div>
-      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Los estimados son defendibles / listos para corte?'>Are your estimates defensible / court-ready?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute;. Cada partida est&aacute; respaldada por c&oacute;digos correctos, la lista de precios vigente y documentaci&oacute;n vinculada &mdash; fotos, croquis y notas &mdash; para que el archivo resista en una tasaci&oacute;n, disputa o litigio.'>Yes. Every line item is backed by correct codes, the current price list, and linked documentation &mdash; photos, sketch, and notes &mdash; so the file holds up in appraisal, dispute, or litigation.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Qu&eacute; tan r&aacute;pido se completa mi estimado?'>How quickly can my estimate be completed?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='La mayor&iacute;a de los estimados se entregan en 24 a 48 horas. &iquest;Tienes una fecha l&iacute;mite urgente en temporada de tormentas? Dinos y trabajamos seg&uacute;n tu plazo.'>Most estimates are delivered in 24&ndash;48 hours. Got a tight deadline during storm season? Tell us and we&rsquo;ll work to your timeline.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Usan Xactimate?'>Do you use Xactimate?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute;. Cada estimado se escribe en Xactimate con los c&oacute;digos correctos y la lista de precios regional vigente &mdash; el mismo lenguaje que usan las aseguradoras en todo el pa&iacute;s.'>Yes. Every estimate is written in Xactimate with correct codes and the current regional price list &mdash; the same language carriers use nationwide.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Entregan archivos ESX?'>Do you provide ESX files?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute;. Recibes tanto el archivo ESX nativo de Xactimate como una copia limpia en PDF &mdash; listos para importar, presentar o compartir.'>Yes. You receive both the native Xactimate ESX file and a clean PDF copy &mdash; ready to import, submit, or share.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Pueden revisar un estimado existente?'>Can you revise an existing estimate?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute;. Env&iacute;anos tu archivo y lo revisamos, actualizamos o suplementamos &mdash; para atrapar alcance omitido o corregir un estimado subvaluado de la aseguradora. La primera revisi&oacute;n de tu propio archivo va incluida.'>Yes. Send us your file and we&rsquo;ll review, update, or supplement it &mdash; to catch missed scope or correct an undervalued carrier estimate. Your first revision on your own file is included.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Manejan propiedades comerciales?'>Do you handle commercial properties?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute;. Preparamos estimados residenciales y comerciales &mdash; comercios, oficinas, multifamiliares y grandes p&eacute;rdidas. Los proyectos comerciales grandes se cotizan seg&uacute;n tama&ntilde;o y alcance.'>Yes. We prepare both residential and commercial estimates &mdash; retail, office, multi-family, and large-loss properties. Larger commercial projects are quoted by size and scope.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Qu&eacute; informaci&oacute;n necesitan para empezar?'>What information do you need to begin?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Fotos de los da&ntilde;os, cualquier medici&oacute;n o nota de inspecci&oacute;n, la direcci&oacute;n de la p&eacute;rdida y cualquier estimado o documento de la aseguradora. Entre m&aacute;s nos env&iacute;es, m&aacute;s completo y defendible ser&aacute; el estimado.'>Photos of the damage, any measurements or inspection notes, the loss address, and any carrier estimate or documents. The more you send, the more complete and defensible the estimate.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;C&oacute;mo env&iacute;o fotos o alcances?'>How do I submit photos or scopes?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Como te sea m&aacute;s f&aacute;cil &mdash; usa el formulario de esta p&aacute;gina, env&iacute;alos por correo a beeyondestimators@outlook.com, o textea al (754) 400-0650. No necesitas ning&uacute;n software especial de tu lado.'>Whatever&rsquo;s easiest &mdash; use the form on this page, email them to beeyondestimators@outlook.com, or text (754) 400-0650. No special software needed on your end.</p></div></div>
     </div>
   </div>
 </section>
@@ -663,7 +771,7 @@ table.cmp td.other{color:var(--muted)}
           <div class="fg"><label for="farea" data-es='Ubicaci&oacute;n de la P&eacute;rdida *'>Loss Location *</label><input id="farea" type="text" maxlength="100" placeholder="City, State"><span class="err" id="farea-e"></span></div>
           <div class="fg"><label for="fbudget" data-es='Fecha L&iacute;mite *'>Deadline *</label><select id="fbudget"><option value="" data-es='&mdash; Selecciona plazo &mdash;'>&mdash; Select deadline &mdash;</option><option data-es='Urgente (24 h)'>ASAP / Rush (24 hr)</option><option data-es='En 2&ndash;3 d&iacute;as'>Within 2&ndash;3 days</option><option data-es='Esta semana'>This week</option><option data-es='Solo explorando'>Just exploring</option></select><span class="err" id="fbudget-e"></span></div>
         </div>
-        <div class="fg"><label for="ftime" data-es='Soy... *'>I am a... *</label><select id="ftime"><option value="" data-es='&mdash; Selecciona &mdash;'>&mdash; Select one &mdash;</option><option data-es='Contratista de Restauraci&oacute;n'>Restoration Contractor</option><option data-es='Ajustador P&uacute;blico'>Public Adjuster</option><option data-es='Abogado'>Attorney</option><option data-es='Administrador de Propiedades'>Property Manager</option><option data-es='Otro'>Other</option></select><span class="err" id="ftime-e"></span></div>
+        <div class="fg"><label for="ftime" data-es='Soy... *'>I am a... *</label><select id="ftime"><option value="" data-es='&mdash; Selecciona &mdash;'>&mdash; Select one &mdash;</option><option data-es='Contratista de Restauraci&oacute;n'>Restoration Contractor</option><option data-es='Contratista de Techado'>Roofing Contractor</option><option data-es='Contratista General'>General Contractor</option><option data-es='Contratista de Moho / Remediaci&oacute;n'>Mold / Remediation Contractor</option><option data-es='Empresa de Restauraci&oacute;n'>Restoration Company</option><option data-es='Administrador de Propiedades'>Property Manager</option><option data-es='Otro'>Other</option></select><span class="err" id="ftime-e"></span></div>
         <div class="fg"><label for="fmsg" data-es='Cu&eacute;ntanos sobre la p&eacute;rdida (opcional)'>Tell us about the loss (optional)</label><textarea id="fmsg" rows="4" maxlength="1000"></textarea></div>
         <label class="consent"><input type="checkbox" id="fconsent"><span data-es='Al enviar, acepto que Beeyond Estimators pueda contactarme al tel&eacute;fono y correo que proporcion&eacute; &mdash; incluyendo por llamada y mensaje de texto &mdash; sobre mi solicitud de estimado. Pueden aplicar tarifas de mensajes y datos. Responde STOP para cancelar. Consulta nuestra <a href="#">Pol&iacute;tica de Privacidad</a> &middot; <a href="#">T&eacute;rminos</a>.'>By submitting, I agree that Beeyond Estimators may contact me at the phone and email I provided &mdash; including by phone call and text message &mdash; about my estimate request. Message and data rates may apply. Reply STOP to opt out. See our <a href="#">Privacy Policy</a> &middot; <a href="#">Terms</a>.</span></label>
         <button type="submit" id="fsub" class="btn btn-red" style="width:100%" data-es='Enviar Mi Solicitud'>Send My Request</button>
@@ -676,12 +784,12 @@ table.cmp td.other{color:var(--muted)}
 <section id="founder" class="section">
   <div class="container">
     <span class="eyebrow" data-es='Conoce al Estimador'>Meet the Estimator</span>
-    <h2 class="sec-title" data-es='Creado por un Estimador con 12 A&ntilde;os de Experiencia'>Built by a 12-Year Estimator</h2>
+    <h2 class="sec-title" data-es='Construido por Alguien Que Ha Trabajado Junto a Contratistas'>Built by Someone Who's Worked Alongside Contractors</h2>
     <div class="founder-story" style="margin-top:2rem">
-      <p data-es='Durante m&aacute;s de 12 a&ntilde;os he preparado estimados de da&ntilde;os a la propiedad &mdash; agua, moho, fuego y hurac&aacute;n &mdash; en Xactimate. He medido p&eacute;rdidas en el campo y he visto c&oacute;mo las aseguradoras leen un archivo desde el escritorio. S&eacute; exactamente qu&eacute; hace que un reclamo se apruebe &mdash; y qu&eacute; hace que lo devuelvan.'>For over 12 years, I&rsquo;ve prepared property-damage estimates &mdash; water, mold, fire, and hurricane &mdash; on Xactimate. I&rsquo;ve scoped losses in the field and seen how carriers read a file from the desk side. I know exactly what gets a claim approved &mdash; and what gets it kicked back.</p>
+      <p data-es='Por m&aacute;s de una d&eacute;cada he trabajado junto a contratistas en restauraci&oacute;n, techado, remediaci&oacute;n de moho y construcci&oacute;n &mdash; preparando estimados de da&ntilde;os a la propiedad en Xactimate. He medido p&eacute;rdidas en el campo y he visto c&oacute;mo las aseguradoras leen un archivo desde el escritorio. S&eacute; exactamente qu&eacute; hace que un estimado se apruebe &mdash; y qu&eacute; hace que lo devuelvan.'>For over a decade I&rsquo;ve worked alongside contractors in restoration, roofing, mold remediation, and construction &mdash; preparing property-damage estimates in Xactimate. I&rsquo;ve scoped losses in the field and seen how carriers read a file from the desk side. I know exactly what gets an estimate approved &mdash; and what gets it kicked back.</p>
       <p class="founder-quote" data-es='Un buen estimado no se trata de inflar n&uacute;meros. Se trata de capturar cada partida leg&iacute;tima &mdash; y documentarla tan bien que la aseguradora no pueda decir que no.'>A good estimate isn&rsquo;t about padding numbers. It&rsquo;s about capturing every legitimate line item &mdash; and documenting it so well the carrier can&rsquo;t say no.</p>
-      <p data-es='Vi a ajustadores p&uacute;blicos y empresas de restauraci&oacute;n dejar dinero real sobre la mesa &mdash; no porque el da&ntilde;o no estuviera ah&iacute;, sino porque el estimado omit&iacute;a alcance o no estaba documentado. Y en temporada de huracanes, los reclamos se estancan por semanas.'>I watched public adjusters and restoration firms leave real money on the table &mdash; not because the damage wasn&rsquo;t there, but because the estimate missed scope or wasn&rsquo;t documented. And during hurricane season, claims sit for weeks.</p>
-      <p data-es='Por eso constru&iacute; Beeyond Estimators: estimados Xactimate r&aacute;pidos, precisos y defendibles para ajustadores p&uacute;blicos, profesionales de moho y restauraci&oacute;n, y propietarios &mdash; ya sea un reclamo de seguro o un trabajo de bolsillo. Cada estimado se mide con una sola pregunta: &iquest;refleja lo que el trabajo realmente cuesta y aguanta hasta el acuerdo?'>That&rsquo;s why I built Beeyond Estimators: fast, accurate, defensible Xactimate estimates for public adjusters, mold and restoration professionals, and property owners &mdash; whether it&rsquo;s an insurance claim or an out-of-pocket job. Every estimate is measured against one question: does it reflect what the work truly costs, and will it hold up through settlement?</p>
+      <p data-es='Vi a contratistas y empresas de restauraci&oacute;n dejar dinero real sobre la mesa &mdash; no porque el da&ntilde;o no estuviera ah&iacute;, sino porque el estimado omit&iacute;a alcance o no estaba documentado. Y cuando llega la temporada de tormentas, los estimados se acumulan y los proyectos se detienen.'>I watched contractors and restoration firms leave real money on the table &mdash; not because the damage wasn&rsquo;t there, but because the estimate missed scope or wasn&rsquo;t documented. And when storm season hits, estimates pile up and projects stall.</p>
+      <p data-es='Por eso constru&iacute; Beeyond Estimators: estimados Xactimate r&aacute;pidos, precisos y profesionales que ayudan a los contratistas a ahorrar tiempo, presentar con confianza y mantener los proyectos en movimiento. Cada estimado se mide con una sola pregunta: &iquest;refleja lo que el trabajo realmente cuesta y aguanta hasta el acuerdo?'>That&rsquo;s why I built Beeyond Estimators: fast, accurate, professional Xactimate estimates that help contractors save time, submit with confidence, and keep projects moving. Every estimate is measured against one question: does it reflect what the work truly costs, and will it hold up through settlement?</p>
     </div>
   </div>
 </section>
@@ -691,7 +799,7 @@ table.cmp td.other{color:var(--muted)}
   <div class="foot-brand"><img class="beelogo" alt="Beeyond Estimators"><span>BEEYOND ESTIMATORS</span></div>
   <p class="foot-tag" data-es='Estimados Xactimate Bien Hechos. &middot; Se Habla Espa&ntilde;ol'>Xactimate Estimating Done Right. &middot; Se Habla Espa&ntilde;ol</p>
   <nav class="foot-links">
-    <a href="#services" data-es='Servicios'>Services</a><a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a><a href="#why" data-es='Por Qu&eacute; Nosotros'>Why Us</a><a href="#contact" data-es='Contacto'>Contact</a><a href="#founder" data-es='Nosotros'>About</a><a href="#" data-es='Pol&iacute;tica de Privacidad'>Privacy Policy</a><a href="#" data-es='T&eacute;rminos'>Terms</a><a href="mailto:beeyondestimators@outlook.com">beeyondestimators@outlook.com</a><a href="tel:+17544000650">(754) 400-0650</a>
+    <a href="#services" data-es='Servicios'>Services</a><a href="#how" data-es='Proceso'>Process</a><a href="#industries" data-es='Industrias'>Industries</a><a href="#pricing" data-es='Precios'>Pricing</a><a href="#reviews" data-es='Rese&ntilde;as'>Reviews</a><a href="#contact" data-es='Contacto'>Contact</a><a href="#founder" data-es='Nosotros'>About</a><a href="#" data-es='Pol&iacute;tica de Privacidad'>Privacy Policy</a><a href="#" data-es='T&eacute;rminos'>Terms</a><a href="mailto:beeyondestimators@outlook.com">beeyondestimators@outlook.com</a><a href="tel:+17544000650">(754) 400-0650</a>
   </nav>
   <p class="foot-copy" data-es='&copy; 2026 BEEYOND ESTIMATORS. Todos los derechos reservados.'>&copy; 2026 BEEYOND ESTIMATORS. All rights reserved.</p>
   <p class="foot-disc" data-es='Beeyond Estimators es un servicio profesional de estimaci&oacute;n. No somos ajustador p&uacute;blico licenciado, contratista, bufete de abogados ni compa&ntilde;&iacute;a de seguros, y no presentamos, ajustamos, negociamos ni asesoramos legalmente sobre reclamos de seguro. Los estimados se preparan con fines informativos y de documentaci&oacute;n con base en la informaci&oacute;n que usted proporciona; la aprobaci&oacute;n y el pago de cualquier reclamo los determina &uacute;nicamente la aseguradora u otra parte autorizada.'>Beeyond Estimators is a professional estimating service. We are not a licensed public adjuster, contractor, law firm, or insurance company, and we do not file, adjust, negotiate, or provide legal advice on insurance claims. Estimates are prepared for informational and documentation purposes based on the information you provide; approval and payment of any claim is determined solely by the insurer or other authorized party.</p>
@@ -767,7 +875,7 @@ function go(s){state=s;opts.innerHTML='';inrow.style.display='none';
 if(s===0){addBot(L("Hey — I'm the Beeyond Estimators assistant. Do you need an estimate written, or do you have a question about our service?","Hola, soy el asistente de Beeyond Estimators. ¿Necesitas que escribamos un estimado, o tienes una pregunta sobre nuestro servicio?")).then(function(){showOpts([L('Get an estimate','Solicitar un estimado'),L('Have a question','Tengo una pregunta')],function(c){opts.innerHTML='';go(c===L('Get an estimate','Solicitar un estimado')?'name':'qs');});});}
 else if(s==='home'){addBot(L("No problem — drop the loss details in the form below (type of damage, location, and any carrier estimate) and we'll reply fast with pricing and turnaround.","Sin problema — deja los detalles de la pérdida en el formulario (tipo de daño, ubicación y cualquier estimado de la aseguradora) y te responderemos rápido con precio y tiempo de entrega.")).then(function(){var c=document.getElementById('contact');if(c)c.scrollIntoView({behavior:'smooth'});});}
 else if(s==='name'){addBot(L("Brilliant. Who am I speaking with?","Perfecto. ¿Con quién tengo el gusto?")).then(function(){ask(L('Your name...','Tu nombre...'),function(v){ud.name=v;go('trade');});});}
-else if(s==='trade'){addBot(L("Good to meet you, ","Mucho gusto, ")+ud.name+L(". What best describes you?",". ¿Qué te describe mejor?")).then(function(){showOpts(L(['Restoration Contractor','Public Adjuster','Attorney','Property Manager','Other'],['Contratista de Restauración','Ajustador Público','Abogado','Administrador de Propiedades','Otro']),function(t){ud.trade=t;opts.innerHTML='';go('city');});});}
+else if(s==='trade'){addBot(L("Good to meet you, ","Mucho gusto, ")+ud.name+L(". What best describes you?",". ¿Qué te describe mejor?")).then(function(){showOpts(L(['Restoration Contractor','Roofing Contractor','General Contractor','Restoration Company','Other'],['Contratista de Restauración','Contratista de Techado','Contratista General','Empresa de Restauración','Otro']),function(t){ud.trade=t;opts.innerHTML='';go('city');});});}
 else if(s==='city'){addBot(L("What kind of loss do you need estimated?","¿Qué tipo de pérdida necesitas estimar?")).then(function(){showOpts(L(['Water','Mold','Fire & Smoke','Storm / Roof','Other'],['Agua','Moho','Fuego y Humo','Tormenta / Techo','Otro']),function(v){ud.city=v;opts.innerHTML='';go('source');});});}
 else if(s==='source'){addBot(L("How soon do you need it?","¿Para cuándo lo necesitas?")).then(function(){showOpts(L(['ASAP / Rush','2-3 days','This week','Just exploring'],['Urgente','2-3 días','Esta semana','Solo explorando']),function(v){ud.source=v;opts.innerHTML='';go('pitch');});});}
 else if(s==='pitch'){addBot(L("Here's what you get, ","Esto es lo que recibes, ")+ud.name+L(": a complete Xactimate estimate written to your carrier's current price list — line-item accurate, documented, and defensible. Usually back to you in 24–48 hours.",": un estimado completo en Xactimate con la lista de precios vigente de tu aseguradora — preciso, documentado y defendible. Normalmente en 24 a 48 horas.")).then(function(){addBot(L("Want to get your first file started, or ask a few questions first?","¿Quieres empezar tu primer archivo, o primero unas preguntas?")).then(function(){showOpts([L('Book a call','Agendar llamada'),L('A few questions first','Primero unas preguntas')],function(c){opts.innerHTML='';go(c===L('Book a call','Agendar llamada')?'book':'qs');});});});}
