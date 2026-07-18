@@ -637,14 +637,14 @@ table.cmp td.other{color:var(--muted)}
         </ul>
       </div>
       <div class="card pcard fade-in">
-        <h3 data-es='Reclamos Complejos / CAT'>Complex / CAT Claims</h3>
-        <div class="price">1.5% <span data-es='del estimado'>of the estimate</span></div>
-        <p style="color:var(--muted);font-size:.92rem" data-es='Hurac&aacute;n y fuego &middot; m&iacute;nimo $150'>Hurricane &amp; fire &middot; $150 minimum</p>
+        <h3 data-es='Hurac&aacute;n, Fuego y Grandes P&eacute;rdidas'>Hurricane, Fire &amp; Large Loss</h3>
+        <div class="price">1% <span data-es='del estimado'>of the estimate</span></div>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Los reclamos m&aacute;s grandes &middot; m&iacute;nimo $100'>The biggest claims &middot; $100 minimum</p>
         <ul class="pfeat">
-          <li data-es='Hurac&aacute;n, fuego y grandes p&eacute;rdidas'>Hurricane, fire &amp; large-loss claims</li>
-          <li data-es='Los archivos m&aacute;s complejos y documentados'>The hardest, most documented files</li>
+          <li data-es='Hurac&aacute;n, fuego y reclamos de cat&aacute;strofe'>Hurricane, fire &amp; catastrophe claims</li>
+          <li data-es='La misma tarifa justa del 1% &mdash; sin recargo'>The same fair 1% rate &mdash; no surcharge</li>
           <li data-es='Documentaci&oacute;n vinculada a cada partida'>Documentation tied to every line item</li>
-          <li data-es='Capacidad prioritaria en temporada de tormentas'>Priority capacity in storm season</li>
+          <li data-es='Volumen y retenedor mensual disponibles'>Volume &amp; monthly retainer available</li>
         </ul>
       </div>
       <div class="card pcard fade-in">
@@ -659,7 +659,7 @@ table.cmp td.other{color:var(--muted)}
         </ul>
       </div>
     </div>
-    <p class="cmp-note" data-es='Tarifa plana de $100 para archivos de menos de 10 p&aacute;ginas; 1% para reclamos est&aacute;ndar m&aacute;s grandes y 1.5% para reclamos por hurac&aacute;n, fuego y cat&aacute;strofe. M&iacute;nimo $100 por estimado. Opciones de volumen y retenedor mensual disponibles. Cada archivo se cotiza antes de empezar.'>Flat $100 for files under 10 pages; 1% for larger standard claims and 1.5% for hurricane, fire &amp; catastrophe claims. $100 minimum per estimate. Volume &amp; monthly retainer options available. Every file is quoted before we start.</p>
+    <p class="cmp-note" data-es='Tarifa plana de $100 para archivos de menos de 10 p&aacute;ginas, luego un simple 1% del estimado para todo lo m&aacute;s grande &mdash; incluyendo reclamos por hurac&aacute;n, fuego y cat&aacute;strofe. M&iacute;nimo $100 por estimado. Opciones de volumen y retenedor mensual disponibles. Cada archivo se cotiza antes de empezar.'>Flat $100 for files under 10 pages, then a simple 1% of the estimate for everything larger &mdash; including hurricane, fire, and catastrophe claims. $100 minimum per estimate. Volume &amp; monthly retainer options available. Every file is quoted before we start.</p>
   </div>
 </section>
 
@@ -853,7 +853,7 @@ else if(s==='city'){addBot(L("What kind of loss do you need estimated?","¿Qué 
 else if(s==='source'){addBot(L("How soon do you need it?","¿Para cuándo lo necesitas?")).then(function(){showOpts(L(['ASAP / Rush','2-3 days','This week','Just exploring'],['Urgente','2-3 días','Esta semana','Solo explorando']),function(v){ud.source=v;opts.innerHTML='';go('pitch');});});}
 else if(s==='pitch'){addBot(L("Here's what you get, ","Esto es lo que recibes, ")+ud.name+L(": a complete Xactimate estimate written to your carrier's current price list — line-item accurate, documented, and defensible. Usually back to you in 24–48 hours.",": un estimado completo en Xactimate con la lista de precios vigente de tu aseguradora — preciso, documentado y defendible. Normalmente en 24 a 48 horas.")).then(function(){addBot(L("Want to get your first file started, or ask a few questions first?","¿Quieres empezar tu primer archivo, o primero unas preguntas?")).then(function(){showOpts([L('Book a call','Agendar llamada'),L('A few questions first','Primero unas preguntas')],function(c){opts.innerHTML='';go(c===L('Book a call','Agendar llamada')?'book':'qs');});});});}
 else if(s==='qs'){addBot(L("Of course — fire away.","Claro, dime.")).then(function(){showOpts([L('How much does it cost?','¿Cuánto cuesta?'),L('How fast is turnaround?','¿Qué tan rápida es la entrega?'),L('Is this a real person?','¿Eres una persona real?'),L('Book a call','Agendar llamada')],function(c){opts.innerHTML='';if(c===L('How much does it cost?','¿Cuánto cuesta?'))go('qp');else if(c===L('How fast is turnaround?','¿Qué tan rápida es la entrega?'))go('qb');else if(c===L('Is this a real person?','¿Eres una persona real?'))go('qr');else go('book');});});}
-else if(s==='qp'){addBot(L("Fair question. Small files under 10 pages are a flat $100. Larger claims are 1% of the estimate — or 1.5% for hurricane and fire files. Send us the details and we'll quote you before we start. Want to get your first file going?","Buena pregunta. Los archivos pequeños de menos de 10 páginas son $100 fijos. Los reclamos más grandes son 1% del estimado — o 1.5% para huracán y fuego. Envíanos los detalles y te cotizamos antes de empezar. ¿Empezamos tu primer archivo?")).then(function(){showOpts([L('Book a call','Agendar llamada'),L('More questions','Más preguntas')],function(c){opts.innerHTML='';go(c===L('Book a call','Agendar llamada')?'book':'qs');});});}
+else if(s==='qp'){addBot(L("Fair question. Small files under 10 pages are a flat $100. Everything larger is a simple 1% of the estimate — including hurricane and fire files. Send us the details and we'll quote you before we start. Want to get your first file going?","Buena pregunta. Los archivos pequeños de menos de 10 páginas son $100 fijos. Todo lo más grande es un simple 1% del estimado — incluyendo huracán y fuego. Envíanos los detalles y te cotizamos antes de empezar. ¿Empezamos tu primer archivo?")).then(function(){showOpts([L('Book a call','Agendar llamada'),L('More questions','Más preguntas')],function(c){opts.innerHTML='';go(c===L('Book a call','Agendar llamada')?'book':'qs');});});}
 else if(s==='qb'){addBot(L("Most estimates are back to you in 24–48 hours, ","La mayoría de los estimados están listos en 24 a 48 horas, ")+ud.name+L(" — even at storm-season volume. Rush files, we tell you upfront. Want to get started?"," — incluso a alto volumen en temporada. Archivos urgentes, te avisamos por adelantado. ¿Empezamos?")).then(function(){showOpts([L('Book a call','Agendar llamada'),L('More questions','Más preguntas')],function(c){opts.innerHTML='';go(c===L('Book a call','Agendar llamada')?'book':'qs');});});}
 else if(s==='qr'){addBot(L("I'm the Beeyond Estimators assistant — happy to answer any questions you've got. Want me to set up a quick call with the team?","Soy el asistente de Beeyond Estimators — con gusto respondo tus preguntas. ¿Te agendo una llamada rápida con el equipo?")).then(function(){showOpts([L('Book a call','Agendar llamada'),L('More questions','Más preguntas')],function(c){opts.innerHTML='';go(c===L('Book a call','Agendar llamada')?'book':'qs');});});}
 else if(s==='book'){addBot(L("Perfect. What's the best number to reach you on?","Perfecto. ¿Cuál es el mejor número para contactarte?")).then(function(){ask(L('Best phone number...','Mejor número...'),function(v){ud.phone=v;go('time');});});}
