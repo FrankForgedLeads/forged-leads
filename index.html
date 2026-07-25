@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beeyond — Exclusive Florida Contractor Leads</title>
+<title>Beeyond — Exclusive Florida Leads for Contractors &amp; Public Adjusters</title>
 <meta name="description" content="AI-qualified, phone-verified, exclusive contractor leads across Florida. One lead, one contractor. No shared leads. No bidding wars.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -223,6 +223,15 @@ table.cmp td.other{color:var(--muted)}
 .fade-in{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}
 .fade-in.vis{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.hive-pan,.hrow,.hx,.fade-in{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}}
+.price{font-family:'Playfair Display',serif;font-weight:800;color:var(--navy);font-size:2.3rem;line-height:1.1;margin:.3rem 0 .2rem}
+.price span{font-size:.85rem;color:var(--muted);font-weight:600;font-family:'DM Sans',sans-serif}
+.pcard{position:relative;text-align:center;display:flex;flex-direction:column}
+.pcard.pop{border-top:4px solid var(--red)}
+.pbadge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 14px;border-radius:999px;white-space:nowrap}
+.pfeat{list-style:none;padding:0;margin:1rem 0 1.4rem;text-align:left}
+.pfeat li{font-size:.9rem;color:var(--muted);padding:6px 0 6px 26px;position:relative}
+.pfeat li::before{content:"\2713";position:absolute;left:0;color:var(--red);font-weight:800}
+.pcard .btn{margin-top:auto}
 </style>
 </head>
 
@@ -241,7 +250,7 @@ table.cmp td.other{color:var(--muted)}
     <a href="#top" class="nav-brand"><img class="beelogo" alt="Beeyond"><span>BEEYOND</span></a>
     <div class="nav-links">
       <a href="#services" data-es='Servicios'>Services</a>
-      <a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a>
+      <a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a><a href="#pricing" data-es='Precios'>Pricing</a>
       <a href="#why" data-es='Por Qu&eacute; Nosotros'>Why Us</a>
       <a href="#contact" data-es='Contacto'>Contact</a>
       <a href="#founder" data-es='Nuestro Fundador'>Our Founder</a>
@@ -256,7 +265,7 @@ table.cmp td.other{color:var(--muted)}
 <div id="mob-menu">
   <button id="mob-close" aria-label="Close">&times;</button>
   <a href="#services" data-es='Servicios'>Services</a>
-  <a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a>
+  <a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a><a href="#pricing" data-es='Precios'>Pricing</a>
   <a href="#why" data-es='Por Qu&eacute; Nosotros'>Why Us</a>
   <a href="#contact" data-es='Contacto'>Contact</a>
   <a href="#founder" data-es='Nuestro Fundador'>Our Founder</a>
@@ -267,10 +276,10 @@ table.cmp td.other{color:var(--muted)}
 <section class="hero">
   <div class="hero-in">
     <img class="hero-logo beelogo" alt="Beeyond">
-    <span class="eyebrow" data-es='Leads Exclusivos de Propietarios &mdash; Solo para Contratistas de Florida'>Exclusive Homeowner Leads &mdash; For Florida Contractors Only</span>
+    <span class="eyebrow" data-es='Leads Exclusivos de Propietarios &mdash; Para Contratistas y Ajustadores P&uacute;blicos de Florida'>Exclusive Homeowner Leads &mdash; For Florida Contractors &amp; Public Adjusters</span>
     <h1 data-es='M&aacute;s Llamadas. M&aacute;s Estimados. <em>M&aacute;s Trabajos.</em>'>More Calls. More Estimates. <em>More Jobs.</em></h1>
     <p class="hero-sub" data-es='Ayudamos a los contratistas de Florida a generar m&aacute;s llamadas calificadas, estimados y citas agendadas mediante sistemas de leads exclusivos y seguimiento automatizado.'>We help Florida contractors generate more qualified calls, estimates, and booked appointments through exclusive lead systems and automated follow-up.</p>
-    <p class="hero-who" data-es='Para contratistas generales &middot; techadores &middot; restauraci&oacute;n de agua &middot; moho &middot; plomeros &middot; HVAC &middot; electricistas &middot; ajustadores p&uacute;blicos'>For general contractors &middot; roofers &middot; water restoration &middot; mold &middot; plumbers &middot; HVAC &middot; electricians &middot; public adjusters</p>
+    <p class="hero-who" data-es='Contratistas de Techos &middot; Contratistas Generales &middot; Empresas de Moho &middot; Restauraci&oacute;n de Agua &middot; Plomeros &middot; HVAC &middot; Electricistas &middot; Ajustadores P&uacute;blicos'>Roofing Contractors &middot; General Contractors &middot; Mold Companies &middot; Water Restoration &middot; Plumbers &middot; HVAC &middot; Electricians &middot; Public Adjusters</p>
     <div class="hero-btns">
       <a href="#contact" class="btn btn-red" data-es='&#128272; Reclama Mi &Aacute;rea Exclusiva'>&#128272; Claim My Exclusive Area</a>
       <a href="#how" class="btn btn-out" data-es='Mira C&oacute;mo Funciona'>See How It Works</a>
@@ -288,17 +297,17 @@ table.cmp td.other{color:var(--muted)}
 <section id="services" class="section bg2">
   <div class="container">
     <span class="eyebrow" data-es='Oficios Que Atendemos'>Trades We Serve</span>
-    <h2 class="sec-title" data-es='Hecho para Cada Oficio Que Construye Florida.'>Built for Every Trade That Builds Florida.</h2>
-    <p class="sec-intro" data-es='Nos enfocamos en el ecosistema de da&ntilde;os a la propiedad y restauraci&oacute;n &mdash; los oficios que se impulsan entre s&iacute; y crecen juntos.'>We focus on the property-damage and restoration ecosystem &mdash; the trades that feed each other and grow together.</p>
+    <h2 class="sec-title" data-es='Hecho para los Profesionales Que Construyen y Protegen Florida.'>Built for the Pros Who Build &amp; Protect Florida.</h2>
+    <p class="sec-intro" data-es='Nos enfocamos en el ecosistema de da&ntilde;os a la propiedad y restauraci&oacute;n de Florida &mdash; los oficios que se impulsan entre s&iacute;, m&aacute;s los ajustadores p&uacute;blicos licenciados que ayudan a los propietarios despu&eacute;s de una p&eacute;rdida.'>We focus on Florida's property-damage and restoration ecosystem &mdash; the trades that feed each other and grow together, plus the licensed public adjusters who help homeowners after a loss.</p>
     <div class="grid g4">
-      <div class="card fade-in"><div class="ic">&#127959;</div><h3 data-es='Contratista General'>General Contractor</h3><p data-es='Consultas de renovaci&oacute;n, remodelaci&oacute;n y obra nueva de propietarios con presupuestos y plazos confirmados.'>Renovation, remodel, and new-build inquiries from homeowners with confirmed budgets and timelines.</p></div>
-      <div class="card fade-in"><div class="ic">&#128295;</div><h3 data-es='Plomero'>Plumber</h3><p data-es='Consultas de plomer&iacute;a de emergencia y programadas &mdash; tuber&iacute;as rotas, remodelaciones e instalaciones nuevas.'>Emergency and scheduled plumbing inquiries &mdash; burst pipes, remodels, and new installations.</p></div>
-      <div class="card fade-in"><div class="ic">&#127968;</div><h3 data-es='Techador'>Roofer</h3><p data-es='Consultas por da&ntilde;os de tormenta y techos viejos de propietarios listos para inspecci&oacute;n y reparaci&oacute;n.'>Storm-damage and aging-roof inquiries from homeowners ready for inspection and repair.</p></div>
-      <div class="card fade-in"><div class="ic">&#128300;</div><h3 data-es='Evaluador de Moho'>Mold Assessor</h3><p data-es='Consultas por moho oculto y posteriores a inundaciones de propietarios con problemas activos de humedad.'>Post-flood and hidden-mold inquiries from homeowners with active moisture problems.</p></div>
+      <div class="card fade-in"><div class="ic">&#127968;</div><h3 data-es='Contratistas de Techos'>Roofing Contractors</h3><p data-es='Consultas por da&ntilde;os de tormenta y techos viejos de propietarios listos para inspecci&oacute;n y reparaci&oacute;n.'>Storm-damage and aging-roof inquiries from homeowners ready for inspection and repair.</p></div>
+      <div class="card fade-in"><div class="ic">&#127959;</div><h3 data-es='Contratistas Generales'>General Contractors</h3><p data-es='Consultas de renovaci&oacute;n, remodelaci&oacute;n y obra nueva de propietarios con presupuestos y plazos confirmados.'>Renovation, remodel, and new-build inquiries from homeowners with confirmed budgets and timelines.</p></div>
+      <div class="card fade-in red-top"><div class="ic">&#129309;</div><h3 data-es='Ajustadores P&uacute;blicos'>Public Adjusters</h3><p data-es='Conectamos a ajustadores p&uacute;blicos licenciados con propietarios de Florida que nos contactan por su cuenta pidiendo ayuda tras un da&ntilde;o a la propiedad. Consultas exclusivas 100% iniciadas por el propietario &mdash; nosotros hacemos el marketing; t&uacute; manejas el archivo. Nunca presentamos, ajustamos ni negociamos reclamos.'>We connect licensed public adjusters with Florida homeowners who reach out on their own requesting help after property damage. 100% homeowner-initiated, exclusive inquiries &mdash; we handle the marketing; you handle the file. We never file, adjust, or negotiate claims.</p></div>
       <div class="card fade-in"><div class="ic">&#128167;</div><h3 data-es='Restauraci&oacute;n de Agua'>Water Restoration</h3><p data-es='Consultas de limpieza de agua, fugas y aguas residuales de propietarios que buscan mitigaci&oacute;n y secado.'>Water, leak, and sewage cleanup inquiries from homeowners seeking mitigation and drying.</p></div>
-      <div class="card fade-in"><div class="ic">&#9878;</div><h3 data-es='Ajustador P&uacute;blico'>Public Adjuster</h3><p data-es='Solo consultas iniciadas por el propietario. Conectamos a ajustadores p&uacute;blicos licenciados con propietarios que nos contactan primero &mdash; nunca solicitamos reclamos.'>Homeowner-initiated inquiries only. We connect licensed public adjusters with homeowners who contact us first &mdash; we never solicit claims.</p></div>
+      <div class="card fade-in"><div class="ic">&#128300;</div><h3 data-es='Empresas de Moho'>Mold Companies</h3><p data-es='Consultas por moho oculto y posteriores a inundaciones de propietarios con problemas activos de humedad.'>Post-flood and hidden-mold inquiries from homeowners with active moisture problems.</p></div>
+      <div class="card fade-in"><div class="ic">&#128295;</div><h3 data-es='Plomeros'>Plumbers</h3><p data-es='Consultas de plomer&iacute;a de emergencia y programadas &mdash; tuber&iacute;as rotas, remodelaciones e instalaciones nuevas.'>Emergency and scheduled plumbing inquiries &mdash; burst pipes, remodels, and new installations.</p></div>
       <div class="card fade-in"><div class="ic">&#10052;</div><h3 data-es='HVAC (Climatizaci&oacute;n)'>HVAC</h3><p data-es='Consultas de reparaci&oacute;n y reemplazo de temporada de propietarios con sistemas viejos o averiados.'>Repair and seasonal replacement inquiries from homeowners with aging or failed systems.</p></div>
-      <div class="card fade-in"><div class="ic">&#9889;</div><h3 data-es='Electricista'>Electrician</h3><p data-es='Mejoras de panel, cargadores para autos el&eacute;ctricos, correcciones de c&oacute;digo y recableados para propietarios que planean trabajo el&eacute;ctrico.'>Panel upgrades, EV chargers, code corrections, and rewires for homeowners planning electrical work.</p></div>
+      <div class="card fade-in"><div class="ic">&#9889;</div><h3 data-es='Electricistas'>Electricians</h3><p data-es='Mejoras de panel, cargadores para autos el&eacute;ctricos, correcciones de c&oacute;digo y recableados para propietarios que planean trabajo el&eacute;ctrico.'>Panel upgrades, EV chargers, code corrections, and rewires for homeowners planning electrical work.</p></div>
     </div>
   </div>
 </section>
@@ -313,6 +322,7 @@ table.cmp td.other{color:var(--muted)}
       <div class="step3 fade-in"><div class="n">2</div><h3 data-es='Buscamos, Llamamos y Calificamos'>We Source, Call, and Qualify</h3><p data-es='Filtramos cada consulta por tel&eacute;fono seg&uacute;n tipo de proyecto, plazo y presupuesto. Las que no cumplen tus criterios no se te env&iacute;an. Nos enfocamos en proyectos de mayor valor.'>We screen each inquiry by phone for project type, timeline, and budget. Inquiries that don't match your criteria aren't passed to you. We focus on higher-value projects.</p></div>
       <div class="step3 fade-in"><div class="n">3</div><h3 data-es='T&uacute; Cierras. T&uacute; Creces.'>You Close. You Grow.</h3><p data-es='Las consultas emparejadas llegan por mensaje y correo. T&uacute; das seguimiento, cotizas y cierras el trabajo. Mantenemos las consultas llegando seg&uacute;n tu capacidad.'>Matched inquiries arrive by text and email. You follow up, quote, and close the work. We keep new inquiries coming based on your capacity.</p></div>
     </div>
+    <p style="text-align:center;color:var(--muted);font-size:.9rem;max-width:800px;margin:2rem auto 0" data-es='Para ajustadores p&uacute;blicos licenciados: las consultas de propietarios se emparejan solo cuando un propietario nos contacta voluntariamente pidiendo ayuda tras un da&ntilde;o a la propiedad. Beeyond genera y filtra la consulta mediante marketing conforme &mdash; t&uacute; te encargas del resto.'>For licensed public adjusters: homeowner inquiries are matched only when a homeowner has voluntarily reached out requesting help after property damage. Beeyond generates and screens the inquiry through compliant marketing &mdash; you handle the rest.</p>
   </div>
 </section>
 
@@ -374,7 +384,8 @@ table.cmp td.other{color:var(--muted)}
           <tr><td class="feat" data-es='Leads malos'>Bad leads</td><td class="fl" data-es='Reemplazados gratis en 48 horas'>Replaced free within 48 hours</td><td class="other" data-es='Todas las ventas son finales'>All sales final</td></tr>
           <tr><td class="feat" data-es='Contratos'>Contracts</td><td class="fl" data-es='Mes a mes. Cancela cuando quieras.'>Month-to-month. Cancel anytime.</td><td class="other" data-es='Compromiso de 6&ndash;12 meses'>6&ndash;12 month lock-in</td></tr>
           <tr><td class="feat" data-es='Funciona con tus herramientas'>Works with your tools</td><td class="fl" data-es='Funciona con Jobber, ServiceTitan y Housecall Pro'>Works with Jobber, ServiceTitan &amp; Housecall Pro</td><td class="other" data-es='Complemento extra de $50&ndash;200/mes'>$50&ndash;200/mo extra add-on</td></tr>
-          <tr><td class="feat" data-es='Experiencia'>Experience</td><td class="fl" data-es='M&aacute;s de 10 a&ntilde;os trabajando junto a contratistas'>10+ years working alongside contractors</td><td class="other" data-es='Vendedores que nunca pisaron una obra'>Marketers who never worked a job site</td></tr>
+          <tr><td class="feat" data-es='Experiencia'>Experience</td><td class="fl" data-es='M&aacute;s de 10 a&ntilde;os junto a contratistas y ajustadores p&uacute;blicos'>10+ years alongside contractors &amp; public adjusters</td><td class="other" data-es='Vendedores que nunca pisaron una obra'>Marketers who never worked a job site</td></tr>
+          <tr><td class="feat" data-es='Para ajustadores p&uacute;blicos'>For public adjusters</td><td class="fl" data-es='Consultas exclusivas iniciadas por el propietario &mdash; totalmente conformes'>Exclusive, homeowner-initiated inquiries &mdash; fully compliant</td><td class="other" data-es='Listas compartidas o no conformes'>Shared or non-compliant lists</td></tr>
         </tbody>
       </table>
     </div>
@@ -382,7 +393,45 @@ table.cmp td.other{color:var(--muted)}
   </div>
 </section>
 
-<section class="section bg2">
+<section id="pricing" class="section bg2">
+  <div class="container">
+    <span class="eyebrow" data-es='Precios'>Pricing</span>
+    <h2 class="sec-title" data-es='Dos Formas Simples de Empezar'>Two Simple Ways to Get Started</h2>
+    <p class="sec-intro" data-es='Sin contratos a largo plazo. Sin cargos ocultos. Elige el plan mensual o paga por lead exclusivo &mdash; lo que mejor funcione para tu negocio o pr&aacute;ctica.'>No long-term contracts. No hidden fees. Choose the monthly plan or pay per exclusive lead &mdash; whatever fits your business or practice best.</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));max-width:820px;margin:0 auto">
+      <div class="card pcard pop fade-in">
+        <div class="pbadge" data-es='M&aacute;s Popular'>Most Popular</div>
+        <h3 data-es='Plan de Crecimiento'>Growth Plan</h3>
+        <div class="price">$697 <span data-es='/mes'>/month</span></div>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Generaci&oacute;n de leads hecha por ti, de principio a fin'>Done-for-you lead generation, end to end</p>
+        <ul class="pfeat">
+          <li data-es='Consultas exclusivas de propietarios para tu oficio o pr&aacute;ctica'>Exclusive homeowner inquiries for your trade or practice</li>
+          <li data-es='Agendamiento de citas gestionado por ti'>Appointment scheduling handled for you</li>
+          <li data-es='Automatizaci&oacute;n de seguimiento hasta que respondan'>Follow-up automation until they respond</li>
+          <li data-es='Sincroniza con tu CRM o nuestro panel'>Syncs to your CRM or our dashboard</li>
+          <li data-es='Mes a mes &mdash; cancela cuando quieras'>Month-to-month &mdash; cancel anytime</li>
+        </ul>
+        <a href="#contact" class="btn btn-red" data-es='Empezar el Plan de Crecimiento'>Start the Growth Plan</a>
+      </div>
+      <div class="card pcard fade-in">
+        <h3 data-es='Leads Exclusivos'>Exclusive Leads</h3>
+        <div class="price">$125 <span data-es='/ lead exclusivo calificado'>/ qualified exclusive lead</span></div>
+        <p style="color:var(--muted);font-size:.92rem" data-es='Paga por lead &mdash; sin compromiso mensual'>Pay per lead &mdash; no monthly commitment</p>
+        <ul class="pfeat">
+          <li data-es='Cada lead verificado por tel&eacute;fono por una persona real'>Every lead phone-verified by a real person</li>
+          <li data-es='Exclusivo &mdash; un solo profesional por lead'>Exclusive &mdash; one pro per lead</li>
+          <li data-es='Emparejado a tu oficio y &aacute;rea de servicio'>Matched to your trade &amp; service area</li>
+          <li data-es='Garant&iacute;a de reemplazo de lead malo'>Bad-lead replacement guarantee</li>
+          <li data-es='Ideal para probarnos sin compromiso'>Great for trying us with no commitment</li>
+        </ul>
+        <a href="#contact" class="btn btn-out" data-es='Obtener Leads Exclusivos'>Get Exclusive Leads</a>
+      </div>
+    </div>
+    <p class="cmp-note" data-es='Precios de lanzamiento; opciones de volumen personalizado disponibles a medida que crece tu negocio. <b>Para ajustadores p&uacute;blicos licenciados:</b> todas las consultas son iniciadas por el propietario. Beeyond es una empresa de marketing y generaci&oacute;n de leads &mdash; no presentamos, ajustamos ni negociamos reclamos de seguro.'>Launch pricing; custom volume options available as your business grows. <b>For licensed public adjusters:</b> all inquiries are homeowner-initiated. Beeyond is a marketing and lead-generation company &mdash; we do not file, adjust, or negotiate insurance claims.</p>
+  </div>
+</section>
+
+<section class="section">
   <div class="container">
     <span class="eyebrow" data-es='D&oacute;nde Entregamos Leads'>Where We Deliver Leads</span>
     <h2 class="sec-title" data-es='&Aacute;reas de Servicio &mdash; Leads de Contratistas en Florida por Ciudad'>Service Areas &mdash; Florida Contractor Leads by City</h2>
@@ -398,12 +447,13 @@ table.cmp td.other{color:var(--muted)}
     <span class="eyebrow" data-es='Preguntas Frecuentes'>Frequently Asked Questions</span>
     <h2 class="sec-title" data-es='Preguntas Frecuentes Sobre la Generaci&oacute;n de Leads para Contratistas'>Frequently Asked Questions About Contractor Lead Generation</h2>
     <div class="faq">
-      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Cu&aacute;nto cuestan los leads de contratista?'>How much do contractor leads cost?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='El precio depende de tu oficio, tu mercado y cu&aacute;ntos leads quieras al mes &mdash; un lead de techado en Miami no cuesta igual que uno de HVAC en Orlando. Te damos n&uacute;meros exactos de tu &aacute;rea en una llamada r&aacute;pida. No hay contratos a largo plazo.'>Pricing depends on your trade, market, and how many leads you want each month &mdash; a roofing lead in Miami isn't priced like an HVAC lead in Orlando. We'll pull up exact numbers for your area on a quick call. There are no long-term contracts.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Cu&aacute;nto cuestan los leads de contratista?'>How much do contractor leads cost?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Lo mantenemos simple con dos opciones: un <b>Plan de Crecimiento de $697/mes</b> (consultas exclusivas hechas por ti, agendamiento de citas y automatizaci&oacute;n de seguimiento) o <b>Leads Exclusivos a $125 por lead exclusivo calificado</b> sin compromiso mensual. Sin contratos a largo plazo en ninguno &mdash; te ayudamos a elegir lo que mejor funcione para tu oficio o pr&aacute;ctica en una llamada r&aacute;pida.'>We keep it simple with two options: a <b>$697/month Growth Plan</b> (done-for-you exclusive inquiries, appointment scheduling, and follow-up automation) or <b>Exclusive Leads at $125 per qualified, exclusive homeowner lead</b> with no monthly commitment. No long-term contracts either way &mdash; we'll help you pick the right fit for your trade or practice on a quick call.</p></div></div>
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Los leads son realmente exclusivos?'>Are leads really exclusive?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute;. Cada lead calificado va a un solo contratista &mdash; t&uacute;. Nunca vendemos el mismo lead a tres o cuatro empresas, as&iacute; que no compites con nadie por contestar primero.'>Yes. Every qualified lead goes to one contractor &mdash; you. We never sell the same lead to three or four companies, so you're not racing anyone to the phone.</p></div></div>
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Qu&eacute; tan r&aacute;pido recibo leads despu&eacute;s de registrarme?'>How fast do I get leads after signing up?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='La mayor&iacute;a de los contratistas quedan emparejados y reciben consultas calificadas dentro de un d&iacute;a h&aacute;bil tras configurar su perfil.'>Most contractors are matched and receiving qualified inquiries within one business day of setting up their profile.</p></div></div>
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Necesito un contrato?'>Do I need a contract?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='No. Beeyond es mes a mes. Cancela cuando quieras con 7 d&iacute;as de aviso &mdash; sin compromisos a largo plazo ni cargos por cancelaci&oacute;n.'>No. Beeyond is month-to-month. Cancel anytime with 7 days' notice &mdash; no long-term lock-in and no cancellation fees.</p></div></div>
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Qu&eacute; pasa si recibo un lead malo?'>What if I get a bad lead?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Si un lead entregado no cumple nuestro est&aacute;ndar de verificaci&oacute;n, lo reemplazamos gratis en 48 horas. Nada de &ldquo;todas las ventas son finales.&rdquo;'>If a delivered lead doesn't meet our verification standard, we replace it free within 48 hours. No &ldquo;all sales final.&rdquo;</p></div></div>
-      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Qu&eacute; oficios atienden?'>What trades do you serve?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Contratistas generales, plomeros, techadores, evaluadores de moho, restauraci&oacute;n de agua, ajustadores p&uacute;blicos, HVAC y electricistas &mdash; los oficios que construyen y restauran los hogares de Florida.'>General contractors, plumbers, roofers, mold assessors, water restoration, public adjusters, HVAC, and electricians &mdash; the trades that build and restore Florida homes.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Qu&eacute; oficios atienden?'>What trades do you serve?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Contratistas de techos, contratistas generales, empresas de moho, restauraci&oacute;n de agua, plomeros, HVAC, electricistas y ajustadores p&uacute;blicos licenciados &mdash; los profesionales que construyen, restauran y ayudan a los propietarios de Florida tras un da&ntilde;o a la propiedad.'>Roofing contractors, general contractors, mold companies, water restoration, plumbers, HVAC, electricians, and licensed public adjusters &mdash; the pros who build, restore, and help Florida homeowners after property damage.</p></div></div>
+      <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Trabajan con ajustadores p&uacute;blicos?'>Do you work with public adjusters?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='S&iacute; &mdash; y lo hacemos de forma conforme. Beeyond es una empresa de marketing y generaci&oacute;n de leads. Conectamos a ajustadores p&uacute;blicos licenciados con propietarios de Florida que nos contactan por su cuenta pidiendo ayuda tras un da&ntilde;o a la propiedad. Generamos y filtramos las consultas mediante campa&ntilde;as de marketing conformes &mdash; nunca presentamos, ajustamos, negociamos ni solicitamos reclamos de seguro.'>Yes &mdash; and we do it compliantly. Beeyond is a marketing and lead-generation company. We connect licensed public adjusters with Florida homeowners who reach out on their own requesting help after property damage. We generate and screen homeowner inquiries through compliant marketing campaigns &mdash; we never file, adjust, negotiate, or solicit insurance claims.</p></div></div>
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Atienden &aacute;reas fuera de Florida?'>Do you serve areas outside Florida?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Por ahora nos enfocamos exclusivamente en Florida &mdash; los 67 condados &mdash; para que nuestro equipo de verificaci&oacute;n conozca el mercado local. Pronto nos expandiremos a nivel nacional.'>Right now we focus exclusively on Florida &mdash; all 67 counties &mdash; so our verification team knows the local market. We're expanding nationally soon.</p></div></div>
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;C&oacute;mo funciona la calificaci&oacute;n con IA?'>How does the AI qualification work?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Nuestra IA punt&uacute;a cada consulta con 12 criterios &mdash; tipo de proyecto, presupuesto, propiedad del inmueble, plazo y m&aacute;s &mdash; y luego una persona real llama para confirmar antes de que el lead te llegue.'>Our AI scores every inquiry against 12 criteria &mdash; project type, budget, property ownership, timeline, and more &mdash; then a real person calls to confirm before the lead ever reaches you.</p></div></div>
       <div class="faq-item"><button class="faq-q"><span data-es='&iquest;Puedo elegir mi &aacute;rea de servicio?'>Can I choose my service area?</span><span class="pm">+</span></button><div class="faq-a"><p data-es='Por supuesto. Nos dices tu oficio, ciudades y capacidad, y solo te emparejamos con consultas dentro de tu &aacute;rea de servicio.'>Absolutely. You tell us your trade, cities, and capacity, and we match only inquiries inside your service area.</p></div></div>
@@ -469,7 +519,7 @@ table.cmp td.other{color:var(--muted)}
     <h2 class="sec-title" data-es='Creado por Alguien Que Entiende Tu Negocio'>Built by Someone Who Understands Your Business</h2>
     <div class="founder-story" style="margin-top:2rem">
       <h3 data-es='Por Qu&eacute; Constru&iacute; Beeyond'>Why I Built Beeyond</h3>
-      <p data-es='Durante m&aacute;s de 10 a&ntilde;os trabaj&eacute; codo a codo con los contratistas y equipos de restauraci&oacute;n de Florida &mdash; techadores, empresas de moho y da&ntilde;os por agua, plomeros, t&eacute;cnicos de HVAC, electricistas y ajustadores p&uacute;blicos. Estuve en las camionetas, sub&iacute; a los techos y vi de cerca c&oacute;mo se ganan los trabajos &mdash; y c&oacute;mo se desperdicia buen dinero en leads basura.'>For more than 10 years, I worked shoulder-to-shoulder with Florida's contractors and restoration crews &mdash; roofers, mold and water-damage companies, plumbers, HVAC techs, electricians, and public adjusters. I sat in the trucks, climbed onto the roofs, and watched up close how jobs get won &mdash; and how good money gets wasted on junk leads.</p>
+      <p data-es='Durante m&aacute;s de 10 a&ntilde;os he trabajado junto a los contratistas de restauraci&oacute;n, empresas de moho, techadores, empresas de mitigaci&oacute;n de agua, electricistas, plomeros, empresas de HVAC y ajustadores p&uacute;blicos licenciados de Florida. Estuve en las camionetas, sub&iacute; a los techos y vi de cerca c&oacute;mo se ganan los trabajos &mdash; y c&oacute;mo se desperdicia buen dinero en leads basura.'>For more than 10 years, I've worked alongside Florida's restoration contractors, mold companies, roofers, water-mitigation companies, electricians, plumbers, HVAC companies, and licensed public adjusters. I sat in the trucks, climbed onto the roofs, and watched up close how jobs get won &mdash; and how good money gets wasted on junk leads.</p>
       <p class="founder-quote" data-es='No soy un vendedor que &ldquo;descubri&oacute;&rdquo; a los contratistas. Pas&eacute; una d&eacute;cada en tu mundo &mdash; y constru&iacute; el sistema de leads que ojal&aacute; hubieras tenido todo este tiempo.'>I'm not a marketer who discovered contractors. I spent a decade in your world &mdash; and built the lead system I wish you'd had the whole time.</p>
       <p data-es='Vi a contratistas pagarle a Angi, HomeAdvisor y &ldquo;empresas de leads&rdquo; por el mismo lead que le vend&iacute;an a otros cuatro tipos &mdash; y luego pasar la noche persiguiendo inquilinos, curiosos y n&uacute;meros muertos. Eso no es un problema de leads. Es un problema de sistema.'>I watched contractors pay Angi, HomeAdvisor, and &ldquo;lead companies&rdquo; for the same lead they sold to four other guys &mdash; then spend their nights chasing renters, tire-kickers, and dead phone numbers. That's not a lead problem. That's a system problem.</p>
       <p data-es='Beeyond es la soluci&oacute;n. No vendemos sitios web ni software para que lo resuelvas solo. Nosotros hacemos la b&uacute;squeda, las llamadas y el filtrado por ti &mdash; y te entregamos propietarios exclusivos de Florida listos para recibir una cotizaci&oacute;n. T&uacute; te presentas, cotizas y cierras.'>Beeyond is the fix. We don't sell websites, and we don't sell you software to figure out yourself. We do the sourcing, the calling, and the screening for you &mdash; and hand you exclusive Florida homeowners who are ready for a quote. You show up, you estimate, you close.</p>
@@ -492,7 +542,7 @@ table.cmp td.other{color:var(--muted)}
   <div class="foot-brand"><img class="beelogo" alt="Beeyond"><span>BEEYOND</span></div>
   <p class="foot-tag" data-es='Hecho para Contratistas de Florida.'>Built for Florida Contractors.</p>
   <nav class="foot-links">
-    <a href="#services" data-es='Servicios'>Services</a><a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a><a href="#why" data-es='Por Qu&eacute; Nosotros'>Why Us</a><a href="#contact" data-es='Contacto'>Contact</a><a href="#founder" data-es='Nuestro Fundador'>Our Founder</a><a href="#" data-es='Pol&iacute;tica de Privacidad'>Privacy Policy</a><a href="#" data-es='T&eacute;rminos'>Terms</a><a href="tel:+17544000650">(754) 400-0650</a><a href="mailto:beeyondpro@outlook.com">beeyondpro@outlook.com</a>
+    <a href="#services" data-es='Servicios'>Services</a><a href="#how" data-es='C&oacute;mo Funciona'>How It Works</a><a href="#pricing" data-es='Precios'>Pricing</a><a href="#why" data-es='Por Qu&eacute; Nosotros'>Why Us</a><a href="#contact" data-es='Contacto'>Contact</a><a href="#founder" data-es='Nuestro Fundador'>Our Founder</a><a href="#" data-es='Pol&iacute;tica de Privacidad'>Privacy Policy</a><a href="#" data-es='T&eacute;rminos'>Terms</a><a href="tel:+17544000650">(754) 400-0650</a><a href="mailto:beeyondpro@outlook.com">beeyondpro@outlook.com</a>
   </nav>
   <p class="foot-copy" data-es='&copy; 2026 BEEYOND. Todos los derechos reservados.'>&copy; 2026 BEEYOND. All rights reserved.</p>
   <p class="foot-disc" data-es='Beeyond es un servicio de generaci&oacute;n de leads y marketing. No somos ajustador p&uacute;blico licenciado, contratista, bufete de abogados ni compa&ntilde;&iacute;a de seguros, y no presentamos, ajustamos, asesoramos ni negociamos reclamos de seguro. Los leads son consultas de clientes potenciales; no garantizamos que ninguna consulta se convierta en un trabajo pagado. El volumen de leads y los resultados var&iacute;an seg&uacute;n el mercado, el oficio, la temporada y tu propio seguimiento.'>Beeyond is a lead-generation and marketing service. We are not a licensed public adjuster, contractor, law firm, or insurance company, and we do not file, adjust, advise on, or negotiate insurance claims. Leads are inquiries from prospective customers; we do not guarantee that any inquiry will become a paying job. Lead volume and results vary by market, trade, season, and your own follow-up.</p>
