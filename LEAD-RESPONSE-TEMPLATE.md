@@ -77,6 +77,39 @@ Swap the third bullet for this one:
 
 ---
 
+## Step 3 — Confirm the call (once they pick a time)
+
+The moment they give you a time, lock it in with a short confirmation. This is what
+makes people actually show up. Send by text or email:
+
+**Text version:**
+
+> Perfect, [FIRST NAME] — you're set for [DAY] at [TIME]. I'll call you at this
+> number. Talk then! — Frank, Beeyond
+
+**Email version:**
+
+Subject: Confirmed — our call [DAY] at [TIME]
+
+> Hi [FIRST NAME],
+>
+> You're all set — I'll call you **[DAY] at [TIME]**. It'll take about 10 minutes;
+> I'll walk you through exactly how the leads come through and answer anything you've
+> got.
+>
+> If anything comes up and you need to move it, just text me at (954) 546-0839.
+>
+> Looking forward to it,
+>
+> **Frank**
+> Beeyond
+> (954) 546-0839
+
+**Tip:** Add it to your phone/Google calendar right away with their name and number
+in the notes, so you're never scrambling before the call.
+
+---
+
 ## The two offers (for the call — not the email)
 
 - **Growth Plan — $697/month.** Ongoing done-for-you lead generation. Month-to-month.
