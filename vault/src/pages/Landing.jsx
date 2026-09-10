@@ -3,6 +3,7 @@ import Card from "../components/ui/Card.jsx";
 import Accordion from "../components/ui/Accordion.jsx";
 import ScreenshotPlaceholder from "../components/ui/ScreenshotPlaceholder.jsx";
 import PricingTable from "../components/PricingTable.jsx";
+import beeyondLogo from "../assets/beeyond-logo.webp";
 
 const PAIN_EXAMPLES = [
   {
@@ -73,6 +74,11 @@ export default function Landing() {
       {/* Hero */}
       <section className="border-b border-navy-700/60 bg-gradient-to-b from-navy-900 to-navy-950">
         <div className="container-vault flex flex-col items-center gap-8 py-20 text-center sm:py-28">
+          <img
+            src={beeyondLogo}
+            alt="Beeyond"
+            className="w-[clamp(220px,52vw,320px)] drop-shadow-[0_0_40px_rgba(212,175,55,0.25)]"
+          />
           <span className="rounded-full border border-gold-500/40 bg-gold-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-gold-500">
             Built for Florida roofers, restoration contractors &amp; public adjusters
           </span>
