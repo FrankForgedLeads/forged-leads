@@ -13,6 +13,7 @@ import Vault from "./pages/Vault.jsx";
 import Claims from "./pages/Claims.jsx";
 import NewClaim from "./pages/NewClaim.jsx";
 import ClaimDetail from "./pages/ClaimDetail.jsx";
+import LetterBuilder from "./pages/LetterBuilder.jsx";
 import ComingSoon from "./pages/ComingSoon.jsx";
 
 export default function App() {
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="/claims" element={<Claims />} />
         <Route path="/claims/new" element={<NewClaim />} />
         <Route path="/claims/:id" element={<ClaimDetail />} />
+        <Route path="/claims/:id/letter" element={<LetterBuilder />} />
 
         {/* Stub — built out in Phase 6 (Stripe) / Phase 7 (team seats) */}
         <Route

@@ -8,6 +8,7 @@ import { Field, Input, Select } from "../components/ui/Field.jsx";
 import { formatCurrency, formatRange, midpoint } from "../lib/format.js";
 import { categoryLabel } from "../lib/categories.js";
 import { LOSS_TYPES } from "../lib/lossTypes.js";
+import { lineTotal, claimTotal } from "../lib/claimMath.js";
 
 const STATUS_OPTIONS = [
   { value: "open", label: "Open" },
@@ -17,11 +18,6 @@ const STATUS_OPTIONS = [
   { value: "resolved", label: "Resolved" },
   { value: "closed", label: "Closed" },
 ];
-
-function lineTotal(row) {
-  const unit = row.custom_amount ?? midpoint(row.items?.low_amount, row.items?.high_amount);
-  return unit * Number(row.quantity || 0);
-}
 
 export default function ClaimDetail() {
   const { id } = useParams();
@@ -44,7 +40,7 @@ export default function ClaimDetail() {
       .finally(() => setLoading(false));
   }, [load]);
 
-  const total = useMemo(() => rows.reduce((sum, r) => sum + lineTotal(r), 0), [rows]);
+  const total = useMemo(() => claimTotal(rows), [rows]);
 
   async function handleStatusChange(e) {
     const status = e.target.value;
@@ -182,12 +178,12 @@ export default function ClaimDetail() {
             <p className="text-3xl font-extrabold text-gold-500">{formatCurrency(total)}</p>
           </div>
           <Button
-            variant="ghost"
-            disabled
-            title="Letter generation lands in Phase 4"
-            className="opacity-60"
+            to={`/claims/${id}/letter`}
+            variant={rows.length === 0 ? "ghost" : "primary"}
+            className={rows.length === 0 ? "pointer-events-none opacity-40" : ""}
+            aria-disabled={rows.length === 0}
           >
-            Generate letter (Phase 4)
+            Generate letter
           </Button>
         </div>
       </div>

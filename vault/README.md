@@ -54,8 +54,8 @@ Netlify Functions). Full click-by-click steps land in `SETUP.md` (Phase 8).
 
 - [x] Phase 1 — Scaffold, landing page, pricing page, legal pages
 - [x] Phase 2 — Supabase auth, migration, seed data
-- [x] **Phase 3** — Vault library + claims (this commit)
-- [ ] Phase 4 — Letters + PDF export
+- [x] Phase 3 — Vault library + claims
+- [x] **Phase 4** — Letters + PDF export (this commit)
 - [ ] Phase 5 — Scope Checker + leads
 - [ ] Phase 6 — Stripe + paywall + webhook
 - [ ] Phase 7 — Resend emails + admin panel
@@ -96,8 +96,21 @@ src/
     Claims.jsx          Claim list
     NewClaim.jsx        Claim creation form
     ClaimDetail.jsx      Claim info, attached items, running total
+    LetterBuilder.jsx    Choose template → edit/preview → export PDF
     ComingSoon.jsx     Stub for /scope-checker (Phase 5) and /account (Phase 6/7)
 ```
+
+Letters add: `lib/disclaimer.js` (the required disclaimer text, shared by the
+public footer, the letter page, and every PDF), `lib/claimMath.js` (running
+total math, shared by claim detail and the letter builder so they can never
+disagree), `lib/letters/templates.js` (the three legally-reviewed letter
+bodies — contractor-to-carrier, own scope/pricing only, never "on behalf of
+the insured," each ending with a reconcile-by-contact line) and
+`lib/letters/pdf.js` (jsPDF layout, dynamically imported so its ~1MB bundle
+only loads for someone actually exporting a letter), plus
+`components/letters/LetterPreview.jsx` (the on-page preview, sharing the
+same template text) and `lib/api/letters.js` (saves a `letters` row per
+export).
 
 ## Database
 
@@ -123,6 +136,25 @@ quantity/amount and watching the running total recompute, and removing an
 item all passed with zero console errors. That test script was scratch
 tooling and isn't part of the repo. The full stack still needs a real run
 against an actual Supabase project (Phase 8 / SETUP.md) before launch.
+
+## Verifying Letters + PDF export (Phase 4)
+
+Same mocked-backend approach as Phases 2–3, extended to cover PDF output
+specifically: chose each of the 3 templates and confirmed their
+template-specific fields appear (original-letter-date for the follow-up,
+approved-amount for the partial-approval one) and that editing a field
+live-updates the preview; exported a PDF, intercepted the real browser
+download, verified it starts with the `%PDF-` header and isn't
+suspiciously small, and read it back to confirm the company block, item
+list, computed total, and disclaimer all render correctly — including a
+bug the first pass caught and fixed: the page-number and the (2-line)
+wrapped disclaimer were drawing at the same y-position and overlapping.
+Also verified an 8-item claim paginates into multiple PDF pages with the
+disclaimer footer on every page and the page break landing cleanly
+between the item list and the total paragraph. Confirmed a `letters` row
+is saved with the correct `template_key` and `claim_id` on export. Zero
+console errors throughout. Still no real Supabase project to run this
+against end to end — same caveat as every phase so far.
 
 ## Brand
 

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Logo from "../ui/Logo.jsx";
+import { VAULT_DISCLAIMER } from "../../lib/disclaimer.js";
 
 export default function Footer() {
   return (
@@ -70,11 +71,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-navy-700/60 pt-6">
-          <p className="text-xs leading-relaxed text-white/45">
-            Beeyond Vault is a reference tool for contractors. It is not a public adjuster, does
-            not represent policyholders, and does not provide legal advice. Verify all codes and
-            amounts before submitting.
-          </p>
+          <p className="text-xs leading-relaxed text-white/45">{VAULT_DISCLAIMER}</p>
           <p className="mt-3 text-xs text-white/35">
             &copy; {new Date().getFullYear()} Beeyond LLC. All rights reserved.
           </p>
