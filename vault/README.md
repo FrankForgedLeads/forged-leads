@@ -33,13 +33,27 @@ npm run build      # production build to dist/
 npm run preview    # preview the production build locally
 ```
 
-Copy `.env.example` to `.env` and fill in values as later phases wire up
-Supabase, Stripe, and Resend. Nothing in Phase 1 requires env vars.
+Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` /
+`VITE_SUPABASE_ANON_KEY` from your Supabase project (Project Settings > API)
+to enable login. Without them the app still runs — you'll just see a console
+warning and auth calls will fail. Stripe/Resend vars aren't needed until
+later phases.
+
+To stand up the database: open the Supabase SQL editor and run
+`supabase/migration.sql`, then `supabase/seed_items.sql`. Then add yourself
+as an admin:
+
+```sql
+insert into public.admins (email) values ('you@example.com');
+```
+
+(matching the `ADMIN_EMAIL` env var used later for the admin panel and
+Netlify Functions). Full click-by-click steps land in `SETUP.md` (Phase 8).
 
 ## Build status (phased delivery)
 
-- [x] **Phase 1** — Scaffold, landing page, pricing page, legal pages (this commit)
-- [ ] Phase 2 — Supabase auth, migration, seed data
+- [x] Phase 1 — Scaffold, landing page, pricing page, legal pages
+- [x] **Phase 2** — Supabase auth, migration, seed data (this commit)
 - [ ] Phase 3 — Vault library + claims
 - [ ] Phase 4 — Letters + PDF export
 - [ ] Phase 5 — Scope Checker + leads
@@ -52,18 +66,36 @@ Supabase, Stripe, and Resend. Nothing in Phase 1 requires env vars.
 ```
 src/
   components/
-    layout/      Nav, Footer, PublicLayout, LegalLayout
+    auth/         RequireAuth (route guard, signed-in check only — no
+                   subscription-status paywall gate yet, that's Phase 6)
+    layout/       Nav, Footer, PublicLayout, LegalLayout, AppLayout
     ui/           Button, Card, Logo, Accordion, ScreenshotPlaceholder
     PricingTable.jsx
   lib/
-    pricing.js    Plan data (Solo/Crew, monthly/annual)
+    pricing.js        Plan data (Solo/Crew, monthly/annual)
+    supabaseClient.js Supabase JS client
+    AuthContext.jsx   Session + profile state, magic-link aware
   pages/
     Landing.jsx
     Pricing.jsx
     Terms.jsx
     Privacy.jsx
-    ComingSoon.jsx   Stub for /login and /scope-checker until their phases land
+    Login.jsx          Magic-link sign-in
+    AuthCallback.jsx   Landing spot for the magic-link redirect
+    Dashboard.jsx      Authenticated stub (real dashboard is Phase 3)
+    ComingSoon.jsx     Stub for /scope-checker until Phase 5
 ```
+
+## Database
+
+Schema lives in `../supabase/migration.sql` at the repo root (one level up
+from this folder), with draft reference data in `../supabase/seed_items.sql`.
+Both have been run end-to-end against a local Postgres 16 instance (with a
+minimal stubbed `auth` schema standing in for Supabase Auth) to confirm they
+execute cleanly — RLS policies, the `handle_new_user` trigger, and the
+full-text search index all verified. They have **not** been run against a
+real Supabase project yet; that first real run happens in Phase 8 (SETUP.md)
+or whenever you create the project, whichever comes first.
 
 ## Brand
 
