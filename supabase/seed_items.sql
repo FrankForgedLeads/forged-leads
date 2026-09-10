@@ -6,7 +6,7 @@
 -- treated as final until you've gone through it line by line. Run AFTER
 -- supabase/migration.sql.
 --
--- 74 items across all 7 categories. Ranges are typical South Florida
+-- 77 items across all 7 categories. Ranges are typical South Florida
 -- (Miami-Dade / Broward / Palm Beach) retail pricing, current as drafted —
 -- correct before launch.
 -- ============================================================================
@@ -191,6 +191,18 @@ values
 ('mold', 'Mold containment (negative pressure enclosure)', 'Full containment with negative air pressure for remediation area.',
   'Standard IICRC S520 practice to prevent cross-contamination during remediation. Frequently underscoped in size or omitted.',
   'MOLD CONTAIN', 'IICRC S520', 2.25, 3.50, 'SF', NULL),
+
+('mold', 'Mold remediation / affected material removal (bag-out)', 'Physical removal of mold-affected porous materials (drywall, insulation, trim) using IICRC S520 bag-out procedure to prevent cross-contamination.',
+  'This is the actual remediation labor — the core scope of any mold job — and is distinct from standard water-damage drywall removal because it requires controlled bag-out handling under containment. Estimates frequently price generic "drywall removal" instead of this line, which doesn''t cover the specialized handling or the added labor time.',
+  'MOLD REM', 'IICRC S520 remediation procedures', 3.50, 5.50, 'SF', NULL),
+
+('mold', 'Antimicrobial / biocide application (post-remediation)', 'EPA-registered antimicrobial/biocide treatment applied to remaining structural surfaces after mold removal.',
+  'A required IICRC S520 step after physical removal, before the area can be closed up or cleared. Distinct from the water-mitigation antimicrobial line — this is mold-specific post-removal treatment, and is frequently left off or lumped into a flat "cleanup" allowance.',
+  'MOLD ANTI', 'IICRC S520', 0.45, 0.75, 'SF', NULL),
+
+('mold', 'Disposal of mold-contaminated materials', 'Bagging, transport, and disposal of mold-affected debris per IICRC S520 handling requirements.',
+  'Contaminated materials require sealed bagging and proper disposal, not standard construction debris hauling. A real, separately billable cost that''s frequently omitted or folded into a generic dumpster fee well under actual cost.',
+  'MOLD DISP', 'IICRC S520', 0.65, 1.10, 'SF', NULL),
 
 ('mold', 'HEPA vacuuming of affected surfaces', 'HEPA vacuum cleaning of surfaces within the remediation area.',
   'A required cleaning step under IICRC S520 before and after remediation, not a general cleaning task.',
