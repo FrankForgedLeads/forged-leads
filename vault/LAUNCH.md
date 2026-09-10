@@ -214,6 +214,18 @@ start thinking about Phase 2 features customers are actually asking for
 Letters — call out what's intentionally deferred, like team invite polish
 or a richer admin item editor, as a starting list).
 
+**Scope Checker auto-detection** is a planned Phase 2 item on the list
+already: today it's a manual 12-item checklist the contractor clicks
+through by hand. The plan discussed at launch is to add PDF estimate
+upload — extract the text client-side (no AI, no added cost) and
+auto-check which of the 12 items are already in the estimate vs.
+missing, so the contractor doesn't have to read it themselves. Photo
+upload for AI-based damage/missing-item detection was also discussed
+but explicitly deferred — it needs a paid AI vision API (real per-scan
+cost, new API key) and is inherently less reliable than reading the
+estimate's own text, so revisit it only if PDF-based detection alone
+isn't enough once you have real usage.
+
 If you're well under 10: don't panic-add features. Talk to the people who
 tried it and didn't convert — five real conversations will tell you more
 than another week of building.
