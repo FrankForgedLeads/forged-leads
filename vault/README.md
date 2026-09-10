@@ -15,9 +15,9 @@ represent policyholders, or negotiate settlements. See `/terms` and
 - Vite + React + React Router, Tailwind CSS v4 — single-page app, mobile-first
 - Supabase (Postgres + RLS + magic-link auth) — Phase 2
 - Stripe Checkout / Customer Portal / webhook — Phase 6
-- Netlify hosting + Netlify Functions — Phase 6
+- Netlify hosting + Netlify Functions — Phase 5 (lead notification), Phase 6 (Stripe webhook)
 - jsPDF for client-side letter export — Phase 4
-- Resend for transactional + monthly update email — Phase 7
+- Resend — Scope Checker lead notification (Phase 5); transactional + monthly update email land in Phase 7
 
 ## Local development
 
@@ -55,8 +55,8 @@ Netlify Functions). Full click-by-click steps land in `SETUP.md` (Phase 8).
 - [x] Phase 1 — Scaffold, landing page, pricing page, legal pages
 - [x] Phase 2 — Supabase auth, migration, seed data
 - [x] Phase 3 — Vault library + claims
-- [x] **Phase 4** — Letters + PDF export (this commit)
-- [ ] Phase 5 — Scope Checker + leads
+- [x] Phase 4 — Letters + PDF export
+- [x] **Phase 5** — Scope Checker + leads (this commit)
 - [ ] Phase 6 — Stripe + paywall + webhook
 - [ ] Phase 7 — Resend emails + admin panel
 - [ ] Phase 8 — SETUP.md + LAUNCH.md
@@ -97,8 +97,20 @@ src/
     NewClaim.jsx        Claim creation form
     ClaimDetail.jsx      Claim info, attached items, running total
     LetterBuilder.jsx    Choose template → edit/preview → export PDF
-    ComingSoon.jsx     Stub for /scope-checker (Phase 5) and /account (Phase 6/7)
+    ScopeChecker.jsx     Public lead magnet — 12-item checklist + live total
+    ComingSoon.jsx     Stub for /account (Phase 6/7)
 ```
+
+Scope Checker adds: `lib/scopeChecklist.js` (12 hand-picked items with flat
+"typical impact" dollar figures — separate draft content from the real
+Vault, since `items` is RLS-gated to signed-in users and this page has no
+login) and `lib/api/leads.js` (saves to the public `leads` table, then
+best-effort calls the `notify-lead` Netlify Function). `netlify/functions/
+notify-lead.js` emails LEADS_EMAIL via Resend on every submission — pulled
+forward from Phase 7 since the spec calls it out specifically under Scope
+Checker. `netlify.toml` (new) configures the build, the functions
+directory, and the SPA catch-all redirect needed once this is actually
+deployed to Netlify.
 
 Letters add: `lib/disclaimer.js` (the required disclaimer text, shared by the
 public footer, the letter page, and every PDF), `lib/claimMath.js` (running
@@ -155,6 +167,25 @@ between the item list and the total paragraph. Confirmed a `letters` row
 is saved with the correct `template_key` and `claim_id` on export. Zero
 console errors throughout. Still no real Supabase project to run this
 against end to end — same caveat as every phase so far.
+
+## Verifying Scope Checker + leads (Phase 5)
+
+Same mocked-backend approach again: confirmed the page loads and works
+with no auth at all (it's under `PublicLayout`, not gated), that checking
+and unchecking items live-updates the running total correctly, and that
+submitting the form (a) inserts the right row shape into `leads` — email,
+answers.checked array, estimated_total, source: 'scope_checker' — and (b)
+calls `notify-lead` with the checked item labels and total, then shows the
+"Start your 7-day free trial" CTA linking to `/pricing`. Also specifically
+verified the fire-and-forget failure path: with `notify-lead` deliberately
+left unmocked (so it 404s, matching what actually happens under plain
+`vite dev` without `netlify dev`), the lead still saves and the CTA still
+shows — the only console entry is the browser's own network-failure log
+for that request, not an app error. `netlify/functions/notify-lead.js`
+itself only runs under `netlify dev` or once deployed, so its Resend call
+couldn't be exercised end-to-end here; the function was syntax-checked
+(`node --check`) and its request/response shape follows Resend's
+documented API.
 
 ## Brand
 

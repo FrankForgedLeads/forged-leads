@@ -14,6 +14,7 @@ import Claims from "./pages/Claims.jsx";
 import NewClaim from "./pages/NewClaim.jsx";
 import ClaimDetail from "./pages/ClaimDetail.jsx";
 import LetterBuilder from "./pages/LetterBuilder.jsx";
+import ScopeChecker from "./pages/ScopeChecker.jsx";
 import ComingSoon from "./pages/ComingSoon.jsx";
 
 export default function App() {
@@ -27,16 +28,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
 
-        {/* Stub route — built out in Phase 5 */}
-        <Route
-          path="/scope-checker"
-          element={
-            <ComingSoon
-              title="Free Scope Checker"
-              note="The 12-item checklist with a live running total lands in Phase 5."
-            />
-          }
-        />
+        <Route path="/scope-checker" element={<ScopeChecker />} />
 
         <Route
           path="*"
