@@ -9,6 +9,10 @@ import Privacy from "./pages/Privacy.jsx";
 import Login from "./pages/Login.jsx";
 import AuthCallback from "./pages/AuthCallback.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Vault from "./pages/Vault.jsx";
+import Claims from "./pages/Claims.jsx";
+import NewClaim from "./pages/NewClaim.jsx";
+import ClaimDetail from "./pages/ClaimDetail.jsx";
 import ComingSoon from "./pages/ComingSoon.jsx";
 
 export default function App() {
@@ -47,6 +51,21 @@ export default function App() {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/vault" element={<Vault />} />
+        <Route path="/claims" element={<Claims />} />
+        <Route path="/claims/new" element={<NewClaim />} />
+        <Route path="/claims/:id" element={<ClaimDetail />} />
+
+        {/* Stub — built out in Phase 6 (Stripe) / Phase 7 (team seats) */}
+        <Route
+          path="/account"
+          element={
+            <ComingSoon
+              title="Account"
+              note="Billing, plan, team seats, and profile settings land in Phase 6/7."
+            />
+          }
+        />
       </Route>
     </Routes>
   );

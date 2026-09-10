@@ -1,14 +1,20 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, NavLink } from "react-router-dom";
 import Logo from "../ui/Logo.jsx";
 import Button from "../ui/Button.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
+
+const links = [
+  { to: "/dashboard", label: "Dashboard" },
+  { to: "/vault", label: "Vault" },
+  { to: "/claims", label: "Claims" },
+];
 
 export default function AppLayout() {
   const { profile, user, signOut } = useAuth();
 
   return (
     <div className="flex min-h-screen flex-col bg-navy-950">
-      <header className="sticky top-0 z-50 border-b border-navy-700/60 bg-navy-950/90 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-navy-700/60 bg-navy-950/90 backdrop-blur">
         <div className="container-vault flex h-16 items-center justify-between">
           <Link to="/dashboard">
             <Logo />
@@ -22,6 +28,21 @@ export default function AppLayout() {
             </Button>
           </div>
         </div>
+        <nav className="container-vault flex gap-1 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {links.map((l) => (
+            <NavLink
+              key={l.to}
+              to={l.to}
+              className={({ isActive }) =>
+                `shrink-0 rounded-lg px-4 py-2 text-sm font-bold transition ${
+                  isActive ? "bg-gold-500 text-navy-950" : "text-white/70 hover:bg-navy-800 hover:text-white"
+                }`
+              }
+            >
+              {l.label}
+            </NavLink>
+          ))}
+        </nav>
       </header>
       <main className="flex-1">
         <Outlet />

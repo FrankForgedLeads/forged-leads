@@ -53,8 +53,8 @@ Netlify Functions). Full click-by-click steps land in `SETUP.md` (Phase 8).
 ## Build status (phased delivery)
 
 - [x] Phase 1 — Scaffold, landing page, pricing page, legal pages
-- [x] **Phase 2** — Supabase auth, migration, seed data (this commit)
-- [ ] Phase 3 — Vault library + claims
+- [x] Phase 2 — Supabase auth, migration, seed data
+- [x] **Phase 3** — Vault library + claims (this commit)
 - [ ] Phase 4 — Letters + PDF export
 - [ ] Phase 5 — Scope Checker + leads
 - [ ] Phase 6 — Stripe + paywall + webhook
@@ -69,12 +69,21 @@ src/
     auth/         RequireAuth (route guard, signed-in check only — no
                    subscription-status paywall gate yet, that's Phase 6)
     layout/       Nav, Footer, PublicLayout, LegalLayout, AppLayout
-    ui/           Button, Card, Logo, Accordion, ScreenshotPlaceholder
+    ui/           Button, Card, Logo, Accordion, ScreenshotPlaceholder,
+                   Modal, Field (Label/Input/Select/Textarea)
+    vault/        CategoryFilter, ItemCard, AddToClaimModal
     PricingTable.jsx
   lib/
     pricing.js        Plan data (Solo/Crew, monthly/annual)
+    categories.js      Vault category keys + labels (mirrors the DB check constraint)
+    lossTypes.js        Shared loss-type options (claim forms)
+    format.js           Currency/date/range formatting helpers
     supabaseClient.js Supabase JS client
     AuthContext.jsx   Session + profile state, magic-link aware
+    api/
+      items.js        fetchActiveItems()
+      claims.js        fetchClaims/fetchClaim/createClaim/updateClaim/deleteClaim
+      claimItems.js     fetchClaimItems/addClaimItem/updateClaimItem/deleteClaimItem
   pages/
     Landing.jsx
     Pricing.jsx
@@ -82,8 +91,12 @@ src/
     Privacy.jsx
     Login.jsx          Magic-link sign-in
     AuthCallback.jsx   Landing spot for the magic-link redirect
-    Dashboard.jsx      Authenticated stub (real dashboard is Phase 3)
-    ComingSoon.jsx     Stub for /scope-checker until Phase 5
+    Dashboard.jsx      Recent claims, quick search, new claim, trial banner
+    Vault.jsx           Search + category filter + add-to-claim
+    Claims.jsx          Claim list
+    NewClaim.jsx        Claim creation form
+    ClaimDetail.jsx      Claim info, attached items, running total
+    ComingSoon.jsx     Stub for /scope-checker (Phase 5) and /account (Phase 6/7)
 ```
 
 ## Database
@@ -96,6 +109,20 @@ execute cleanly — RLS policies, the `handle_new_user` trigger, and the
 full-text search index all verified. They have **not** been run against a
 real Supabase project yet; that first real run happens in Phase 8 (SETUP.md)
 or whenever you create the project, whichever comes first.
+
+## Verifying Vault + Claims (Phase 3) without a real Supabase project
+
+Same caveat as Phase 2: no real Supabase credentials were available to test
+against. To still verify the actual React/query code (not just that it
+builds), Phase 3 was exercised end-to-end in a headless browser against a
+mocked PostgREST-shaped backend (Playwright intercepting `/rest/v1/*` and
+`/auth/v1/*`, with a fake but schema-accurate in-memory dataset) — search,
+category filter, claim creation (both the dashboard form and the "add to
+claim" modal's inline create), attaching items from the Vault, editing
+quantity/amount and watching the running total recompute, and removing an
+item all passed with zero console errors. That test script was scratch
+tooling and isn't part of the repo. The full stack still needs a real run
+against an actual Supabase project (Phase 8 / SETUP.md) before launch.
 
 ## Brand
 
