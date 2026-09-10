@@ -3,7 +3,7 @@ import Logo from "../ui/Logo.jsx";
 import Button from "../ui/Button.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 
-const links = [
+const APP_LINKS = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/vault", label: "Vault" },
   { to: "/claims", label: "Claims" },
@@ -11,18 +11,30 @@ const links = [
 
 export default function AppLayout() {
   const { profile, user, signOut } = useAuth();
+  const isSubscribed = profile && ["trialing", "active"].includes(profile.subscription_status);
+  // Dashboard/Vault/Claims are paywalled — no point showing them in the nav
+  // (and inviting a redirect-to-/subscribe click) before there's an active
+  // subscription to reach them with.
+  const links = isSubscribed
+    ? [...APP_LINKS, { to: "/account", label: "Account" }]
+    : [{ to: "/account", label: "Account" }];
 
   return (
     <div className="flex min-h-screen flex-col bg-navy-950">
       <header className="sticky top-0 z-40 border-b border-navy-700/60 bg-navy-950/90 backdrop-blur">
         <div className="container-vault flex h-16 items-center justify-between">
-          <Link to="/dashboard">
+          <Link to={isSubscribed ? "/dashboard" : "/account"}>
             <Logo />
           </Link>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-white/60 sm:inline">
               {profile?.full_name || user?.email}
             </span>
+            {!isSubscribed && (
+              <Button to="/subscribe" className="px-4 py-2.5 text-sm">
+                Start free trial
+              </Button>
+            )}
             <Button variant="ghost" onClick={signOut} className="px-4 py-2.5 text-sm">
               Log out
             </Button>

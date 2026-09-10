@@ -2,12 +2,15 @@ import { Routes, Route } from "react-router-dom";
 import PublicLayout from "./components/layout/PublicLayout.jsx";
 import AppLayout from "./components/layout/AppLayout.jsx";
 import RequireAuth from "./components/auth/RequireAuth.jsx";
+import RequireSubscription from "./components/auth/RequireSubscription.jsx";
 import Landing from "./pages/Landing.jsx";
 import Pricing from "./pages/Pricing.jsx";
 import Terms from "./pages/Terms.jsx";
 import Privacy from "./pages/Privacy.jsx";
 import Login from "./pages/Login.jsx";
 import AuthCallback from "./pages/AuthCallback.jsx";
+import Subscribe from "./pages/Subscribe.jsx";
+import Account from "./pages/Account.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Vault from "./pages/Vault.jsx";
 import Claims from "./pages/Claims.jsx";
@@ -43,21 +46,58 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/vault" element={<Vault />} />
-        <Route path="/claims" element={<Claims />} />
-        <Route path="/claims/new" element={<NewClaim />} />
-        <Route path="/claims/:id" element={<ClaimDetail />} />
-        <Route path="/claims/:id/letter" element={<LetterBuilder />} />
+        {/* Signed in, but not gated on an active subscription — you need to
+            reach these to start or manage billing in the first place. */}
+        <Route path="/subscribe" element={<Subscribe />} />
+        <Route path="/account" element={<Account />} />
 
-        {/* Stub — built out in Phase 6 (Stripe) / Phase 7 (team seats) */}
+        {/* The paid app: subscription_status must be trialing or active. */}
         <Route
-          path="/account"
+          path="/dashboard"
           element={
-            <ComingSoon
-              title="Account"
-              note="Billing, plan, team seats, and profile settings land in Phase 6/7."
-            />
+            <RequireSubscription>
+              <Dashboard />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/vault"
+          element={
+            <RequireSubscription>
+              <Vault />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/claims"
+          element={
+            <RequireSubscription>
+              <Claims />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/claims/new"
+          element={
+            <RequireSubscription>
+              <NewClaim />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/claims/:id"
+          element={
+            <RequireSubscription>
+              <ClaimDetail />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/claims/:id/letter"
+          element={
+            <RequireSubscription>
+              <LetterBuilder />
+            </RequireSubscription>
           }
         />
       </Route>

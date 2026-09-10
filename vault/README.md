@@ -14,7 +14,8 @@ represent policyholders, or negotiate settlements. See `/terms` and
 
 - Vite + React + React Router, Tailwind CSS v4 — single-page app, mobile-first
 - Supabase (Postgres + RLS + magic-link auth) — Phase 2
-- Stripe Checkout / Customer Portal / webhook — Phase 6
+- Stripe Checkout / Customer Portal / webhook — Phase 6, direct redirect to
+  Checkout's hosted page (no `@stripe/stripe-js` client dependency needed)
 - Netlify hosting + Netlify Functions — Phase 5 (lead notification), Phase 6 (Stripe webhook)
 - jsPDF for client-side letter export — Phase 4
 - Resend — Scope Checker lead notification (Phase 5); transactional + monthly update email land in Phase 7
@@ -56,8 +57,8 @@ Netlify Functions). Full click-by-click steps land in `SETUP.md` (Phase 8).
 - [x] Phase 2 — Supabase auth, migration, seed data
 - [x] Phase 3 — Vault library + claims
 - [x] Phase 4 — Letters + PDF export
-- [x] **Phase 5** — Scope Checker + leads (this commit)
-- [ ] Phase 6 — Stripe + paywall + webhook
+- [x] Phase 5 — Scope Checker + leads
+- [x] **Phase 6** — Stripe + paywall + webhook (this commit)
 - [ ] Phase 7 — Resend emails + admin panel
 - [ ] Phase 8 — SETUP.md + LAUNCH.md
 
@@ -66,24 +67,28 @@ Netlify Functions). Full click-by-click steps land in `SETUP.md` (Phase 8).
 ```
 src/
   components/
-    auth/         RequireAuth (route guard, signed-in check only — no
-                   subscription-status paywall gate yet, that's Phase 6)
+    auth/         RequireAuth (signed-in check), RequireSubscription
+                   (subscription_status in trialing/active, else /subscribe)
     layout/       Nav, Footer, PublicLayout, LegalLayout, AppLayout
     ui/           Button, Card, Logo, Accordion, ScreenshotPlaceholder,
                    Modal, Field (Label/Input/Select/Textarea)
     vault/        CategoryFilter, ItemCard, AddToClaimModal
-    PricingTable.jsx
+    PricingTable.jsx   Also used by /subscribe in "trigger checkout" mode
   lib/
     pricing.js        Plan data (Solo/Crew, monthly/annual)
     categories.js      Vault category keys + labels (mirrors the DB check constraint)
     lossTypes.js        Shared loss-type options (claim forms)
     format.js           Currency/date/range formatting helpers
+    subscription.js      Trial-days-left + status-label helpers
     supabaseClient.js Supabase JS client
     AuthContext.jsx   Session + profile state, magic-link aware
     api/
       items.js        fetchActiveItems()
       claims.js        fetchClaims/fetchClaim/createClaim/updateClaim/deleteClaim
       claimItems.js     fetchClaimItems/addClaimItem/updateClaimItem/deleteClaimItem
+      billing.js         createCheckoutSession/createPortalSession (call the
+                          Netlify Functions with the user's Supabase JWT)
+      profile.js          updateProfile()
   pages/
     Landing.jsx
     Pricing.jsx
@@ -91,6 +96,8 @@ src/
     Privacy.jsx
     Login.jsx          Magic-link sign-in
     AuthCallback.jsx   Landing spot for the magic-link redirect
+    Subscribe.jsx        Checkout buttons — signed in, not yet gated on a subscription
+    Account.jsx           Plan/billing, profile, logout
     Dashboard.jsx      Recent claims, quick search, new claim, trial banner
     Vault.jsx           Search + category filter + add-to-claim
     Claims.jsx          Claim list
@@ -98,7 +105,8 @@ src/
     ClaimDetail.jsx      Claim info, attached items, running total
     LetterBuilder.jsx    Choose template → edit/preview → export PDF
     ScopeChecker.jsx     Public lead magnet — 12-item checklist + live total
-    ComingSoon.jsx     Stub for /account (Phase 6/7)
+    ComingSoon.jsx     Now just the public 404 catch-all (both /scope-checker
+                       and /account graduated out of stub status this phase)
 ```
 
 Scope Checker adds: `lib/scopeChecklist.js` (12 hand-picked items with flat
@@ -123,6 +131,29 @@ only loads for someone actually exporting a letter), plus
 `components/letters/LetterPreview.jsx` (the on-page preview, sharing the
 same template text) and `lib/api/letters.js` (saves a `letters` row per
 export).
+
+Stripe + paywall add: `components/auth/RequireSubscription.jsx` (the paywall
+— redirects to `/subscribe` unless `subscription_status` is `trialing` or
+`active`; also handles the race where Checkout's `success_url` redirect
+lands back in the app before the webhook has updated the profile yet, by
+polling for a few seconds instead of bouncing a paying customer straight
+back to `/subscribe`), `pages/Subscribe.jsx` and `pages/Account.jsx`, and
+three Netlify Functions: `create-checkout-session.js` (verifies the
+caller's Supabase JWT server-side — never trusts a client-supplied user id
+— then creates a Stripe Checkout session with a 7-day trial, reusing the
+same Stripe Customer on a resubscribe instead of minting a new one),
+`create-portal-session.js` (same auth check, opens the Stripe Customer
+Portal), and `stripe-webhook.js` (verifies the Stripe signature against the
+raw request body, then handles `checkout.session.completed`,
+`customer.subscription.updated`, `customer.subscription.deleted`, and
+`invoice.payment_failed` — updating `profiles` with the service-role key,
+since Stripe's calls carry no user session to respect RLS with; also
+creates the `teams` row and attaches the owner on a Crew checkout, so
+team_id-based claim sharing works immediately even though the invite UI is
+Phase 7). `netlify/functions/_lib/` holds `auth.js` (JWT verification,
+shared by both Checkout-triggering functions) and `http.js` (a JSON
+response helper) — the leading underscore keeps Netlify from trying to
+deploy them as their own endpoints.
 
 ## Database
 
@@ -186,6 +217,41 @@ itself only runs under `netlify dev` or once deployed, so its Resend call
 couldn't be exercised end-to-end here; the function was syntax-checked
 (`node --check`) and its request/response shape follows Resend's
 documented API.
+
+## Verifying Stripe + paywall (Phase 6)
+
+No Stripe or Supabase credentials available, so this is necessarily the
+most limited verification of any phase so far — mocked-backend browser
+testing covers the client side thoroughly, but the three Netlify
+Functions (which need real Stripe keys, and for the webhook, a real
+signed request from Stripe) could only be syntax-checked, not run.
+
+What was verified end-to-end in a headless browser: an unsubscribed
+signed-in user hitting any paywalled route (`/dashboard`, `/vault`,
+`/claims`) redirects to `/subscribe`; the nav correctly hides
+Dashboard/Vault/Claims (and shows "Start free trial" instead) until
+subscribed; `/account` and `/subscribe` both work pre-subscription;
+clicking a plan on `/subscribe` calls `create-checkout-session` with the
+right JWT and `{plan, interval}` body. Then, specifically because this is
+the trickiest part of the whole phase: simulated Stripe's redirect back
+to `/dashboard?checkout=success` while the profile's `subscription_status`
+was still `null` (i.e. the webhook hasn't landed yet) — confirmed
+`RequireSubscription` shows an "activating" spinner rather than bouncing
+back to `/subscribe`, and that it correctly resolves into the dashboard
+once the profile updates mid-poll (simulating the webhook landing a
+couple seconds late). Also tested the case where it never lands within
+the retry window: shows a friendly "try again" message and stays put,
+rather than silently redirecting a customer who was just charged. Trial
+banner, Account's plan/status display, and Manage Billing's redirect to
+the (mocked) portal URL all confirmed correct. Zero console errors.
+
+Not verified here, and needing a real Stripe test-mode account plus
+`netlify dev` (or a real deploy) to check: the three functions actually
+running, Stripe's real webhook signature verification, the Crew-plan team
+row creation, and the full webhook → profile update → UI unlock loop with
+real async timing. That's real risk carried into Phase 8 (SETUP.md) —
+budget time there to test a full trial signup against Stripe test mode
+before going live.
 
 ## Brand
 

@@ -3,7 +3,15 @@ import Button from "./ui/Button.jsx";
 import Card from "./ui/Card.jsx";
 import { PLANS, yearlySavingsPct } from "../lib/pricing.js";
 
-export default function PricingTable({ showTrialNote = true }) {
+export default function PricingTable({
+  showTrialNote = true,
+  // When provided, plan buttons call onSelectPlan(planKey, "monthly"|"yearly")
+  // instead of linking to /login — used by /subscribe to trigger Stripe
+  // Checkout for an already-signed-in user. loadingPlanKey disables/labels
+  // the button for whichever plan is mid-checkout-creation.
+  onSelectPlan,
+  loadingPlanKey,
+}) {
   const [annual, setAnnual] = useState(false);
 
   return (
@@ -79,15 +87,26 @@ export default function PricingTable({ showTrialNote = true }) {
                 ))}
               </ul>
 
-              {/* Routes to /login for now — magic-link signup lands Phase 2.
-                  Stripe Checkout (/subscribe) is wired in Phase 6. */}
-              <Button
-                to="/login"
-                variant={plan.highlight ? "primary" : "secondary"}
-                className="mt-8 w-full"
-              >
-                Start 7-day free trial
-              </Button>
+              {onSelectPlan ? (
+                <Button
+                  as="button"
+                  type="button"
+                  onClick={() => onSelectPlan(plan.key, annual ? "yearly" : "monthly")}
+                  disabled={Boolean(loadingPlanKey)}
+                  variant={plan.highlight ? "primary" : "secondary"}
+                  className="mt-8 w-full"
+                >
+                  {loadingPlanKey === plan.key ? "Redirecting to checkout…" : "Start 7-day free trial"}
+                </Button>
+              ) : (
+                <Button
+                  to="/login"
+                  variant={plan.highlight ? "primary" : "secondary"}
+                  className="mt-8 w-full"
+                >
+                  Start 7-day free trial
+                </Button>
+              )}
             </Card>
           );
         })}

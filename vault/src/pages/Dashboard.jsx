@@ -5,13 +5,12 @@ import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { formatDate } from "../lib/format.js";
+import { daysLeftInTrial } from "../lib/subscription.js";
 
 function TrialBanner({ profile }) {
-  if (!profile?.trial_ends_at) return null;
+  if (profile?.subscription_status !== "trialing" || !profile?.trial_ends_at) return null;
 
-  const daysLeft = Math.ceil(
-    (new Date(profile.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-  );
+  const daysLeft = daysLeftInTrial(profile.trial_ends_at);
   if (daysLeft < 0) return null;
 
   return (
