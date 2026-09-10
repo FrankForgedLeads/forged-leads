@@ -53,8 +53,11 @@ as an admin:
 insert into public.admins (email) values ('you@example.com');
 ```
 
-(matching the `ADMIN_EMAIL` env var used later for the admin panel and
-Netlify Functions). Full click-by-click steps land in `SETUP.md` (Phase 8).
+(matching the `ADMIN_EMAIL` env var used for the admin panel and Netlify
+Functions). Full click-by-click steps, from Supabase through DNS, are in
+[`SETUP.md`](./SETUP.md) — that's the real path to a live site, this
+section is just enough to run it locally. Once it's live, see
+[`LAUNCH.md`](./LAUNCH.md) for the 30-day plan to the first 10 customers.
 
 ## Build status (phased delivery)
 
@@ -64,8 +67,8 @@ Netlify Functions). Full click-by-click steps land in `SETUP.md` (Phase 8).
 - [x] Phase 4 — Letters + PDF export
 - [x] Phase 5 — Scope Checker + leads
 - [x] Phase 6 — Stripe + paywall + webhook
-- [x] **Phase 7** — Resend emails + admin panel (this commit)
-- [ ] Phase 8 — SETUP.md + LAUNCH.md
+- [x] Phase 7 — Resend emails + admin panel
+- [x] **Phase 8** — SETUP.md + LAUNCH.md (this commit) — v1 complete
 
 ## Project structure
 
