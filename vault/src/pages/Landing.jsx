@@ -80,8 +80,8 @@ export default function Landing() {
             className="w-[clamp(220px,52vw,320px)] drop-shadow-[0_0_40px_rgba(212,175,55,0.25)]"
           />
           <span className="rounded-full border border-gold-500/40 bg-gold-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-gold-500">
-            Built for Florida roofers, restoration &amp; mold remediation contractors, and public
-            adjusters
+            Built for Florida contractors, public adjusters, roofers, water restoration &amp; mold
+            remediation
           </span>
           <h1 className="max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-6xl">
             Everything the adjuster left off, in one place.
