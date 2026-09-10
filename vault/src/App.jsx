@@ -3,6 +3,7 @@ import PublicLayout from "./components/layout/PublicLayout.jsx";
 import AppLayout from "./components/layout/AppLayout.jsx";
 import RequireAuth from "./components/auth/RequireAuth.jsx";
 import RequireSubscription from "./components/auth/RequireSubscription.jsx";
+import RequireAdmin from "./components/auth/RequireAdmin.jsx";
 import Landing from "./pages/Landing.jsx";
 import Pricing from "./pages/Pricing.jsx";
 import Terms from "./pages/Terms.jsx";
@@ -18,6 +19,12 @@ import NewClaim from "./pages/NewClaim.jsx";
 import ClaimDetail from "./pages/ClaimDetail.jsx";
 import LetterBuilder from "./pages/LetterBuilder.jsx";
 import ScopeChecker from "./pages/ScopeChecker.jsx";
+import AdminHome from "./pages/admin/AdminHome.jsx";
+import AdminItems from "./pages/admin/AdminItems.jsx";
+import AdminItemForm from "./pages/admin/AdminItemForm.jsx";
+import AdminLeads from "./pages/admin/AdminLeads.jsx";
+import AdminSubscribers from "./pages/admin/AdminSubscribers.jsx";
+import AdminMonthlyUpdate from "./pages/admin/AdminMonthlyUpdate.jsx";
 import ComingSoon from "./pages/ComingSoon.jsx";
 
 export default function App() {
@@ -98,6 +105,66 @@ export default function App() {
             <RequireSubscription>
               <LetterBuilder />
             </RequireSubscription>
+          }
+        />
+
+        {/* ADMIN_EMAIL only, via the admins table + is_admin(). Not gated
+            on RequireSubscription — the person running the Vault shouldn't
+            need to personally pay for a subscription to manage it. */}
+        <Route
+          path="/admin"
+          element={
+            <RequireAdmin>
+              <AdminHome />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/items"
+          element={
+            <RequireAdmin>
+              <AdminItems />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/items/new"
+          element={
+            <RequireAdmin>
+              <AdminItemForm />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/items/:id"
+          element={
+            <RequireAdmin>
+              <AdminItemForm />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/leads"
+          element={
+            <RequireAdmin>
+              <AdminLeads />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/subscribers"
+          element={
+            <RequireAdmin>
+              <AdminSubscribers />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/monthly-update"
+          element={
+            <RequireAdmin>
+              <AdminMonthlyUpdate />
+            </RequireAdmin>
           }
         />
       </Route>

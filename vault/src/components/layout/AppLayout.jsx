@@ -10,14 +10,17 @@ const APP_LINKS = [
 ];
 
 export default function AppLayout() {
-  const { profile, user, signOut } = useAuth();
+  const { profile, user, isAdmin, signOut } = useAuth();
   const isSubscribed = profile && ["trialing", "active"].includes(profile.subscription_status);
   // Dashboard/Vault/Claims are paywalled — no point showing them in the nav
   // (and inviting a redirect-to-/subscribe click) before there's an active
-  // subscription to reach them with.
-  const links = isSubscribed
-    ? [...APP_LINKS, { to: "/account", label: "Account" }]
-    : [{ to: "/account", label: "Account" }];
+  // subscription to reach them with. Admin isn't gated on a subscription at
+  // all (see RequireAdmin), so it shows regardless.
+  const links = [
+    ...(isSubscribed ? APP_LINKS : []),
+    { to: "/account", label: "Account" },
+    ...(isAdmin ? [{ to: "/admin", label: "Admin" }] : []),
+  ];
 
   return (
     <div className="flex min-h-screen flex-col bg-navy-950">

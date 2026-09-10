@@ -16,9 +16,14 @@ represent policyholders, or negotiate settlements. See `/terms` and
 - Supabase (Postgres + RLS + magic-link auth) — Phase 2
 - Stripe Checkout / Customer Portal / webhook — Phase 6, direct redirect to
   Checkout's hosted page (no `@stripe/stripe-js` client dependency needed)
-- Netlify hosting + Netlify Functions — Phase 5 (lead notification), Phase 6 (Stripe webhook)
+- Netlify hosting + Netlify Functions — Phase 5 (lead notification), Phase 6
+  (Stripe), Phase 7 (monthly update, team invites)
 - jsPDF for client-side letter export — Phase 4
-- Resend — Scope Checker lead notification (Phase 5); transactional + monthly update email land in Phase 7
+- Resend — Scope Checker lead notification (Phase 5); monthly update to
+  subscribers and Crew team-invite email (Phase 7). Supabase's own magic-link
+  email is separate — see the SETUP.md note in Phase 8 about pointing
+  Supabase's SMTP settings at Resend so it isn't stuck on Supabase's very
+  low free-tier auth-email rate limit.
 
 ## Local development
 
@@ -58,8 +63,8 @@ Netlify Functions). Full click-by-click steps land in `SETUP.md` (Phase 8).
 - [x] Phase 3 — Vault library + claims
 - [x] Phase 4 — Letters + PDF export
 - [x] Phase 5 — Scope Checker + leads
-- [x] **Phase 6** — Stripe + paywall + webhook (this commit)
-- [ ] Phase 7 — Resend emails + admin panel
+- [x] Phase 6 — Stripe + paywall + webhook
+- [x] **Phase 7** — Resend emails + admin panel (this commit)
 - [ ] Phase 8 — SETUP.md + LAUNCH.md
 
 ## Project structure
@@ -86,9 +91,14 @@ src/
       items.js        fetchActiveItems()
       claims.js        fetchClaims/fetchClaim/createClaim/updateClaim/deleteClaim
       claimItems.js     fetchClaimItems/addClaimItem/updateClaimItem/deleteClaimItem
-      billing.js         createCheckoutSession/createPortalSession (call the
-                          Netlify Functions with the user's Supabase JWT)
-      profile.js          updateProfile()
+      functionClient.js    Shared "POST to a Netlify Function with my JWT" helper
+      billing.js           createCheckoutSession/createPortalSession
+      profile.js           updateProfile()
+      team.js               fetchMyTeam/inviteTeammate/revokeInvite
+      adminItems.js         fetchAllItemsForAdmin/createItem/updateItem/deleteItem
+      adminLeads.js          fetchLeads/markLeadContacted
+      adminSubscribers.js     fetchSubscribers
+      monthlyUpdate.js         sendMonthlyUpdate(subject, bodyHtml)
   pages/
     Landing.jsx
     Pricing.jsx
@@ -97,7 +107,7 @@ src/
     Login.jsx          Magic-link sign-in
     AuthCallback.jsx   Landing spot for the magic-link redirect
     Subscribe.jsx        Checkout buttons — signed in, not yet gated on a subscription
-    Account.jsx           Plan/billing, profile, logout
+    Account.jsx           Plan/billing, team (Crew), profile, logout
     Dashboard.jsx      Recent claims, quick search, new claim, trial banner
     Vault.jsx           Search + category filter + add-to-claim
     Claims.jsx          Claim list
@@ -105,8 +115,14 @@ src/
     ClaimDetail.jsx      Claim info, attached items, running total
     LetterBuilder.jsx    Choose template → edit/preview → export PDF
     ScopeChecker.jsx     Public lead magnet — 12-item checklist + live total
-    ComingSoon.jsx     Now just the public 404 catch-all (both /scope-checker
-                       and /account graduated out of stub status this phase)
+    admin/
+      AdminHome.jsx        Item/lead/subscriber counts + tabs to the rest
+      AdminItems.jsx         List, search, category filter, deactivate/delete
+      AdminItemForm.jsx       Create/edit
+      AdminLeads.jsx           Mark contacted
+      AdminSubscribers.jsx      Read-only table with status badges
+      AdminMonthlyUpdate.jsx     Composer, drafted from items changed in 30d
+    ComingSoon.jsx     Now just the public 404 catch-all
 ```
 
 Scope Checker adds: `lib/scopeChecklist.js` (12 hand-picked items with flat
@@ -148,12 +164,54 @@ raw request body, then handles `checkout.session.completed`,
 `customer.subscription.updated`, `customer.subscription.deleted`, and
 `invoice.payment_failed` — updating `profiles` with the service-role key,
 since Stripe's calls carry no user session to respect RLS with; also
-creates the `teams` row and attaches the owner on a Crew checkout, so
-team_id-based claim sharing works immediately even though the invite UI is
-Phase 7). `netlify/functions/_lib/` holds `auth.js` (JWT verification,
-shared by both Checkout-triggering functions) and `http.js` (a JSON
+creates the `teams` row and attaches the owner on a Crew checkout).
+`netlify/functions/_lib/` holds `auth.js` (JWT verification, shared by
+every function that needs to know who's calling) and `http.js` (a JSON
 response helper) — the leading underscore keeps Netlify from trying to
 deploy them as their own endpoints.
+
+Resend emails + admin panel (Phase 7) add:
+
+- **Admin panel** (`/admin/*`, gated by `RequireAdmin` — checks the same
+  `is_admin()` RPC the DB itself uses, not a second ADMIN_EMAIL comparison
+  that could drift out of sync): items CRUD (`AdminItems`/`AdminItemForm`,
+  with "deactivate" as the primary removal path and "delete" surfacing a
+  clear error instead of a raw Postgres failure when an item is attached
+  to a claim — `items.claim_items` has `ON DELETE RESTRICT`), the leads
+  list with a contacted/not-contacted toggle, and a read-only subscriber
+  table with status badges. `AuthContext` now also exposes `isAdmin`
+  (from `supabase.rpc('is_admin')` — safe to call as anyone, it only ever
+  reveals whether *you* specifically are an admin) and `AppLayout` shows
+  an Admin nav link when it's true. Admin routes are deliberately **not**
+  wrapped in `RequireSubscription` — the person running the Vault
+  shouldn't have to personally pay for a subscription to manage it; the
+  real security boundary is Postgres RLS either way.
+- **Monthly update**: `AdminMonthlyUpdate.jsx` drafts a subject/HTML body
+  from Vault items added or changed in the last 30 days (editable before
+  sending — this is an admin-triggered send, not an unattended cron job,
+  so a broken auto-generated draft can never go out to subscribers
+  unreviewed) and `netlify/functions/send-monthly-update.js` sends it via
+  Resend's batch endpoint to every trialing/active subscriber.
+- **Crew team invites** — the piece of the Account page's spec ("team
+  seats and invites") that was stubbed in Phase 6: `TeamCard` (in
+  `Account.jsx`) shows seat usage, current members, and pending invites,
+  with an invite form and a revoke button.
+  `netlify/functions/invite-teammate.js` verifies the caller owns a team,
+  checks seat limits and for existing members/pending invites, inserts
+  the `team_invites` row, and emails the invite via Resend — all of that
+  runs under the owner's own JWT (no service-role key needed) because RLS
+  already grants a team owner exactly this access. Auto-accepting the
+  invite on the teammate's first login required two `supabase/
+  migration.sql` changes (re-verified against a local Postgres instance,
+  same as every schema change so far): `handle_new_user()` now also
+  checks for a pending invite matching the new user's email and attaches
+  them to that team, and a new `profiles_select_own_admin_or_teammate` RLS
+  policy lets a team's members see each other's profiles (needed so the
+  owner's Account page can list who's on the team) — replacing the
+  Phase 2 `profiles_select_own_or_admin` policy. Known v1 limitation,
+  noted in a migration comment: this only fires for a brand-new
+  `auth.users` row, so inviting someone who already has a Beeyond Vault
+  account needs a manual fix rather than auto-accepting.
 
 ## Database
 
@@ -252,6 +310,49 @@ row creation, and the full webhook → profile update → UI unlock loop with
 real async timing. That's real risk carried into Phase 8 (SETUP.md) —
 budget time there to test a full trial signup against Stripe test mode
 before going live.
+
+## Verifying Resend emails + admin panel (Phase 7)
+
+The DB changes got the most rigorous check available without a real
+Supabase project: re-ran the full `migration.sql` (with `handle_new_user`'s
+new invite-matching logic and the new teammate-visibility policy) against
+a local Postgres 16 instance from scratch, then specifically exercised the
+invite-then-signup sequence with real SQL — inserted a team, inserted a
+`team_invites` row for an email that had never signed in, inserted that
+`auth.users` row (firing the trigger for real, not simulated), and
+confirmed the new profile got `team_id` set and the invite's `accepted_at`
+got stamped, in one transaction-safe trigger. Also evaluated the new RLS
+policy's predicate directly against both the owner's and the teammate's
+profile rows to confirm each is visible to the other.
+
+Client side, same mocked-backend browser testing as every prior phase:
+`RequireAdmin` correctly hides the Admin nav link and redirects a
+non-admin away from `/admin`, while an admin sees it and lands on working
+stats; the items list shows both active and inactive items, search and
+category filtering work, deactivating flips the badge, creating a new
+item works, and — specifically — deleting an item that's attached to a
+claim surfaces the friendly "attached to one or more claims" message
+rather than a raw error (simulated the same Postgres 23503 the real
+`ON DELETE RESTRICT` constraint would return); leads list and the
+mark-contacted toggle work; the subscriber table renders every status
+correctly; the monthly-update composer's recipient count and drafted body
+are correct and sending calls the function with the right payload; and
+the team card shows correct seat counts, an invite call reaches the
+function with the right email, and revoking an invite frees the seat back
+up. Zero console errors throughout (one deliberately-triggered 409 in the
+delete-with-FK test shows up as Chromium's own network-failure log, not
+an app error — confirmed by the same test asserting the friendly message
+rendered).
+
+Not verified here, same limitation as every phase touching a Netlify
+Function: `send-monthly-update.js` and `invite-teammate.js` were only
+syntax-checked (`node --check`), not run — they need real Supabase +
+Resend credentials via `netlify dev` or a live deploy. Test both for real
+in Phase 8 before relying on them: send a monthly update to a real test
+subscriber and confirm delivery, and run through a full Crew invite with
+a second real email address to confirm the auto-accept trigger and the
+invite email both work end to end outside of the local-Postgres
+simulation above.
 
 ## Brand
 

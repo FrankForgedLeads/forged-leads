@@ -255,6 +255,14 @@ create trigger set_updated_at before update on public.claims
 -- Auto-create a profile row when someone signs up via magic link.
 -- subscription_status stays NULL until Stripe checkout completes (Phase 6
 -- webhook sets plan/status/trial_ends_at from the actual subscription).
+--
+-- Also auto-accepts a pending Crew team invite sent to this email (Phase
+-- 7's invite-teammate function inserts the team_invites row before the
+-- invited person has ever signed in) — attaches the new profile to that
+-- team and marks the invite accepted, atomically with profile creation.
+-- Known v1 limitation: this only fires on a brand-new auth.users row, so
+-- inviting someone who already has a Beeyond Vault account needs a manual
+-- fix (update their profiles.team_id) rather than auto-accepting here.
 -- ----------------------------------------------------------------------------
 
 create or replace function public.handle_new_user()
@@ -263,10 +271,24 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  matched_invite record;
 begin
   insert into public.profiles (id, email)
   values (new.id, new.email)
   on conflict (id) do nothing;
+
+  select * into matched_invite
+  from public.team_invites
+  where email = new.email and accepted_at is null
+  order by created_at desc
+  limit 1;
+
+  if matched_invite.id is not null then
+    update public.profiles set team_id = matched_invite.team_id where id = new.id;
+    update public.team_invites set accepted_at = now() where id = matched_invite.id;
+  end if;
+
   return new;
 end;
 $$;
@@ -302,10 +324,16 @@ as $$
 $$;
 
 -- --- profiles ---------------------------------------------------------------
--- Readable/writable only by the owner, or by admins (subscriber list).
+-- Readable/writable only by the owner, by admins (subscriber list), or by a
+-- fellow team member (Crew — so the owner's Account page can show who's on
+-- the team; my_team_id() already backs the same pattern for claims).
 
-create policy "profiles_select_own_or_admin" on public.profiles
-  for select using (id = auth.uid() or public.is_admin());
+create policy "profiles_select_own_admin_or_teammate" on public.profiles
+  for select using (
+    id = auth.uid()
+    or public.is_admin()
+    or (team_id is not null and team_id = public.my_team_id())
+  );
 
 create policy "profiles_update_own_or_admin" on public.profiles
   for update using (id = auth.uid() or public.is_admin());

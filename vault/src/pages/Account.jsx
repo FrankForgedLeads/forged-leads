@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 import { Field, Input, Select } from "../components/ui/Field.jsx";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { createPortalSession } from "../lib/api/billing.js";
 import { updateProfile } from "../lib/api/profile.js";
+import { fetchMyTeam, inviteTeammate, revokeInvite } from "../lib/api/team.js";
 import { daysLeftInTrial, subscriptionStatusLabel } from "../lib/subscription.js";
 import { formatDate } from "../lib/format.js";
 
@@ -84,16 +85,147 @@ function BillingCard({ profile }) {
   );
 }
 
-function TeamCard({ profile }) {
+function TeamCard({ profile, userId }) {
+  const [team, setTeam] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [pendingInvites, setPendingInvites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [busyInviteId, setBusyInviteId] = useState(null);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  function load() {
+    setLoading(true);
+    return fetchMyTeam(userId)
+      .then(({ team, members, pendingInvites }) => {
+        setTeam(team);
+        setMembers(members);
+        setPendingInvites(pendingInvites);
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    if (profile?.plan === "crew") load();
+    else setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.plan, userId]);
+
   if (profile?.plan !== "crew") return null;
+  if (loading) {
+    return (
+      <Card>
+        <h2 className="font-bold text-white">Team</h2>
+        <p className="mt-2 text-sm text-white/60">Loading…</p>
+      </Card>
+    );
+  }
+  if (!team) {
+    return (
+      <Card>
+        <h2 className="font-bold text-white">Team</h2>
+        <p className="mt-2 text-sm text-white/60">
+          Your team is being set up — this usually only takes a moment right after subscribing.
+          Refresh in a bit if it doesn't appear.
+        </p>
+      </Card>
+    );
+  }
+
+  const seatsUsed = members.length + pendingInvites.length;
+
+  async function handleInvite(e) {
+    e.preventDefault();
+    setInviting(true);
+    setError("");
+    setNotice("");
+    try {
+      const res = await inviteTeammate(inviteEmail.trim());
+      setInviteEmail("");
+      setNotice(res.warning || "Invite sent.");
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setInviting(false);
+    }
+  }
+
+  async function handleRevoke(invite) {
+    setBusyInviteId(invite.id);
+    setError("");
+    try {
+      await revokeInvite(invite.id);
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyInviteId(null);
+    }
+  }
+
   return (
     <Card>
-      <h2 className="font-bold text-white">Team</h2>
-      <p className="mt-2 text-sm text-white/60">
-        Your Crew subscription covers up to 5 users. Inviting teammates by email lands in Phase 7
-        — for now, share your login email with whoever needs access and we'll get seat invites
-        wired up next.
-      </p>
+      <div className="flex items-center justify-between">
+        <h2 className="font-bold text-white">Team</h2>
+        <span className="text-sm text-white/50">
+          {seatsUsed} / {team.seat_limit} seats
+        </span>
+      </div>
+
+      <ul className="mt-4 space-y-2">
+        {members.map((m) => (
+          <li key={m.id} className="flex items-center justify-between text-sm">
+            <span className="text-white">
+              {m.email} {m.id === userId && <span className="text-white/40">(you)</span>}
+            </span>
+            <span className="text-xs font-bold uppercase tracking-wide text-gold-500">Member</span>
+          </li>
+        ))}
+        {pendingInvites.map((invite) => (
+          <li key={invite.id} className="flex items-center justify-between text-sm">
+            <span className="text-white/70">{invite.email}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold uppercase tracking-wide text-white/40">Pending</span>
+              <button
+                type="button"
+                disabled={busyInviteId === invite.id}
+                onClick={() => handleRevoke(invite)}
+                className="text-xs font-semibold text-red-400 hover:underline disabled:opacity-50"
+              >
+                Revoke
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {seatsUsed < team.seat_limit ? (
+        <form onSubmit={handleInvite} className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <div className="flex-1">
+            <Input
+              type="email"
+              required
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="teammate@company.com"
+            />
+          </div>
+          <Button as="button" type="submit" disabled={inviting} className="px-6 py-3.5 text-sm">
+            {inviting ? "Sending…" : "Send invite"}
+          </Button>
+        </form>
+      ) : (
+        <p className="mt-5 text-sm text-white/50">
+          All {team.seat_limit} seats are used. Revoke a pending invite to free one up.
+        </p>
+      )}
+
+      {error && <p className="mt-3 text-sm font-semibold text-red-400">{error}</p>}
+      {notice && <p className="mt-3 text-sm font-semibold text-gold-500">{notice}</p>}
     </Card>
   );
 }
@@ -181,7 +313,7 @@ export default function Account() {
 
       <div className="mt-8 space-y-6">
         <BillingCard profile={profile} />
-        <TeamCard profile={profile} />
+        <TeamCard profile={profile} userId={user?.id} />
         <ProfileCard profile={profile} userId={user?.id} onSaved={refreshProfile} />
 
         <Card>

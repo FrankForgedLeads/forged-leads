@@ -6,25 +6,38 @@ const AuthContext = createContext(undefined);
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async (userId) => {
     if (!userId) {
       setProfile(null);
+      setIsAdmin(false);
       return;
     }
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
-    if (error) {
+    const [profileResult, adminResult] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+      // is_admin() is a SECURITY DEFINER function — safe to call as any
+      // authenticated user, it only ever reveals whether *you* are an
+      // admin, never the admins table itself.
+      supabase.rpc("is_admin"),
+    ]);
+
+    if (profileResult.error) {
       // eslint-disable-next-line no-console
-      console.error("[Beeyond Vault] Failed to load profile:", error.message);
+      console.error("[Beeyond Vault] Failed to load profile:", profileResult.error.message);
       setProfile(null);
-      return;
+    } else {
+      setProfile(profileResult.data);
     }
-    setProfile(data);
+
+    if (adminResult.error) {
+      // eslint-disable-next-line no-console
+      console.error("[Beeyond Vault] Failed to check admin status:", adminResult.error.message);
+      setIsAdmin(false);
+    } else {
+      setIsAdmin(Boolean(adminResult.data));
+    }
   }, []);
 
   useEffect(() => {
@@ -55,6 +68,7 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut();
     setSession(null);
     setProfile(null);
+    setIsAdmin(false);
   }, []);
 
   const refreshProfile = useCallback(
@@ -66,6 +80,7 @@ export function AuthProvider({ children }) {
     session,
     user: session?.user ?? null,
     profile,
+    isAdmin,
     loading,
     signOut,
     refreshProfile,
