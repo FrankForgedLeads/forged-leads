@@ -17,8 +17,8 @@ export default function Footer() {
               >
                 Beeyond Estimators
               </a>
-              . Built for Florida contractors, public adjusters, roofers, water restoration &amp;
-              mold remediation.
+              . Built for Florida contractors, public adjusters, roofers, water restoration, mold
+              remediation &amp; remodeling.
             </p>
           </div>
 
