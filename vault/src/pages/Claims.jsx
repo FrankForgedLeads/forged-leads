@@ -6,12 +6,11 @@ import Card from "../components/ui/Card.jsx";
 import { formatDate } from "../lib/format.js";
 
 const STATUS_LABEL = {
-  open: "Open",
-  in_progress: "In Progress",
-  submitted: "Submitted",
-  partially_approved: "Partially Approved",
-  resolved: "Resolved",
-  closed: "Closed",
+  new: "New",
+  under_review: "Under Review",
+  findings_reviewed: "Findings Reviewed",
+  documentation_complete: "Documentation Complete",
+  completed: "Completed",
 };
 
 export default function Claims() {

@@ -357,6 +357,92 @@ a second real email address to confirm the auto-accept trigger and the
 invite email both work end to end outside of the local-Postgres
 simulation above.
 
+## Verifying Estimate Review — uploads + storage (Phase 2)
+
+First major step toward the Estimate Review architecture-audit plan:
+uploading and securely storing the estimate PDF and supporting
+documentation (photos, scope notes, invoices) a claim's review will
+eventually run against. No AI/analysis engine yet — that's Phase 3. This
+phase is deliberately just upload + storage + the project-info fields the
+analysis engine will need later.
+
+**Architecture decision**: rather than a new, parallel `estimate_reviews`
+table, this extends the existing `claims` table with the project-info
+fields from the product spec (`project_type`, `trade`, `estimate_total`,
+`description`, `notes`) and replaces its old insurance-specific status
+vocabulary (`open`/`in_progress`/`submitted`/...) with the spec's review
+workflow (`new`/`under_review`/`findings_reviewed`/`documentation_complete`/
+`completed`). `claims` is the one record the spec's "Projects/Reviews"
+concept eventually needs — estimate, documentation, analysis, findings,
+and generated letters all together — so extending it now avoids having to
+merge two tables together later. The `claims` → "Projects" UI relabel
+itself is still a separate, later phase; this is schema and storage only.
+
+New `review_files` table (one row per uploaded file, categorized
+`estimate`/`photo`/`document`, RLS following the parent claim exactly like
+`claim_items`/`letters`) plus a private Supabase Storage bucket
+(`review-files`) with a real, Postgres-enforced 15 MB file-size cap and a
+PDF/JPEG/PNG/WEBP/HEIC allow-list — both set directly on the
+`storage.buckets` row in the migration, not just checked client-side, so a
+direct API call can't bypass the limit and run up the Storage free tier.
+Storage access is scoped by the standard Supabase per-user-folder RLS
+pattern (`${auth.uid()}/${claim_id}/${file}`). Known v1 limitation,
+documented inline in the migration: a Crew teammate can see a shared
+claim's file *rows* but can't fetch a teammate's actual file bytes, since
+storage access is scoped by uploader, not by team — acceptable for v1,
+revisit if that becomes a real ask.
+
+**Verified**: ran the full `migration.sql` end-to-end against a fresh
+local Postgres 16 instance with a minimal `auth`/`storage` schema shim
+(just enough surface — `auth.users`, `auth.uid()`/`auth.jwt()`,
+`storage.buckets`/`storage.objects`/`storage.foldername()` — to exercise
+the real, unmodified migration file, not a rewritten test version), then
+specifically: confirmed old status values are rejected by the new check
+constraint and get remapped by the migration's own `UPDATE` before that
+constraint is added; confirmed the new columns and default status
+(`new`) work; confirmed the `review-files` bucket lands with `public:
+false`, the 15 MB limit, and the exact MIME allow-list; inserted a
+`review_files` row and confirmed `storage.foldername()` splits the path
+the way the RLS policies expect. Re-ran the whole file a second time to
+confirm the new `ALTER ... IF NOT EXISTS`/`ON CONFLICT` statements are
+safe to re-run (they are — the failures on the second run are all
+`CREATE POLICY` statements, which were never idempotent anywhere in this
+file even before this phase, not a regression).
+
+Client side, same mocked-backend Playwright methodology as every prior
+phase (`/rest/v1/claims`, `/rest/v1/review_files`,
+`/storage/v1/object/review-files/**`, `/storage/v1/object/sign/**`, all
+backed by an in-memory fake dataset): creating a review from the expanded
+`NewClaim` form persists the new fields correctly; uploading an estimate
+PDF and a documentation photo both call Storage then insert the
+`review_files` row, with photos auto-categorized `photo` by MIME type and
+everything else `document`; an oversized file (16 MB, over the 15 MB cap)
+is rejected client-side with zero network calls, not just server-side;
+clicking a filename fetches a signed URL and opens it; deleting a file
+removes both the Storage object and the row. "Run Vault Review" renders
+visibly disabled with a "coming soon" explanation rather than pretending
+to do anything — Phase 3 is where that button starts working. Zero
+console errors throughout.
+
+**Bug caught and fixed by this testing**: adding the Documents section
+pushed the page tall enough that the pre-existing sticky "running total"
+bar — `position: sticky; bottom: 0`, which pins to the viewport bottom
+whenever the page extends below the fold, regardless of scroll position —
+started permanently overlapping the new Estimate/Documentation upload
+cards, hiding their upload buttons under the bar. Fixed by wrapping the
+Attached Items section and the sticky bar together in their own
+containing block, so the bar's sticky range is scoped to that section
+instead of the whole page. Confirmed fixed via before/after screenshots.
+
+Not verified here, same limitation as every phase touching real
+Supabase/Storage infrastructure: actual file upload against a live
+Supabase project (Storage RLS enforcement, the real per-user-folder
+policies, actual signed URLs). Test this for real in Phase 8/SETUP.md —
+upload a real PDF and a real photo as one account, confirm a second
+account (and a teammate on a Crew plan) can't read the first account's
+files, and confirm the bucket's 15 MB limit actually rejects an oversized
+upload server-side, not just in this client-side check.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow

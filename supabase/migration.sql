@@ -537,6 +537,164 @@ create policy "leads_select_admin" on public.leads
   for select using (public.is_admin());
 
 -- ============================================================================
+-- PHASE 2 — ESTIMATE REVIEW: uploads + storage
+--
+-- Decision: "claims" becomes the one record that eventually holds a project's
+-- estimate, documentation, analysis, and generated documents together (the
+-- product spec's "Projects/Reviews" entity) — so this extends the existing
+-- claims table with the review/project-info fields instead of creating a
+-- second, parallel table that would need merging with claims later. The
+-- claims -> Projects/Reviews UI relabel is its own later phase; this is just
+-- the schema and storage groundwork. Written as ALTER ... IF NOT EXISTS
+-- throughout so this section is safe to re-run whether claims was just
+-- created above or already existed from an earlier run of this file.
+-- ============================================================================
+
+alter table public.claims add column if not exists project_type text;
+alter table public.claims add column if not exists trade text;
+alter table public.claims add column if not exists estimate_total numeric(12, 2);
+alter table public.claims add column if not exists description text;
+alter table public.claims add column if not exists notes text;
+
+-- Replace the old insurance-specific status vocabulary with the product
+-- spec's review-workflow vocabulary. Remap any existing rows first so the
+-- new, stricter check constraint never rejects data already in the table.
+update public.claims set status = case status
+  when 'open' then 'new'
+  when 'in_progress' then 'under_review'
+  when 'submitted' then 'under_review'
+  when 'partially_approved' then 'under_review'
+  when 'resolved' then 'completed'
+  when 'closed' then 'completed'
+  else status
+end
+where status in ('open', 'in_progress', 'submitted', 'partially_approved', 'resolved', 'closed');
+
+alter table public.claims drop constraint if exists claims_status_check;
+alter table public.claims add constraint claims_status_check check (
+  status in ('new', 'under_review', 'findings_reviewed', 'documentation_complete', 'completed')
+);
+alter table public.claims alter column status set default 'new';
+
+-- ----------------------------------------------------------------------------
+-- REVIEW FILES (uploaded estimate PDFs, photos, and supporting documents)
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.review_files (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  -- 'estimate' = the uploaded estimate PDF; 'photo' = a damage/property
+  -- photo; 'document' = anything else (scope notes, invoices, moisture
+  -- maps, measurements, etc).
+  file_type text not null check (file_type in ('estimate', 'photo', 'document')),
+  -- Path within the private 'review-files' storage bucket, always prefixed
+  -- with the uploader's auth.uid() — see the storage.objects policies
+  -- below, which key off that same prefix.
+  storage_path text not null,
+  file_name text not null,
+  mime_type text,
+  size_bytes bigint,
+  uploaded_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists review_files_claim_id_idx on public.review_files(claim_id);
+
+alter table public.review_files enable row level security;
+
+-- Access follows the parent claim, same shape as claim_items/letters.
+create policy "review_files_select" on public.review_files
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "review_files_insert" on public.review_files
+  for insert with check (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "review_files_delete" on public.review_files
+  for delete using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- ----------------------------------------------------------------------------
+-- STORAGE — private 'review-files' bucket
+--
+-- Objects are stored at `${auth.uid()}/${claim_id}/${generated filename}`.
+-- Access is scoped to the top-level folder matching the caller's own
+-- auth.uid() — the standard Supabase Storage per-user-folder RLS pattern.
+-- Known v1 limitation: a Crew teammate can see a shared claim's *rows* in
+-- review_files (per the policies above) but not fetch the actual file bytes
+-- of a teammate's upload, since storage access is scoped by uploader, not by
+-- team. Acceptable for v1 — revisit if team-shared file access becomes a
+-- real ask; the fix is a storage policy that joins storage.objects back to
+-- review_files/claims the same way the table policies above do.
+-- 15 MB per file cap and an allow-list of the file types the upload UI
+-- actually offers — enforced by Postgres here, not just client-side, so a
+-- direct API call can't bypass it and blow through the Storage free tier.
+-- ----------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'review-files',
+  'review-files',
+  false,
+  15728640, -- 15 MB
+  array['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic']
+)
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "review_files_storage_select" on storage.objects
+  for select using (
+    bucket_id = 'review-files'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+create policy "review_files_storage_insert" on storage.objects
+  for insert with check (
+    bucket_id = 'review-files'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "review_files_storage_delete" on storage.objects
+  for delete using (
+    bucket_id = 'review-files'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
