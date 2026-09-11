@@ -5,6 +5,28 @@ import ScreenshotPlaceholder from "../components/ui/ScreenshotPlaceholder.jsx";
 import PricingTable from "../components/PricingTable.jsx";
 import beeyondLogo from "../assets/beeyond-logo.webp";
 
+// Upload/Review/Confirm is the human-in-the-loop workflow the product is
+// built around: Vault never asserts an item is owed or auto-adds anything —
+// it flags candidates, the contractor decides, and only confirmed items ever
+// reach a claim or a generated document.
+const HOW_IT_WORKS = [
+  {
+    step: 1,
+    title: "Upload",
+    body: "Your estimate and supporting documentation.",
+  },
+  {
+    step: 2,
+    title: "Review",
+    body: "Vault compares the documented scope against its database and flags potential gaps.",
+  },
+  {
+    step: 3,
+    title: "Confirm",
+    body: "You decide what applies and build your documentation from there.",
+  },
+];
+
 // Deliberately not framed as "what the adjuster left off" — Vault is a
 // self-review tool the contractor runs on their own estimate before it goes
 // out, not an adversarial claims-fighting pitch. Keep this list to the kind
@@ -105,11 +127,52 @@ export default function Landing() {
             <Button to="/pricing" className="text-lg">
               Run My First Review
             </Button>
-            <Button href="#features" variant="secondary" className="text-lg">
+            <Button href="#how-it-works" variant="secondary" className="text-lg">
               See How It Works
             </Button>
           </div>
           <p className="text-sm text-white/40">Card required for trial · Cancel anytime</p>
+        </div>
+      </section>
+
+      {/* How it works — Upload / Review / Confirm */}
+      <section id="how-it-works" className="border-b border-navy-700/60 bg-navy-900/60 py-20">
+        <div className="container-vault">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
+              Upload your estimate. Upload your documentation.
+            </h2>
+            <p className="mt-4 text-white/60">
+              Let Vault identify scope that deserves a second look before you submit your
+              estimate.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-3">
+            {HOW_IT_WORKS.map((step) => (
+              <Card key={step.step}>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold-500 text-sm font-extrabold text-navy-950">
+                  {step.step}
+                </span>
+                <h3 className="mt-4 font-extrabold text-white">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/70">{step.body}</p>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Button to="/pricing" className="text-lg">
+              Review My Estimate
+            </Button>
+            <Button href="#features" variant="secondary" className="text-lg">
+              Explore the Vault
+            </Button>
+          </div>
+
+          <p className="mx-auto mt-6 max-w-lg text-center text-sm text-white/40">
+            Vault doesn't tell you what you're owed. It helps you see what you might have missed
+            — you make the final call on every item.
+          </p>
         </div>
       </section>
 
