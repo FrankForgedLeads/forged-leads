@@ -842,6 +842,51 @@ alter table public.items add column if not exists last_verified_date date;
 alter table public.items add column if not exists source_notes text;
 
 -- ============================================================================
+-- SECURITY FIX (Phase 10 audit) — profiles/team_invites column privileges
+--
+-- Vulnerability: "profiles_update_own_or_admin" (defined earlier in this
+-- file) and "team_invites_update" both use `for update using (...)` with
+-- no `with check` clause. Postgres RLS reuses the USING expression as the
+-- check on the NEW row when no WITH CHECK is given — so the *only* thing
+-- either policy actually enforces is "this row belongs to me." Neither
+-- restricts which COLUMNS a permitted update can change. Concretely, any
+-- signed-in user could send `PATCH .../profiles?id=eq.<their own id>` with
+-- body `{"team_id": "<any other team's uuid>"}` and it would succeed —
+-- since every Crew-sharing policy in this file (teams, claims, claim_items,
+-- letters, review_files, review_findings, analysis_runs) grants access
+-- based on `team_id = public.my_team_id()`, and my_team_id() just reads
+-- the caller's own profiles.team_id, this let any user grant themselves
+-- read/write access to an arbitrary team's claims, documents, and
+-- Estimate Review findings by editing one column on their own row.
+--
+-- Fix: column-level privileges, not a trickier RLS rewrite. Postgres
+-- checks table/column grants before it ever evaluates RLS — an UPDATE
+-- naming a column the role has no privilege on fails outright, regardless
+-- of policy content. This is simpler to get right than a self-referential
+-- WITH CHECK subquery and fully closes the hole either way. The
+-- `authenticated` role only legitimately needs to update the columns the
+-- Account page actually lets a user edit (full_name, company, phone,
+-- role) — team_id, plan, the Stripe fields, subscription_status, and
+-- trial_ends_at are all written exclusively by the Stripe webhook or the
+-- signup trigger, both of which run as service_role and are unaffected by
+-- these grants (service_role bypasses RLS and column privileges alike).
+--
+-- team_invites_update is revoked outright: grepping the app confirms the
+-- client never calls .update() on team_invites (only .select() and
+-- .delete() — see src/lib/api/team.js) and invite acceptance is handled
+-- entirely inside handle_new_user(), a SECURITY DEFINER trigger that also
+-- runs as its owner, not as the calling session. The policy was dead code
+-- providing only attack surface (the same missing-WITH-CHECK gap would
+-- have let an invited user repoint their own pending invite to a
+-- different team's id).
+-- ============================================================================
+
+revoke update on public.profiles from authenticated;
+grant update (full_name, company, phone, role) on public.profiles to authenticated;
+
+revoke update on public.team_invites from authenticated;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

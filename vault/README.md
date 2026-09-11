@@ -643,6 +643,89 @@ button, and empty-state message uses review language. Zero console
 errors. Full build + lint clean, no new warnings beyond the pre-existing
 baseline.
 
+## SECURITY FIX — cross-tenant privilege escalation (Phase 10 audit)
+
+A Phase 10 security audit (an independent agent pass focused specifically
+on the RLS policies, every Netlify Function, and the multi-tenant Crew
+data-sharing paths) found one **High severity, confirmed-exploitable**
+vulnerability, since fixed and verified. Recording it here in full,
+un-sanitized, on purpose — the point of an audit note is to be a real
+record, not to make the finding disappear.
+
+**The bug**: `profiles_update_own_or_admin` and `team_invites_update`
+(both defined earlier in `migration.sql`) used `for update using (...)`
+with no `with check` clause. Postgres RLS reuses the USING expression as
+the check on the new row when none is given — so the *only* thing either
+policy actually enforced was "this row belongs to me." Neither restricted
+*which columns* a permitted update could change.
+
+**The impact**: since every Crew-sharing RLS policy in this schema
+(`teams`, `claims`, `claim_items`, `letters`, `review_files`,
+`review_findings`, `analysis_runs`) grants access based on
+`team_id = public.my_team_id()`, and `my_team_id()` just reads the
+caller's own `profiles.team_id` — any signed-in user could have sent
+`PATCH .../profiles?id=eq.<their own id>` with body
+`{"team_id": "<any other team's uuid>"}` and it would have succeeded, no
+UI involvement needed. That one write would have granted them read *and
+write* access to an arbitrary team's claims, uploaded documents, and AI
+Estimate Review findings — a complete bypass of the tenant isolation RLS
+exists to provide, from an ordinary authenticated session, not a bug
+requiring any special access to find or exploit.
+
+**The fix**: column-level privileges rather than a trickier RLS rewrite.
+Postgres checks table/column grants *before* it evaluates RLS — an UPDATE
+naming a column the role lacks privilege on fails outright regardless of
+policy content, which is simpler to reason about correctly than a
+self-referential WITH CHECK subquery comparing old vs. new values.
+`authenticated` now only has UPDATE on the four `profiles` columns the
+Account page actually lets a user edit (`full_name`, `company`, `phone`,
+`role`) — `team_id`/`plan`/the Stripe fields/`subscription_status`/
+`trial_ends_at` are all written exclusively by the Stripe webhook or the
+signup trigger, both running as `service_role`, which bypasses RLS and
+column grants alike and is unaffected by this change. `team_invites`
+UPDATE is revoked from `authenticated` entirely — grepping the app
+confirmed the client never calls `.update()` on it (only `.select()`/
+`.delete()`), and invite acceptance happens inside a SECURITY DEFINER
+trigger that runs as its owner, not the calling session, so the policy
+was dead code providing pure attack surface.
+
+**Known tradeoff, intentional**: `profiles_update_own_or_admin`'s RLS
+still nominally says an admin can update any profile, but the new column
+grants apply to the `authenticated` role uniformly — there's no separate
+Postgres role for "admin," admin status is just a row in the `admins`
+table checked via `is_admin()`. So this closes the hole for admins too,
+at the client level. Confirmed no current admin feature needs broader
+profile writes (`AdminSubscribers.jsx` only reads). If one is ever built,
+it must go through a service-role Netlify Function with its own audit
+trail — never a loosening of these grants — same reasoning as every other
+privileged write in this app (Stripe webhook, admin item CRUD via RLS's
+`is_admin()` check on `items`, which is a genuinely different, lower-risk
+case since `items` isn't part of the tenant-isolation boundary).
+
+**Verified**: built a more realistic local-Postgres shim than prior
+phases' — a real `authenticated` Postgres role plus `ALTER DEFAULT
+PRIVILEGES ... GRANT ALL ON TABLES TO authenticated`, matching what a
+real Supabase project actually provisions by default (broad table grants,
+RLS as the intended primary boundary) — specifically so this test would
+exercise the fix's REVOKE/GRANT statements against a realistic starting
+privilege set, not an artificially-already-locked-down vanilla Postgres
+one that would pass for the wrong reason. Then, as the `authenticated`
+role with `auth.uid()` wired to return a real seeded attacker id: (1)
+confirmed the attacker updating their own `full_name` still succeeds
+(the legitimate case isn't broken), (2) attempted the exact exploit —
+setting their own `team_id` to a seeded victim team's id — and confirmed
+it fails with `permission denied for table profiles`, with the row's
+`team_id` verified still NULL afterward, (3) seeded a `team_invites` row
+addressed to the attacker's email and confirmed any update to it now
+fails with `permission denied for table team_invites`.
+
+This was never exploited against real data — no live Supabase project
+has been running this schema yet (SETUP.md Step 1 is still pending) — but
+it would have been live and exploitable from the moment that step was
+completed, before this fix. No action needed from Frankie beyond running
+the current `migration.sql` (which now includes the fix) rather than an
+earlier copy.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow
