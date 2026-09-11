@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchClaim, updateClaim } from "../lib/api/claims.js";
-import { fetchClaimItems, updateClaimItem, deleteClaimItem } from "../lib/api/claimItems.js";
+import { fetchClaimItems, updateClaimItem, deleteClaimItem, addClaimItem } from "../lib/api/claimItems.js";
 import {
   fetchReviewFiles,
   uploadReviewFile,
@@ -10,6 +10,7 @@ import {
   validateReviewFile,
   REVIEW_FILES_MAX_PER_CLAIM,
 } from "../lib/api/reviewFiles.js";
+import { runAnalysis, fetchFindings, updateFindingStatus } from "../lib/api/analysis.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
@@ -19,6 +20,7 @@ import { categoryLabel } from "../lib/categories.js";
 import { LOSS_TYPES } from "../lib/lossTypes.js";
 import { TRADES } from "../lib/trades.js";
 import { lineTotal, claimTotal } from "../lib/claimMath.js";
+import { ANALYSIS_DISCLAIMER } from "../lib/disclaimer.js";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "New" },
@@ -163,6 +165,10 @@ export default function ClaimDetail() {
 
       {/* Documents — estimate + supporting documentation upload */}
       <DocumentsSection claimId={id} />
+
+      {/* Vault Review — the analysis engine's findings, always pending
+          human confirmation before anything reaches the claim. */}
+      <FindingsSection claimId={id} claim={claim} onItemAdded={load} />
 
       {/* Attached items — wrapped together with the sticky total bar below so
           the bar's sticky containing block starts here, not at the top of
@@ -466,20 +472,329 @@ function DocumentsSection({ claimId }) {
       </div>
 
       {error && <p className="mt-3 text-sm font-semibold text-red-400">{error}</p>}
+    </div>
+  );
+}
 
-      <Card className="mt-4 flex flex-wrap items-center justify-between gap-3 bg-navy-900/60">
+const SCOPE_STATUS_LABEL = {
+  not_found_in_estimate: "Potentially Missing",
+  quantity_mismatch: "Quantity May Not Match Documented Scope",
+  code_required: "Code Reference May Apply — Verify",
+};
+
+const CONFIDENCE_LABEL = { high: "High", medium: "Medium", low: "Low" };
+const DECIDED_STATUS_LABEL = { added: "Added", dismissed: "Dismissed", needs_info: "Needs more info" };
+
+// Human-in-the-loop, always: this component never adds anything to the
+// claim or asserts a dollar amount is owed on its own. Every finding sits
+// as status "new" until the contractor explicitly clicks Add to Review,
+// Dismiss, or Needs More Information — see review_findings' RLS in
+// migration.sql, which only lets the client update a finding's status, not
+// create one; only analyze-review.js (service-role) can do that.
+function FindingsSection({ claimId, claim, onItemAdded }) {
+  const [hasEstimate, setHasEstimate] = useState(false);
+  const [checkingFiles, setCheckingFiles] = useState(true);
+  const [findings, setFindings] = useState([]);
+  const [loadingFindings, setLoadingFindings] = useState(true);
+  const [running, setRunning] = useState(false);
+  const [runError, setRunError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [actingId, setActingId] = useState(null);
+
+  const loadFindings = useCallback(() => {
+    setLoadingFindings(true);
+    fetchFindings(claimId)
+      .then(setFindings)
+      .catch((e) => setActionError(e.message))
+      .finally(() => setLoadingFindings(false));
+  }, [claimId]);
+
+  useEffect(() => {
+    fetchReviewFiles(claimId)
+      .then((files) => setHasEstimate(files.some((f) => f.file_type === "estimate")))
+      .finally(() => setCheckingFiles(false));
+    loadFindings();
+  }, [claimId, loadFindings]);
+
+  async function handleRun() {
+    setRunning(true);
+    setRunError("");
+    try {
+      await runAnalysis(claimId);
+      loadFindings();
+    } catch (e) {
+      setRunError(e.message);
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  async function handleAction(finding, action) {
+    setActingId(finding.id);
+    setActionError("");
+    try {
+      if (action === "added") {
+        if (!finding.item_id) throw new Error("This finding isn't linked to a specific Vault item.");
+        const claimItem = await addClaimItem({
+          claimId,
+          itemId: finding.item_id,
+          quantity: finding.suggested_quantity || 1,
+          note: finding.evidence ? `Vault Review: ${finding.evidence}` : "Added from Vault Review",
+        });
+        const updated = await updateFindingStatus(finding.id, "added", { claim_item_id: claimItem.id });
+        setFindings((prev) => prev.map((f) => (f.id === finding.id ? updated : f)));
+        onItemAdded?.();
+      } else {
+        const updated = await updateFindingStatus(finding.id, action);
+        setFindings((prev) => prev.map((f) => (f.id === finding.id ? updated : f)));
+      }
+    } catch (e) {
+      setActionError(e.message);
+    } finally {
+      setActingId(null);
+    }
+  }
+
+  const pending = findings.filter((f) => f.status === "new");
+  const decided = findings.filter((f) => f.status !== "new");
+  const addedFindings = findings.filter((f) => f.status === "added");
+  const summaryLow = addedFindings.reduce(
+    (sum, f) => sum + (f.items?.low_amount ?? 0) * (f.suggested_quantity || 1),
+    0,
+  );
+  const summaryHigh = addedFindings.reduce(
+    (sum, f) => sum + (f.items?.high_amount ?? 0) * (f.suggested_quantity || 1),
+    0,
+  );
+
+  return (
+    <div className="mt-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-bold text-white">Run Vault Review</p>
+          <h2 className="text-lg font-extrabold text-white">Vault Review</h2>
           <p className="mt-1 text-sm text-white/50">
-            Coming soon — Vault will compare what's uploaded here against its knowledge base and
-            flag scope worth a second look. Your files are saved and ready for it.
+            Potential scope gaps worth a second look — you decide what applies.
           </p>
         </div>
-        <Button as="button" type="button" variant="ghost" disabled className="pointer-events-none opacity-50">
-          Run Vault Review
+        <Button
+          as="button"
+          type="button"
+          onClick={handleRun}
+          disabled={running || !hasEstimate || checkingFiles}
+          className="px-5 py-2.5 text-sm"
+        >
+          {running ? "Reviewing…" : findings.length > 0 ? "Run Vault Review again" : "Run Vault Review"}
         </Button>
-      </Card>
+      </div>
+
+      {!checkingFiles && !hasEstimate && (
+        <p className="mt-3 text-sm text-white/40">Upload an estimate above to run a review.</p>
+      )}
+
+      {runError && (
+        <Card className="mt-4 border-red-500/40 bg-red-500/5">
+          <p className="text-sm font-semibold text-red-400">{runError}</p>
+          <Button
+            as="button"
+            type="button"
+            variant="secondary"
+            className="mt-3 px-4 py-2 text-sm"
+            onClick={handleRun}
+          >
+            Try again
+          </Button>
+        </Card>
+      )}
+
+      {running && (
+        <Card className="mt-4 flex items-center gap-3">
+          <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-navy-600 border-t-gold-500" />
+          <p className="text-sm text-white/70">Comparing your estimate against the Vault…</p>
+        </Card>
+      )}
+
+      {!loadingFindings && findings.length > 0 && (
+        <>
+          <Card className="mt-4 bg-navy-900/60">
+            <div className="grid gap-4 sm:grid-cols-4">
+              <SummaryStat
+                label="Original estimate"
+                value={claim.estimate_total ? formatCurrency(claim.estimate_total) : "—"}
+              />
+              <SummaryStat label="Potential scope items identified" value={findings.length} />
+              <SummaryStat label="Selected for review" value={addedFindings.length} />
+              <SummaryStat
+                label="Potential Scope Value for Review"
+                value={summaryHigh > 0 ? formatRange(summaryLow, summaryHigh) : "—"}
+              />
+            </div>
+            <p className="mt-4 text-xs leading-relaxed text-white/40">
+              These figures are review estimates only. They are not a guarantee of payment,
+              coverage, reimbursement, or claim outcome.
+            </p>
+          </Card>
+
+          {actionError && <p className="mt-3 text-sm font-semibold text-red-400">{actionError}</p>}
+
+          <div className="mt-4 space-y-3">
+            {pending.map((f) => (
+              <FindingCard
+                key={f.id}
+                finding={f}
+                acting={actingId === f.id}
+                onAction={(a) => handleAction(f, a)}
+              />
+            ))}
+          </div>
+
+          {decided.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wide text-white/40">Already reviewed</p>
+              {decided.map((f) => (
+                <div
+                  key={f.id}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-navy-700/60 bg-navy-950/40 px-3 py-2 text-sm"
+                >
+                  <span className="text-white/70">{f.title}</span>
+                  <span
+                    className={`text-xs font-bold uppercase tracking-wide ${
+                      f.status === "added" ? "text-gold-500" : "text-white/40"
+                    }`}
+                  >
+                    {DECIDED_STATUS_LABEL[f.status] ?? f.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="mt-6 text-xs leading-relaxed text-white/40">{ANALYSIS_DISCLAIMER}</p>
+        </>
+      )}
     </div>
+  );
+}
+
+function SummaryStat({ label, value }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-wide text-white/50">{label}</p>
+      <p className="mt-1 text-xl font-extrabold text-white">{value}</p>
+    </div>
+  );
+}
+
+function FindingCard({ finding, acting, onAction }) {
+  const item = finding.items;
+  return (
+    <Card>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-gold-500">
+            {SCOPE_STATUS_LABEL[finding.scope_status] ?? finding.scope_status}
+          </p>
+          <h3 className="mt-1 text-lg font-extrabold text-white">{finding.title}</h3>
+        </div>
+        <ConfidenceBadge confidence={finding.confidence} />
+      </div>
+
+      <p className="mt-3 text-sm leading-relaxed text-white/70">
+        <span className="font-semibold text-white/90">Why Vault flagged it: </span>
+        {finding.reason}
+      </p>
+
+      {finding.evidence && (
+        <p className="mt-2 text-sm text-white/60">
+          <span className="font-semibold text-white/80">Supporting documentation: </span>
+          {finding.evidence}
+        </p>
+      )}
+
+      <dl className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+        {(finding.xactimate_code || item?.xactimate_code) && (
+          <div>
+            <dt className="font-bold uppercase tracking-wide text-white/40">Xactimate</dt>
+            <dd className="mt-0.5 text-white/70">{finding.xactimate_code || item?.xactimate_code}</dd>
+          </div>
+        )}
+        {(finding.code_reference || item?.code_citation) && (
+          <div>
+            <dt className="font-bold uppercase tracking-wide text-white/40">Florida reference</dt>
+            <dd className="mt-0.5 text-white/70">
+              {finding.code_reference || item?.code_citation} — verify applicability
+            </dd>
+          </div>
+        )}
+        {finding.suggested_quantity && (
+          <div>
+            <dt className="font-bold uppercase tracking-wide text-white/40">Potential quantity</dt>
+            <dd className="mt-0.5 text-white/70">
+              {finding.suggested_quantity} {finding.suggested_unit || ""}
+            </dd>
+          </div>
+        )}
+        {item && (
+          <div>
+            <dt className="font-bold uppercase tracking-wide text-white/40">Typical range</dt>
+            <dd className="mt-0.5 text-white/70">{formatRange(item.low_amount, item.high_amount, item.unit)}</dd>
+          </div>
+        )}
+      </dl>
+
+      <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-white/40">
+        Verify before submission — this is not a determination that anything is owed.
+      </p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button
+          as="button"
+          type="button"
+          className="px-4 py-2 text-sm"
+          disabled={acting || !finding.item_id}
+          onClick={() => onAction("added")}
+          title={!finding.item_id ? "Not linked to a specific Vault item" : undefined}
+        >
+          {acting ? "Adding…" : "Add to Review"}
+        </Button>
+        <Button
+          as="button"
+          type="button"
+          variant="secondary"
+          className="px-4 py-2 text-sm"
+          disabled={acting}
+          onClick={() => onAction("dismissed")}
+        >
+          Dismiss
+        </Button>
+        <Button
+          as="button"
+          type="button"
+          variant="ghost"
+          className="px-4 py-2 text-sm"
+          disabled={acting}
+          onClick={() => onAction("needs_info")}
+        >
+          Needs More Information
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+function ConfidenceBadge({ confidence }) {
+  const styles = {
+    high: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
+    medium: "border-gold-500/40 bg-gold-500/10 text-gold-500",
+    low: "border-white/20 bg-white/5 text-white/60",
+  };
+  return (
+    <span
+      className={`shrink-0 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+        styles[confidence] ?? styles.low
+      }`}
+    >
+      Confidence: {CONFIDENCE_LABEL[confidence] ?? confidence}
+    </span>
   );
 }
 

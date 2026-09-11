@@ -443,6 +443,88 @@ account (and a teammate on a Crew plan) can't read the first account's
 files, and confirm the bucket's 15 MB limit actually rejects an oversized
 upload server-side, not just in this client-side check.
 
+## Verifying the structured analysis engine (Phase 3)
+
+The core of Estimate Review: `netlify/functions/analyze-review.js`
+orchestrates the whole pass — auth, a per-user daily rate limit (cost
+control, `ANALYSIS_DAILY_LIMIT`, default 20/day), downloading uploaded
+files server-side, PDF text extraction, and the AI call — while
+`netlify/functions/_lib/estimateAnalysisService.js` is the **only** module
+in the codebase that talks to an AI provider. Every guardrail from the
+product spec (never invent measurements/damage/code citations, never
+claim an amount is owed, distinguish "not found in estimate" from
+"code required," say so when uncertain, never auto-add anything) is
+enforced two ways: the system prompt instructs it, and the service's own
+`coerceFinding()` defensively re-validates every field the model returns
+before it ever reaches the database — an out-of-list `item_id`, an invalid
+`scope_status`/`confidence`, or `requires_human_verification` being
+anything but `true` all get corrected or dropped, never trusted blindly.
+
+**Model**: defaults to Claude Haiku 4.5 (`ESTIMATE_ANALYSIS_MODEL` to
+override) — the cheapest current Claude model that still handles this
+task, chosen because the product's whole economics depend on AI cost per
+review staying low against the $39/$99 subscriptions. This was the
+decision explicitly deferred at the end of Phase 2; revisit if Haiku's
+findings prove too shallow once there's real usage to judge by.
+
+**Human-in-the-loop, enforced at the database level, not just the UI**:
+`review_findings` has no client-writable insert policy — only
+`analyze-review.js`, using the service-role key, can create a finding.
+The client can only update a finding's own `status` (new → added /
+dismissed / needs_info). There is no code path, correct or buggy, by
+which the frontend could fabricate or silently auto-confirm a finding.
+
+**Verified**: ran the full `migration.sql` (with the Phase 3 additions)
+against local Postgres 16 again — confirmed the forward-reference between
+`review_findings` and `analysis_runs` resolves correctly (the FK is added
+via `ALTER TABLE` after both tables exist, since the column can't
+reference a not-yet-created table inline), confirmed the
+`scope_status`/`confidence`/`status` check constraints reject bad values
+and accept good ones, confirmed cascade deletes work. Separately — and
+this is real, not simulated — used `jsPDF` (already a project dependency)
+to generate an actual PDF with known text, ran it through
+`pdf-parse` via `_lib/pdfText.js`, and confirmed the extracted text
+matches; also confirmed a garbage/invalid PDF throws instead of silently
+returning empty text, so the "couldn't read your estimate" path in
+`analyze-review.js` is reachable on a real parse failure, not just a
+short-text heuristic. All new function files syntax-checked with
+`node --check`, same limitation as every phase touching a Netlify
+Function — no real Supabase/Anthropic credentials available in-session.
+
+Client side, same mocked-backend Playwright methodology as every prior
+phase, this time mocking the `analyze-review` function endpoint itself
+(seeding fake findings on success, or a 502 on a simulated failure) since
+its own internals were already verified above: ran a review and confirmed
+3 findings render with the exact spec'd layout (status label, confidence
+badge, why-flagged reason, supporting documentation, Xactimate/Florida
+reference/quantity/typical-range grid, the "verify before submission"
+line); clicked **Add to Review** on a finding with a matched Vault item —
+confirmed it created a real `claim_items` row (carrying the finding's
+`suggested_quantity` and a note referencing its evidence — a real gap this
+testing caught and fixed, it was defaulting to qty 1 and no note before),
+marked the finding `added`, and refreshed the Attached Items total;
+clicked **Dismiss** on another and confirmed it moved to "Already
+reviewed"; confirmed the third finding (no matched Vault item) renders
+with **Add to Review** correctly disabled rather than silently failing;
+confirmed the Review Summary's dollar math (`$630–$990` from 180 LF ×
+$3.50–$5.50) is correct; confirmed the simulated failure path shows
+exactly "We couldn't complete this review. Your files are safe. Please
+try again." with a working Try Again button — never fake results. Zero
+unexpected console errors (the one 502 that appears in the console during
+the failure-path test is Chromium's own network-failure log for the
+request the test deliberately made fail, not an app error).
+
+Not verified here, same limitation as every phase touching real
+infrastructure: an actual Anthropic API call (prompt quality, whether
+Haiku's findings are actually useful on a real Xactimate export, real
+token usage/cost, real latency against Netlify's function timeout). This
+is the biggest open question in the whole build — budget real time in
+Phase 8/SETUP.md to run this against several real estimates and judge the
+finding quality yourself before relying on it, and watch
+console.anthropic.com's usage page for the first week live to confirm
+actual cost per review matches the "low single-digit cents" expectation
+this was designed around.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow

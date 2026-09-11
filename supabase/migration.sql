@@ -695,6 +695,132 @@ create policy "review_files_storage_delete" on storage.objects
   );
 
 -- ============================================================================
+-- PHASE 3 — ESTIMATE REVIEW: structured analysis engine
+--
+-- review_findings holds each candidate scope gap the analysis engine
+-- surfaces, always pending human review (status defaults to 'new' and only
+-- moves to 'added'/'dismissed'/'needs_info' when the contractor acts on it
+-- — see RequireSubscription-gated ClaimDetail UI). analysis_runs is both an
+-- audit trail and the cost-control table: every analysis attempt gets a
+-- row, success or failure, so a per-user rate limit can be enforced without
+-- guessing, and nothing here ever lets the analysis function itself decide
+-- something is "owed" — it only ever writes candidate rows for the human to
+-- act on.
+-- ============================================================================
+
+create table if not exists public.review_findings (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  -- References analysis_runs, added via ALTER TABLE below once that table
+  -- exists — can't forward-reference it here.
+  analysis_run_id uuid,
+  -- The matched Vault item, when the model could confidently tie this
+  -- finding to a real, existing item. Null is allowed and expected for
+  -- findings that don't map cleanly to one item (e.g. a quantity mismatch)
+  -- — the model is instructed never to invent a new Vault item to fill
+  -- this in.
+  item_id uuid references public.items(id) on delete set null,
+  title text not null,
+  -- Distinguishes "this line item's text wasn't found in the estimate" (an
+  -- absence) from "the documentation indicates this is required" (a much
+  -- stronger, rarer claim) — see the product spec: those are not the same
+  -- thing and must never be worded the same way in the UI.
+  scope_status text not null check (
+    scope_status in ('not_found_in_estimate', 'quantity_mismatch', 'code_required')
+  ),
+  reason text not null,
+  evidence text,
+  confidence text not null check (confidence in ('high', 'medium', 'low')),
+  suggested_quantity numeric(10, 2),
+  suggested_unit text,
+  potential_amount_low numeric(10, 2),
+  potential_amount_high numeric(10, 2),
+  xactimate_code text,
+  code_reference text,
+  requires_human_verification boolean not null default true,
+  -- Human-in-the-loop state. Never set by the analysis engine itself —
+  -- only by the contractor's own action in the UI.
+  status text not null default 'new' check (status in ('new', 'added', 'dismissed', 'needs_info')),
+  claim_item_id uuid references public.claim_items(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists review_findings_claim_id_idx on public.review_findings(claim_id);
+
+create table if not exists public.analysis_runs (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  status text not null default 'running' check (status in ('running', 'succeeded', 'failed')),
+  error_message text,
+  model text,
+  input_tokens integer,
+  output_tokens integer,
+  estimated_cost_usd numeric(10, 4),
+  findings_count integer,
+  started_at timestamptz not null default now(),
+  completed_at timestamptz
+);
+
+create index if not exists analysis_runs_claim_id_idx on public.analysis_runs(claim_id);
+create index if not exists analysis_runs_user_id_started_at_idx on public.analysis_runs(user_id, started_at desc);
+
+-- review_findings.analysis_run_id references analysis_runs, which is
+-- defined after it above for readability — add the FK now that both tables
+-- exist (can't forward-reference a not-yet-created table in the column
+-- definition itself).
+alter table public.review_findings
+  drop constraint if exists review_findings_analysis_run_id_fkey;
+alter table public.review_findings
+  add constraint review_findings_analysis_run_id_fkey
+  foreign key (analysis_run_id) references public.analysis_runs(id) on delete set null;
+
+alter table public.review_findings enable row level security;
+alter table public.analysis_runs enable row level security;
+
+-- Access follows the parent claim, same shape as review_files. Findings
+-- and runs are never writable by the client directly — only the
+-- analyze-review Netlify Function (using the service-role key) creates
+-- them; the client can only update a finding's own status (add/dismiss).
+create policy "review_findings_select" on public.review_findings
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "review_findings_update_status" on public.review_findings
+  for update using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "analysis_runs_select" on public.analysis_runs
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

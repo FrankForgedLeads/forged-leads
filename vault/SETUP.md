@@ -204,6 +204,29 @@ just the domain verified.
 
 ---
 
+## Step 3B — Anthropic (Estimate Review AI)
+
+This is the one part of the whole stack that isn't free — every "Run Vault
+Review" click costs a small amount of real money (fractions of a cent to a
+few cents per review with the default model). Everything else in Beeyond
+Vault runs on free tiers; this doesn't, so it's worth a quick sanity check
+of usage after launch (Anthropic's console shows spend by day).
+
+1. [console.anthropic.com](https://console.anthropic.com) → sign up →
+   **Settings → Billing** → add a payment method and set a spending limit
+   (start low, e.g. $20/month — you can raise it once you see real usage).
+2. **API Keys → Create Key**, name it `beeyond-vault`. This is
+   `ANTHROPIC_API_KEY`.
+3. Leave `ESTIMATE_ANALYSIS_MODEL` and `ANALYSIS_DAILY_LIMIT` blank in Step
+   4.3 unless you want to override their defaults (see `.env.example`) —
+   the app runs fine without setting either.
+
+If this key is missing or invalid, "Run Vault Review" fails with a clean
+"we couldn't complete this review, your files are safe" message rather
+than doing anything silently wrong — nothing else in the app is affected.
+
+---
+
 ## Step 4 — Netlify (hosting)
 
 ### 4.1 Connect the repo
@@ -251,6 +274,7 @@ of these (values from Steps 1, 2, 3):
 | `STRIPE_PRICE_CREW_MONTHLY` | Step 2.1 |
 | `STRIPE_PRICE_CREW_YEARLY` | Step 2.1 |
 | `RESEND_API_KEY` | Step 3 |
+| `ANTHROPIC_API_KEY` | Step 3B |
 | `ADMIN_EMAIL` | Your email (same one from Step 1.4) |
 | `LEADS_EMAIL` | `leads@beeyondestimators.com` (or wherever you want leads sent) |
 
@@ -297,6 +321,13 @@ that gets checked for real.
 - [ ] **Claim + letter**: create a claim, attach a couple of items, adjust
       quantity/pricing, generate a letter, confirm the PDF downloads and
       looks right (company block, item list, total, disclaimer)
+- [ ] **Vault Review**: on a claim, upload a real, text-based estimate PDF
+      (not a scanned image — see Step 3B), click Run Vault Review, confirm
+      it returns findings within a reasonable time (not an error) and that
+      "Add to Review" on a finding actually attaches it to the claim;
+      separately, upload a scanned/image-only PDF and confirm you get the
+      "couldn't read text from your estimate" message, not fabricated
+      findings; check console.anthropic.com's usage page shows the calls
 - [ ] **Trial signup (Solo)**: from `/subscribe`, start a Solo trial with
       Stripe's `4242 4242 4242 4242` test card — confirm you land back on
       `/dashboard` unlocked (this is the webhook race the app is built to
