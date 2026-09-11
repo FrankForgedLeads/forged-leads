@@ -6,7 +6,7 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 const APP_LINKS = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/vault", label: "Vault" },
-  { to: "/claims", label: "Claims" },
+  { to: "/claims", label: "Reviews" },
 ];
 
 export default function AppLayout() {

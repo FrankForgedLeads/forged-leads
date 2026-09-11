@@ -610,6 +610,39 @@ console errors. An oxlint purity warning this surfaced (computing a
 "30 days ago" cutoff with `Date.now()` directly inside a `useMemo` body)
 was fixed by computing it once via lazy `useState` initialization instead.
 
+## Verifying the Claims -> Reviews rename (Phase 6)
+
+Finishes the rename the product spec asked for ("Rename or restructure
+'Claims' so that the product isn't unnecessarily insurance-specific")
+that Phase 2 started (the `claims` table itself already gained the
+Estimate Review fields; ClaimDetail/NewClaim already said "review" in
+their headings). This phase swept every remaining user-visible "claim"
+string across the app: the authenticated nav ("Claims" -> "Reviews"),
+the Reviews list page and its empty states, the Dashboard's "+ New
+Review" button and "Recent reviews" heading, the Vault page's
+add-to-claim banner and "Add to review" button text, the
+add-to-review modal (title, claim picker, "Create a new review"), the
+Letter Builder's breadcrumb and confirmation text, and the monthly
+update email template's Vault plug.
+
+Deliberately NOT renamed, on purpose: the underlying `claims` database
+table, its RLS policies, and every internal function/variable name
+(`fetchClaims`, `claimId`, `claim_items`, etc.) — this is a copy-only
+pass, not a schema migration, exactly matching the same call made in
+Phase 2. Also left alone: legitimate uses of the word "claim" that
+refer to an actual insurance claim concept rather than the app's own
+entity — the "Claim number" field label (it's a real optional field
+for an actual carrier claim number), `Claim #${...}` in a generated
+letter's recipient block, and "insurance claim outcome" language in
+disclaimers, Terms, and the Scope Checker, all of which already used
+"claim" correctly and don't need to change.
+
+Verified: mocked-backend Playwright pass on `/dashboard` and `/claims`
+confirms the nav reads "Reviews" (not "Claims") and every page heading,
+button, and empty-state message uses review language. Zero console
+errors. Full build + lint clean, no new warnings beyond the pre-existing
+baseline.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow

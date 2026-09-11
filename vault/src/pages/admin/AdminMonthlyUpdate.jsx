@@ -24,7 +24,7 @@ function draftBody(recentItems) {
   return [
     "<p>Here's what's new in the Vault this month:</p>",
     rows ? `<ul>${rows}</ul>` : "<p>(No new or updated items to list yet — edit this before sending.)</p>",
-    "<p>Log in to search the full Vault and attach anything relevant to your open claims.</p>",
+    "<p>Log in to search the full Vault and attach anything relevant to your open reviews.</p>",
     `<p style="font-size:12px;color:#888;margin-top:24px;">${escapeHtml(VAULT_DISCLAIMER)}</p>`,
   ].join("\n");
 }

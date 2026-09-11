@@ -56,7 +56,7 @@ export default function Dashboard() {
           </h1>
           <p className="mt-1 text-white/60">{user?.email}</p>
         </div>
-        <Button to="/claims/new">+ New claim</Button>
+        <Button to="/claims/new">+ New Review</Button>
       </div>
 
       <form onSubmit={handleSearch} className="mt-8">
@@ -83,7 +83,7 @@ export default function Dashboard() {
       </form>
 
       <div className="mt-10 flex items-center justify-between">
-        <h2 className="text-lg font-extrabold text-white">Recent claims</h2>
+        <h2 className="text-lg font-extrabold text-white">Recent reviews</h2>
         {claims.length > 0 && (
           <Link to="/claims" className="text-sm font-semibold text-gold-500 hover:underline">
             View all
@@ -96,7 +96,7 @@ export default function Dashboard() {
 
         {!loading && claims.length === 0 && (
           <Card className="py-10 text-center text-white/60">
-            No claims yet.{" "}
+            No reviews yet.{" "}
             <Link to="/claims/new" className="font-semibold text-gold-500 hover:underline">
               Start your first one
             </Link>
@@ -109,10 +109,10 @@ export default function Dashboard() {
             <Card className="flex flex-wrap items-center justify-between gap-3 transition hover:border-gold-500/50">
               <div>
                 <p className="font-bold text-white">
-                  {c.claim_number || c.insured_name || "Untitled claim"}
+                  {c.project_type || c.claim_number || c.insured_name || "Untitled review"}
                 </p>
                 <p className="mt-0.5 text-sm text-white/60">
-                  {[c.insured_name, c.carrier].filter(Boolean).join(" · ") || "No details yet"}
+                  {[c.insured_name, c.property_address].filter(Boolean).join(" · ") || "No details yet"}
                 </p>
               </div>
               <span className="text-sm text-white/40">Updated {formatDate(c.updated_at)}</span>

@@ -59,7 +59,7 @@ export default function ItemCard({ item, onAdd, adding, added }) {
         variant={added ? "primary" : "secondary"}
         className="mt-4 w-full"
       >
-        {adding ? "Adding…" : added ? "Added ✓ — add again" : "Add to claim"}
+        {adding ? "Adding…" : added ? "Added ✓ — add again" : "Add to review"}
       </Button>
     </Card>
   );

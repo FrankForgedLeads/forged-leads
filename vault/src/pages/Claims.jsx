@@ -29,21 +29,21 @@ export default function Claims() {
     <div className="container-vault py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-white">Claims</h1>
-          <p className="mt-1 text-white/60">Every claim you're working, in one place.</p>
+          <h1 className="text-3xl font-extrabold text-white">Reviews</h1>
+          <p className="mt-1 text-white/60">Every project you're reviewing, in one place.</p>
         </div>
-        <Button to="/claims/new">+ New claim</Button>
+        <Button to="/claims/new">+ New review</Button>
       </div>
 
       <div className="mt-8">
-        {loading && <p className="text-white/60">Loading claims…</p>}
+        {loading && <p className="text-white/60">Loading reviews…</p>}
         {error && <p className="font-semibold text-red-400">{error}</p>}
 
         {!loading && !error && claims.length === 0 && (
           <Card className="py-12 text-center">
-            <p className="text-white/60">No claims yet.</p>
+            <p className="text-white/60">No reviews yet.</p>
             <Button to="/claims/new" className="mt-4 inline-flex">
-              Start your first claim
+              Start your first review
             </Button>
           </Card>
         )}
@@ -54,10 +54,10 @@ export default function Claims() {
               <Card className="flex flex-wrap items-center justify-between gap-3 transition hover:border-gold-500/50">
                 <div>
                   <p className="font-bold text-white">
-                    {c.claim_number || c.insured_name || "Untitled claim"}
+                    {c.project_type || c.claim_number || c.insured_name || "Untitled review"}
                   </p>
                   <p className="mt-0.5 text-sm text-white/60">
-                    {[c.insured_name, c.carrier].filter(Boolean).join(" · ") || "No details yet"}
+                    {[c.insured_name, c.property_address].filter(Boolean).join(" · ") || "No details yet"}
                   </p>
                 </div>
                 <div className="flex items-center gap-4 text-sm">

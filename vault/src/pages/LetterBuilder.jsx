@@ -113,16 +113,17 @@ export default function LetterBuilder() {
   }
 
   if (loading) return <div className="container-vault py-10 text-white/60">Loading…</div>;
-  if (!claim) return <div className="container-vault py-10 text-white/60">Claim not found.</div>;
+  if (!claim) return <div className="container-vault py-10 text-white/60">Review not found.</div>;
 
   return (
     <div className="container-vault py-10">
       <Link to={`/claims/${id}`} className="text-sm text-white/50 hover:text-white">
-        ← Back to claim
+        ← Back to review
       </Link>
       <h1 className="mt-1 text-3xl font-extrabold text-white">Generate a letter</h1>
       <p className="mt-1 text-white/60">
-        For {claim.claim_number || claim.insured_name || "this claim"} — {itemRows.length} item
+        For {claim.project_type || claim.claim_number || claim.insured_name || "this review"} —{" "}
+        {itemRows.length} item
         {itemRows.length === 1 ? "" : "s"} attached.
       </p>
 
@@ -234,7 +235,7 @@ export default function LetterBuilder() {
                   rows={4}
                   value={fields.additionalNote}
                   onChange={set("additionalNote")}
-                  placeholder="Anything else specific to this claim you want included."
+                  placeholder="Anything else specific to this review you want included."
                 />
               </Field>
             </Card>
@@ -244,7 +245,7 @@ export default function LetterBuilder() {
             {error && <p className="text-sm font-semibold text-red-400">{error}</p>}
             {exportedOk && (
               <p className="text-sm font-semibold text-gold-500">
-                PDF downloaded and saved to this claim.
+                PDF downloaded and saved to this review.
               </p>
             )}
 

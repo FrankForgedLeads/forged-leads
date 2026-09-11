@@ -66,13 +66,13 @@ export default function AddToClaimModal({ item, onClose, onAdded }) {
   }
 
   return (
-    <Modal open onClose={onClose} title={`Add "${item.title}" to a claim`}>
+    <Modal open onClose={onClose} title={`Add "${item.title}" to a review`}>
       {addedTo ? (
         <div className="space-y-4">
           <p className="text-sm text-white/70">
             Added to{" "}
             <span className="font-bold text-white">
-              {addedTo.claim_number || addedTo.insured_name || "your claim"}
+              {addedTo.project_type || addedTo.claim_number || addedTo.insured_name || "your review"}
             </span>
             .
           </p>
@@ -81,12 +81,12 @@ export default function AddToClaimModal({ item, onClose, onAdded }) {
               Keep browsing
             </Button>
             <Button onClick={() => navigate(`/claims/${addedTo.id}`)} className="flex-1">
-              Go to claim
+              Go to review
             </Button>
           </div>
         </div>
       ) : loading ? (
-        <p className="text-sm text-white/60">Loading your claims…</p>
+        <p className="text-sm text-white/60">Loading your reviews…</p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
           {claims.length > 0 && (
@@ -115,7 +115,7 @@ export default function AddToClaimModal({ item, onClose, onAdded }) {
                         className="h-4 w-4 accent-gold-500"
                       />
                       <span className="text-sm text-white">
-                        {c.claim_number || c.insured_name || "Untitled claim"}
+                        {c.project_type || c.claim_number || c.insured_name || "Untitled review"}
                         {c.claim_number && c.insured_name ? ` — ${c.insured_name}` : ""}
                       </span>
                     </label>
@@ -139,7 +139,7 @@ export default function AddToClaimModal({ item, onClose, onAdded }) {
                   onChange={() => setCreatingNew(true)}
                   className="h-4 w-4 accent-gold-500"
                 />
-                Create a new claim
+                Create a new review
               </button>
             </div>
           )}
@@ -161,7 +161,7 @@ export default function AddToClaimModal({ item, onClose, onAdded }) {
                 />
               </Field>
               <p className="text-xs text-white/40">
-                You can fill in the rest of the claim details after — address, carrier, adjuster.
+                You can fill in the rest of the review details after — address, carrier, adjuster.
               </p>
             </div>
           )}

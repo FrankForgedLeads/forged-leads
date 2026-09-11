@@ -85,12 +85,12 @@ export default function Vault() {
           <p className="text-sm text-white">
             Adding items to{" "}
             <span className="font-bold">
-              {targetClaim?.claim_number || targetClaim?.insured_name || "your claim"}
+              {targetClaim?.project_type || targetClaim?.claim_number || targetClaim?.insured_name || "your review"}
             </span>
             . Tap any item to add it.
           </p>
           <Button to={`/claims/${targetClaimId}`} variant="secondary" className="px-4 py-2 text-sm">
-            Go to claim
+            Go to review
           </Button>
         </div>
       )}
@@ -148,7 +148,7 @@ export default function Vault() {
 
       {!targetClaimId && (
         <p className="mt-10 text-center text-sm text-white/40">
-          Working a specific claim?{" "}
+          Working a specific review?{" "}
           <Link to="/claims" className="underline hover:text-white">
             Open it
           </Link>{" "}

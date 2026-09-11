@@ -186,7 +186,7 @@ export default function ClaimDetail() {
 
         {rows.length === 0 ? (
           <Card className="mt-4 py-10 text-center text-white/50">
-            Nothing attached yet. Add items from the Vault to start building this claim's total.
+            Nothing attached yet. Add items from the Vault to start building this review's total.
           </Card>
         ) : (
           <div className="mt-4 space-y-3">
