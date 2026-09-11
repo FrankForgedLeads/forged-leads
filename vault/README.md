@@ -564,6 +564,52 @@ and re-verifying an item, then confirming a subsequently-run Estimate
 Review reflects the updated jurisdiction reasoning) — needs live Supabase
 + Anthropic credentials, same as Phase 3.
 
+## Verifying admin usage/error visibility (Phase 9, partial)
+
+Addresses the product spec's "Admin should be able to: ... View system
+errors ... View analysis failures" — before this, a failed analysis run
+was recorded in the database (Phase 3's `analysis_runs` table) but nothing
+surfaced it anywhere; Frankie would have had no way to know a customer hit
+a failure without them reporting it directly. Now:
+
+- **Admin → Analysis runs** (`/admin/analysis`): every run, newest first,
+  with a status badge, the failed ones showing their `error_message`
+  inline; a **Failed only** filter; and summary stats (total runs, failed
+  count + failure rate, runs and estimated cost over the last 30 days).
+- **Admin home**: two new stat tiles — Estimate Review run count with
+  30-day cost, and a Failed Analyses tile that renders with a red border
+  and alert styling whenever the count is above zero, so a problem is
+  visible the moment an admin lands on `/admin` without having to click
+  into the Analysis runs tab.
+- Cost is shown to 4 decimal places here (`$0.0075`), not the 2-decimal
+  `formatCurrency` used everywhere customer-facing — most individual runs
+  cost a fraction of a cent, and 2-decimal rounding would show `$0.00` for
+  nearly every row, hiding the exact signal this page exists to show.
+
+This is Phase 9 "partial" — the spec's full admin list (product
+announcements, deeper user/subscription management, customer feedback)
+isn't built; this phase specifically targeted the analysis-failure/cost
+blind spot because it's the one piece of new infrastructure (Phase 3's AI
+calls) that had zero admin visibility, which is a real risk for a
+low-maintenance business model that depends on noticing problems without
+being told about them.
+
+Note: `analysis_runs.user_id` references `auth.users`, not
+`public.profiles` — there's no direct foreign key PostgREST can use to
+embed a user's email in one query, so `adminAnalysis.js` fetches
+`analysis_runs` and `profiles` separately and merges by id client-side.
+`claims`, by contrast, does have a direct FK from `analysis_runs.claim_id`
+and embeds normally.
+
+Verified: mocked-backend Playwright pass — three seeded runs (two
+succeeded at different cost/token levels, one failed with a real error
+message) render correctly on `/admin/analysis`, the Failed Only filter
+correctly narrows to exactly the one failed row, and `/admin` shows the
+new tiles with the failed-analysis tile in its red alert state. Zero
+console errors. An oxlint purity warning this surfaced (computing a
+"30 days ago" cutoff with `Date.now()` directly inside a `useMemo` body)
+was fixed by computing it once via lazy `useState` initialization instead.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow
