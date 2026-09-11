@@ -5,7 +5,7 @@ export default function Pricing() {
     <div className="container-vault py-16 sm:py-24">
       <div className="mx-auto max-w-2xl text-center">
         <h1 className="text-4xl font-extrabold text-white sm:text-5xl">
-          One subscription. Everything the adjuster left off.
+          One subscription. A second set of eyes on every estimate.
         </h1>
         <p className="mt-4 text-lg text-white/60">
           7-day free trial, card required. No charge until day 8. Cancel anytime from your

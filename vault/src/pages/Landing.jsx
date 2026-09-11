@@ -5,66 +5,76 @@ import ScreenshotPlaceholder from "../components/ui/ScreenshotPlaceholder.jsx";
 import PricingTable from "../components/PricingTable.jsx";
 import beeyondLogo from "../assets/beeyond-logo.webp";
 
+// Deliberately not framed as "what the adjuster left off" — Vault is a
+// self-review tool the contractor runs on their own estimate before it goes
+// out, not an adversarial claims-fighting pitch. Keep this list to the kind
+// of ordinary, easy-to-miss oversights described in the product spec, not
+// dramatic dollar claims.
 const PAIN_EXAMPLES = [
   {
-    title: "Drip edge, left off entirely",
-    code: "FBC R905.2.8.5 · Xactimate RFG DRIP",
-    body: "Adjuster estimate has tear-off and shingles but no drip edge line item. It's required at every eave and rake by code. On a 30-square roof that's $600–$1,200 walked away from before you even start.",
+    title: "A line item never included",
+    body: "A required component that just didn't make it onto the estimate — not because anyone did anything wrong, just an easy thing to miss when you're moving between jobs.",
   },
   {
-    title: "Secondary water barrier, priced as \"included\"",
-    code: "FBC R905.1.2 · HVHZ underlayment rules",
-    body: "Self-adhered underlayment or the sealed-deck method gets bundled into a generic \"felt\" line at a fraction of real cost — or skipped entirely in HVHZ counties where it's mandatory.",
+    title: "A quantity that doesn't match the documented scope",
+    body: "The measurements or photos on file suggest more area or material than what's actually priced out.",
   },
   {
-    title: "No steep or high charge on a 9/12, 2-story roof",
-    code: "Xactimate steep (7/12+) and high (2+ stories) charges",
-    body: "The pitch and height are right there in the adjuster's own measurements. The labor multiplier for working that roof safely is real — and it's missing from the estimate almost every time.",
+    title: "A required component not clearly accounted for",
+    body: "Something the job genuinely needs, but it's unclear from the estimate whether it's priced separately or assumed to be included.",
+  },
+  {
+    title: "A code-related consideration that needs verification",
+    body: "A code or manufacturer requirement that may apply to this job and is worth checking before the estimate goes out.",
   },
 ];
 
 const FEATURES = [
   {
+    label: "Estimate Review",
+    title: "Upload your estimate and documentation. Get potential scope gaps flagged for review.",
+    body: "Upload your estimate along with photos, notes, and measurements. Vault reviews them together against its knowledge base and flags items that may be missing or under-scoped — each one clearly marked as a suggestion for you to verify, never a claim of fact.",
+  },
+  {
     label: "The Vault",
-    title: "Every line item adjusters leave off, searchable in seconds",
-    body: "Search by keyword, code, or category. Every item ships with the Xactimate code, the Florida Building Code citation, a typical South Florida price range, and a plain-English note on why it's owed. No more digging through the code book on a job site.",
+    title: "The knowledge base behind every finding",
+    body: "A maintained reference of commonly overlooked line items — roofing, water mitigation, mold, interior, exterior, and more — each with an Xactimate code, a Florida code citation where applicable, and a typical price range. This is what Estimate Review checks your documentation against.",
   },
   {
-    label: "Claims",
-    title: "One place for every claim you're working",
-    body: "Save unlimited claims. Attach missing items as you find them. Watch the running total build in real time so you walk into every conversation with a number, not a feeling.",
-  },
-  {
-    label: "Letters",
-    title: "A scope-dispute letter in under two minutes",
-    body: "Pick a template, and it auto-fills with your claim and item data — code citations included. Export a clean PDF with your company block at the top and send it the same day.",
+    label: "Documentation",
+    title: "Turn selected findings into a professional document in minutes",
+    body: "Approve the findings that apply, and generate a clean, editable PDF written from you, the contractor, describing your scope of work — never on behalf of the client, never arguing coverage. Export it and send it the same day.",
   },
 ];
 
 const FAQ = [
   {
     q: "Is Beeyond Vault a public adjusting service?",
-    a: "No. Beeyond Vault is a reference and document-preparation tool for contractors preparing their own scope of work. We don't adjust claims, represent policyholders, or negotiate settlements — Florida law reserves that for licensed public adjusters, and we stay out of it entirely.",
+    a: "No. Beeyond Vault is an estimating review and documentation tool for contractors and estimating professionals. We don't adjust claims, represent policyholders, negotiate settlements, or interpret insurance policies — Florida law reserves that for licensed public adjusters, and we stay out of it entirely.",
+  },
+  {
+    q: "Does Vault guarantee it will catch everything, or that I'll get paid more?",
+    a: "No. Vault flags potential scope gaps based on the documentation you upload — it does not determine coverage, guarantee payment or a supplement, or replace your own professional judgment. Every finding is marked with a confidence level and needs your review and verification before it goes anywhere.",
   },
   {
     q: "What exactly is in the Vault?",
-    a: "A searchable database of line items that commonly get left off Florida property insurance estimates — roofing, water mitigation, mold, interior, exterior, general conditions, and code upgrades — each with an Xactimate code, a Florida Building Code citation, a typical South Florida price range, and a plain-English explanation of why it's owed.",
+    a: "A maintained reference of line items that commonly get missed or under-scoped on Florida property estimates — roofing, water mitigation, mold, interior, exterior, general conditions, and code upgrades — each with an Xactimate code, a Florida Building Code citation where applicable, and a typical South Florida price range.",
   },
   {
-    q: "Do the letters argue coverage or policy language?",
-    a: "No. Every letter is written from you, the contractor, to the carrier about your scope of work and your pricing — never on behalf of the insured, never arguing what the policy covers. It's your documentation of what the job requires and what it costs.",
+    q: "Do the generated documents argue coverage or policy language?",
+    a: "No. Every document is written from you, the contractor, about your scope of work and your pricing — never on behalf of a client, never arguing what a policy covers. It's your documentation of what the job requires and what it costs.",
   },
   {
     q: "Can my whole crew use one account?",
-    a: "Yes, on the Crew plan. One subscription covers up to 5 users under the same company, with shared access to claims and the ability to invite teammates by email.",
+    a: "Yes, on the Crew plan. One subscription covers up to 5 users under the same company, with shared access to projects and the ability to invite teammates by email.",
   },
   {
     q: "Do I need Xactimate to use this?",
-    a: "No. The Vault gives you the Xactimate code as a reference so you can look up or cross-check items in your own estimating software, but you don't need Xactimate open to search the Vault, build a claim, or generate a letter.",
+    a: "No. Vault references the Xactimate code where applicable so you can look up or cross-check items in your own estimating software, but you don't need Xactimate open to run a review or generate documentation.",
   },
   {
     q: "What if a price range or code citation doesn't match my job?",
-    a: "Every range is a typical South Florida starting point, not a quote — pricing varies by county, scope, and market conditions. Always verify the current code citation and confirm your own pricing before you submit anything to a carrier.",
+    a: "Every range is a typical South Florida starting point, not a quote — pricing varies by county, scope, and market conditions. Always verify the current code citation and confirm your own pricing before you rely on anything Vault surfaces.",
   },
 ];
 
@@ -84,18 +94,19 @@ export default function Landing() {
             remediation &amp; remodeling
           </span>
           <h1 className="max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-6xl">
-            Everything the adjuster left off, in one place.
+            Before You Send the Estimate, Run It Through Vault.
           </h1>
           <p className="max-w-xl text-lg text-white/70 sm:text-xl">
-            Stop leaving money on the table. Search the line items adjusters commonly miss, cite
-            the code, and document your scope in the time it takes to walk the roof.
+            Upload your estimate and supporting documentation. Beeyond Vault identifies potential
+            scope gaps worth reviewing — so you can catch overlooked work before the estimate goes
+            out.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button to="/pricing" className="text-lg">
-              Start your 7-day free trial
+              Run My First Review
             </Button>
-            <Button to="/scope-checker" variant="secondary" className="text-lg">
-              Try the free Scope Checker
+            <Button href="#features" variant="secondary" className="text-lg">
+              See How It Works
             </Button>
           </div>
           <p className="text-sm text-white/40">Card required for trial · Cancel anytime</p>
@@ -106,23 +117,40 @@ export default function Landing() {
       <section className="container-vault py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-            What you're leaving on the table
+            Most estimating mistakes aren't dramatic.
           </h2>
           <p className="mt-4 text-white/60">
-            Three real examples of items that show up missing, underscoped, or "included" on
-            Florida estimates — costing contractors real money every single week.
+            They're the small things that get missed — not big errors, just easy oversights when
+            you're moving fast between jobs.
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2">
           {PAIN_EXAMPLES.map((ex) => (
-            <Card key={ex.title}>
-              <p className="text-xs font-bold uppercase tracking-wide text-gold-500">{ex.code}</p>
-              <h3 className="mt-3 text-lg font-extrabold text-white">{ex.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-white/70">{ex.body}</p>
+            <Card key={ex.title} className="flex items-start gap-4">
+              <span
+                className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold-500/40 bg-gold-500/10 text-gold-500"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10A8 8 0 1 1 2 10a8 8 0 0 1 16 0Zm-7-4a1 1 0 1 0-2 0v4a1 1 0 0 0 .293.707l2.828 2.829a1 1 0 1 0 1.415-1.415L11 9.586V6Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </span>
+              <div>
+                <h3 className="font-bold text-white">{ex.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/70">{ex.body}</p>
+              </div>
             </Card>
           ))}
         </div>
+
+        <p className="mx-auto mt-10 max-w-lg text-center text-sm text-white/50">
+          Find potential scope gaps before they become missed revenue.
+        </p>
       </section>
 
       {/* Feature walkthrough */}
@@ -130,7 +158,7 @@ export default function Landing() {
         <div className="container-vault">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-              Everything you need to document your scope and get paid for it
+              A second set of eyes for your estimate
             </h2>
           </div>
 
@@ -153,6 +181,12 @@ export default function Landing() {
               </div>
             ))}
           </div>
+
+          <p className="mx-auto mt-16 max-w-2xl rounded-2xl border border-navy-700/60 bg-navy-950/60 p-5 text-center text-sm leading-relaxed text-white/50">
+            Vault provides reference and documentation assistance only. Findings require
+            professional review and verification. Vault does not determine coverage, payment, or
+            claim outcome.
+          </p>
         </div>
       </section>
 
@@ -185,11 +219,11 @@ export default function Landing() {
       {/* Final CTA */}
       <section className="container-vault py-20 text-center">
         <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-          Document your scope. Cite the code. Get paid for the work you did.
+          Before you send it, run it through Vault.
         </h2>
         <div className="mt-8">
           <Button to="/pricing" className="text-lg">
-            Start your 7-day free trial
+            Run My First Review
           </Button>
         </div>
       </section>

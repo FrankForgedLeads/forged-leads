@@ -77,7 +77,7 @@ export default function Vault() {
     <div className="container-vault py-10">
       <h1 className="text-3xl font-extrabold text-white">The Vault</h1>
       <p className="mt-1 text-white/60">
-        Search what the adjuster left off. {items.length > 0 && `${items.length} items.`}
+        The knowledge base behind Estimate Review. {items.length > 0 && `${items.length} items.`}
       </p>
 
       {targetClaimId && (

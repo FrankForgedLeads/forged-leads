@@ -52,12 +52,12 @@ export default function ScopeChecker() {
             Free tool — no account needed
           </span>
           <h1 className="max-w-2xl text-4xl font-extrabold leading-tight text-white sm:text-5xl">
-            12 things adjusters commonly miss
+            12 things worth double-checking on your estimate
           </h1>
           <p className="max-w-xl text-lg text-white/70">
-            Check what applies to your job and watch the number build. This is a rough,
-            typical estimate — the full Vault has exact codes, citations, and pricing for every
-            item.
+            Check what applies to your job and watch the number build. This is a rough, typical
+            estimate for review, not a guarantee — the full Vault reviews your actual estimate and
+            documentation against a much larger knowledge base.
           </p>
         </div>
       </section>
@@ -119,7 +119,7 @@ export default function ScopeChecker() {
               <p className="text-3xl font-extrabold text-gold-500">{formatCurrency(total)}</p>
             </div>
             <p className="max-w-xs text-sm text-white/60">
-              you could be leaving on the table on a typical job.
+              potential review amount on a typical job — not a guarantee.
             </p>
           </div>
         </div>
@@ -129,15 +129,16 @@ export default function ScopeChecker() {
           {submitted ? (
             <Card className="text-center">
               <h2 className="text-xl font-extrabold text-white">
-                You could be leaving {formatCurrency(total)} on the table.
+                Potential review amount: {formatCurrency(total)}
               </h2>
               <p className="mt-3 text-white/70">
-                That's a rough estimate from {checkedCount} checked item{checkedCount === 1 ? "" : "s"}.
-                The Vault has exact codes, citations, and pricing for every item like these —
-                document your scope, cite the code, and get paid for the work you did.
+                That's a rough estimate from {checkedCount} checked item{checkedCount === 1 ? "" : "s"} on
+                a 12-item checklist — this is not a guarantee of payment or claim outcome. Run
+                your actual estimate through Vault for a full review against the knowledge base
+                behind these numbers.
               </p>
               <Button to="/pricing" className="mt-6 w-full">
-                Start your 7-day free trial
+                Run My First Review
               </Button>
             </Card>
           ) : (

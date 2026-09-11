@@ -1,19 +1,19 @@
 // Plan data shared by the Landing pricing section and the standalone /pricing page.
-// Stripe price IDs are wired up in Phase 6 (Stripe + paywall). For now this just
-// drives the UI copy and the monthly/annual toggle math.
+// Stripe price IDs are wired up via netlify/functions/create-checkout-session.js.
+// This file just drives the UI copy and the monthly/annual toggle math.
 
 export const PLANS = [
   {
     key: "solo",
     name: "Solo",
-    tagline: "For one estimator or crew lead working claims solo.",
+    tagline: "For one estimator or crew lead running reviews solo.",
     monthly: 39,
     yearly: 390,
     seats: "1 user",
     features: [
-      "Full Vault access — every missed line item",
-      "Unlimited saved claims",
-      "Letter builder, all 3 templates",
+      "Full Vault access — the knowledge base behind every review",
+      "Unlimited saved projects",
+      "Documentation builder, all 3 templates",
       "PDF export with your company block",
       "Monthly update emails",
     ],
@@ -29,7 +29,7 @@ export const PLANS = [
     features: [
       "Everything in Solo",
       "Up to 5 team seats on one subscription",
-      "Shared claims across your team",
+      "Shared projects across your team",
       "Invite teammates by email",
       "Priority monthly update delivery",
     ],
