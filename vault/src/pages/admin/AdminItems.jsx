@@ -5,7 +5,7 @@ import Card from "../../components/ui/Card.jsx";
 import Button from "../../components/ui/Button.jsx";
 import CategoryFilter from "../../components/vault/CategoryFilter.jsx";
 import { categoryLabel } from "../../lib/categories.js";
-import { formatRange } from "../../lib/format.js";
+import { formatRange, formatDate } from "../../lib/format.js";
 import { fetchAllItemsForAdmin, updateItem, deleteItem } from "../../lib/api/adminItems.js";
 
 export default function AdminItems() {
@@ -69,7 +69,12 @@ export default function AdminItems() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-white">Admin</h1>
-          <p className="mt-1 text-white/60">Vault items — {items.length} total.</p>
+          <p className="mt-1 text-white/60">
+            Vault items — {items.length} total
+            {items.length > 0 &&
+              ` · ${items.filter((i) => !i.last_verified_date).length} not yet verified`}
+            .
+          </p>
         </div>
         <Button to="/admin/items/new">+ New item</Button>
       </div>
@@ -103,6 +108,15 @@ export default function AdminItems() {
                 {!item.is_active && (
                   <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-red-400">
                     Inactive
+                  </span>
+                )}
+                {item.last_verified_date ? (
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-emerald-400">
+                    Verified {formatDate(item.last_verified_date)}
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-gold-500/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-gold-500">
+                    Not yet verified
                   </span>
                 )}
               </div>

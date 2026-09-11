@@ -5,6 +5,11 @@ import Button from "../../components/ui/Button.jsx";
 import { Field, Input, Select, Textarea } from "../../components/ui/Field.jsx";
 import { CATEGORIES } from "../../lib/categories.js";
 import { fetchItem, createItem, updateItem } from "../../lib/api/adminItems.js";
+import { formatDate } from "../../lib/format.js";
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 const BLANK = {
   category: "roofing",
@@ -17,6 +22,11 @@ const BLANK = {
   high_amount: "",
   unit: "",
   region_note: "",
+  jurisdiction_notes: "",
+  required_documentation: "",
+  common_exclusions: "",
+  last_verified_date: "",
+  source_notes: "",
   is_active: true,
 };
 
@@ -49,6 +59,11 @@ export default function AdminItemForm() {
           high_amount: item.high_amount ?? "",
           unit: item.unit || "",
           region_note: item.region_note || "",
+          jurisdiction_notes: item.jurisdiction_notes || "",
+          required_documentation: item.required_documentation || "",
+          common_exclusions: item.common_exclusions || "",
+          last_verified_date: item.last_verified_date || "",
+          source_notes: item.source_notes || "",
           is_active: item.is_active,
         });
       })
@@ -78,6 +93,11 @@ export default function AdminItemForm() {
         code_citation: form.code_citation || null,
         unit: form.unit || null,
         region_note: form.region_note || null,
+        jurisdiction_notes: form.jurisdiction_notes || null,
+        required_documentation: form.required_documentation || null,
+        common_exclusions: form.common_exclusions || null,
+        last_verified_date: form.last_verified_date || null,
+        source_notes: form.source_notes || null,
       };
       if (isNew) {
         await createItem(payload);
@@ -124,7 +144,7 @@ export default function AdminItemForm() {
             <Textarea rows={3} value={form.description} onChange={set("description")} />
           </Field>
 
-          <Field label="Why it's owed">
+          <Field label="Why it may warrant review">
             <Textarea rows={3} value={form.why_owed} onChange={set("why_owed")} />
           </Field>
 
@@ -152,6 +172,73 @@ export default function AdminItemForm() {
           <Field label="Region note">
             <Input value={form.region_note} onChange={set("region_note")} placeholder="Optional" />
           </Field>
+
+          <div className="border-t border-navy-700/60 pt-5">
+            <p className="text-sm font-bold text-white">Verification</p>
+            <p className="mt-1 text-xs text-white/50">
+              Every code citation shown to a customer needs a real verification date behind it —
+              this is what tells the difference between "we drafted this" and "we checked this."
+            </p>
+
+            <div className="mt-4 grid gap-5 sm:grid-cols-2">
+              <Field label="Last verified">
+                <Input type="date" value={form.last_verified_date} onChange={set("last_verified_date")} />
+              </Field>
+              <div className="flex items-end">
+                <Button
+                  as="button"
+                  type="button"
+                  variant="secondary"
+                  className="w-full py-3.5 text-sm"
+                  onClick={() => setForm((f) => ({ ...f, last_verified_date: todayIso() }))}
+                >
+                  Mark verified today
+                </Button>
+              </div>
+            </div>
+            {!form.last_verified_date && !isNew && (
+              <p className="mt-2 text-xs font-semibold text-gold-500">
+                Not yet verified — shown to customers as unverified until you set a date.
+              </p>
+            )}
+            {form.last_verified_date && (
+              <p className="mt-2 text-xs text-white/40">
+                Last verified {formatDate(form.last_verified_date)}.
+              </p>
+            )}
+
+            <div className="mt-4 space-y-4">
+              <Field label="Jurisdiction notes">
+                <Input
+                  value={form.jurisdiction_notes}
+                  onChange={set("jurisdiction_notes")}
+                  placeholder="e.g. HVHZ counties only (Miami-Dade, Broward)"
+                />
+              </Field>
+              <Field label="Required documentation">
+                <Input
+                  value={form.required_documentation}
+                  onChange={set("required_documentation")}
+                  placeholder="What documentation supports this item?"
+                />
+              </Field>
+              <Field label="Common exclusions / conflicts">
+                <Input
+                  value={form.common_exclusions}
+                  onChange={set("common_exclusions")}
+                  placeholder="When does this NOT apply?"
+                />
+              </Field>
+              <Field label="Source / reference notes">
+                <Textarea
+                  rows={2}
+                  value={form.source_notes}
+                  onChange={set("source_notes")}
+                  placeholder="e.g. FBC 8th Edition (2023), Ch. 9 — confirmed against 2024 printed code book"
+                />
+              </Field>
+            </div>
+          </div>
 
           <label className="flex items-center gap-3">
             <input

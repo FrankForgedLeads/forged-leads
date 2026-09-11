@@ -15,7 +15,7 @@ import { useAuth } from "../lib/AuthContext.jsx";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 import { Field, Input, Select, Textarea } from "../components/ui/Field.jsx";
-import { formatCurrency, formatRange, formatBytes, midpoint } from "../lib/format.js";
+import { formatCurrency, formatRange, formatBytes, formatDate, midpoint } from "../lib/format.js";
 import { categoryLabel } from "../lib/categories.js";
 import { LOSS_TYPES } from "../lib/lossTypes.js";
 import { TRADES } from "../lib/trades.js";
@@ -721,7 +721,13 @@ function FindingCard({ finding, acting, onAction }) {
           <div>
             <dt className="font-bold uppercase tracking-wide text-white/40">Florida reference</dt>
             <dd className="mt-0.5 text-white/70">
-              {finding.code_reference || item?.code_citation} — verify applicability
+              {finding.code_reference || item?.code_citation}
+              <br />
+              <span className="text-white/40">
+                {item?.last_verified_date
+                  ? `Verified ${formatDate(item.last_verified_date)} — verify applicability`
+                  : "Not yet verified — verify before relying on this"}
+              </span>
             </dd>
           </div>
         )}

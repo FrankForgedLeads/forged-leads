@@ -821,6 +821,27 @@ create policy "analysis_runs_select" on public.analysis_runs
   );
 
 -- ============================================================================
+-- PHASE 5 — VAULT KNOWLEDGE BASE: verification tracking
+--
+-- The product spec is explicit and marked CRITICAL: "Do not present
+-- automatically generated code citations as verified facts. Every code
+-- citation should have: Last Verified and Verify applicability before
+-- submission." These columns are deliberately left NULL for every existing
+-- seeded item (see seed_items.sql's own long-standing disclaimer that all
+-- of it is draft data pending Frankie's review) rather than backfilled with
+-- a fabricated date — an unset last_verified_date IS the honest signal
+-- that an item hasn't been through admin review yet, and the UI (Vault
+-- browse, admin list, and every Estimate Review finding) renders that
+-- absence as "Not yet verified," never silently as blank.
+-- ============================================================================
+
+alter table public.items add column if not exists jurisdiction_notes text;
+alter table public.items add column if not exists required_documentation text;
+alter table public.items add column if not exists common_exclusions text;
+alter table public.items add column if not exists last_verified_date date;
+alter table public.items add column if not exists source_notes text;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

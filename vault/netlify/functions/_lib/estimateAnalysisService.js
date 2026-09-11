@@ -38,6 +38,7 @@ STRICT RULES — every one of these is a hard requirement, not a style preferenc
 - If the estimate or documentation doesn't give you enough to evaluate a knowledge base item at all, simply don't include a finding for it — do not fabricate a finding to fill space.
 - Every finding's "reason" must explain, in plain language, what in the estimate or documentation led you to flag it — separate what you actually observed from what you're inferring.
 - Never use the words "owed," "entitled," or "you're leaving money on the table" — use "potentially missing," "potentially under-scoped," "may warrant review," or "documentation suggests" instead.
+- Each knowledge base item lists a jurisdiction note when one applies (e.g. "HVHZ counties only"). If the project info's property location clearly doesn't match a stated jurisdiction restriction, don't flag that item at all. If the location is ambiguous or unstated, you may still flag it but lower confidence and say in your reason that jurisdiction should be confirmed.
 
 OUTPUT FORMAT: respond with ONLY a single valid JSON object, no markdown fences, no prose before or after. Shape:
 {
@@ -76,7 +77,7 @@ function buildUserPrompt({ projectInfo, estimateText, documentFiles, vaultItems 
   const itemLines = vaultItems
     .map(
       (i) =>
-        `- id: ${i.id} | title: ${i.title} | category: ${i.category} | xactimate: ${i.xactimate_code || "n/a"} | code_citation: ${i.code_citation || "n/a"} | typical range: ${i.low_amount ?? "?"}-${i.high_amount ?? "?"} per ${i.unit || "unit"} | why it may warrant review: ${i.why_owed || "n/a"}`,
+        `- id: ${i.id} | title: ${i.title} | category: ${i.category} | xactimate: ${i.xactimate_code || "n/a"} | code_citation: ${i.code_citation || "n/a"} | jurisdiction: ${i.jurisdiction_notes || "no jurisdiction restriction noted"} | typical range: ${i.low_amount ?? "?"}-${i.high_amount ?? "?"} per ${i.unit || "unit"} | why it may warrant review: ${i.why_owed || "n/a"}`,
     )
     .join("\n");
 

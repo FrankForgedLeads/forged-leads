@@ -138,7 +138,9 @@ export default async (req) => {
 
   const { data: vaultItems, error: itemsError } = await admin
     .from("items")
-    .select("id, title, category, xactimate_code, code_citation, low_amount, high_amount, unit, why_owed")
+    .select(
+      "id, title, category, xactimate_code, code_citation, low_amount, high_amount, unit, why_owed, jurisdiction_notes",
+    )
     .eq("is_active", true);
   if (itemsError) {
     await failRun(itemsError.message);

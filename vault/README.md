@@ -525,6 +525,45 @@ console.anthropic.com's usage page for the first week live to confirm
 actual cost per review matches the "low single-digit cents" expectation
 this was designed around.
 
+## Verifying knowledge base verification tracking (Phase 5)
+
+The product spec marks this CRITICAL: "Do not present automatically
+generated code citations as verified facts. Every code citation should
+have: Last Verified and Verify applicability before submission." Adds five
+columns to `items` (`jurisdiction_notes`, `required_documentation`,
+`common_exclusions`, `last_verified_date`, `source_notes`) and surfaces
+`last_verified_date` everywhere a citation reaches a customer: the admin
+item list (a green "Verified [date]" or gold "Not yet verified" badge per
+row, plus a running unverified count in the page header), the admin edit
+form (a dedicated Verification section with a one-click "Mark verified
+today" button), the Vault browse page, and every Estimate Review finding's
+Florida-reference field.
+
+Deliberately left every existing seeded item's new columns NULL rather
+than backfilling a plausible-looking verification date — an honest "not
+yet verified" is the whole point here, and it would have directly
+contradicted the spec's own warning to fabricate one. `jurisdiction_notes`
+also now flows into the analysis engine's prompt (Phase 3's
+`estimateAnalysisService.js`), with an explicit instruction not to flag an
+item at all when the claim's property location clearly falls outside its
+stated jurisdiction (e.g. an HVHZ-only item on a non-HVHZ county address),
+and to lower confidence rather than omit when location is ambiguous.
+
+Verified: re-ran `migration.sql` against local Postgres 16 (the five
+`ALTER TABLE ADD COLUMN IF NOT EXISTS` statements), then re-ran
+`seed_items.sql` on top and confirmed all 77 items land with
+`last_verified_date` NULL — the honest state, not a fabricated one.
+Mocked-backend Playwright pass: the admin list correctly renders one
+verified item (green badge, formatted date) and one unverified item (gold
+badge) side by side with a correct "1 not yet verified" count; the edit
+form's "Mark verified today" button correctly sets the date input to
+today's date. Zero console errors.
+
+Not verified here: real end-to-end (an admin actually clicking through
+and re-verifying an item, then confirming a subsequently-run Estimate
+Review reflects the updated jurisdiction reasoning) — needs live Supabase
++ Anthropic credentials, same as Phase 3.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow
