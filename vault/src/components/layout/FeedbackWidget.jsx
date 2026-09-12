@@ -12,6 +12,16 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 // Deliberately just a free-text box, no rating/NPS/category picker: the
 // whole point is minimal friction for a contractor who's mid-job, not a
 // structured survey.
+//
+// Lives in the header action row (next to Log out), not a `fixed` floating
+// corner button — mobile audit caught the floating version overlapping
+// ClaimDetail's own sticky bottom total/CTA bar at narrower widths (its
+// Export Review Summary + Generate letter buttons wrap to a tall enough
+// stack at 320px to collide with a bottom-right fixed element). The header
+// never competes with a page's own bottom content, so it's not just a fix
+// for this one page — it rules out the same class of collision on any
+// future page with its own sticky footer, without needing per-page
+// coordination.
 export default function FeedbackWidget() {
   const { user } = useAuth();
   const location = useLocation();
@@ -53,7 +63,7 @@ export default function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-30 rounded-full border border-navy-600 bg-navy-800 px-5 py-3 text-sm font-bold text-white/80 shadow-lg transition hover:border-gold-500/60 hover:text-white"
+        className="ml-auto shrink-0 rounded-lg border border-navy-600 px-4 py-2 text-sm font-bold text-white/70 transition hover:bg-navy-800 hover:text-white"
       >
         Feedback
       </button>

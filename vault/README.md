@@ -909,8 +909,54 @@ product-announcement broadcasting beyond the existing monthly-update
 email (Phase 7), and deeper subscription management beyond what
 Stripe's own Customer Portal already provides — neither is needed to
 run the business day-to-day, and adding them now would be scope, not a
-gap. Phase 10's UX audit and mobile testing beyond what's covered above
-also remain open.
+gap.
+
+## Mobile/UX audit (Phase 10, completing it)
+
+The product spec's UX section is explicit that "a contractor may be
+standing in a truck or job site" and lists concrete mobile requirements
+(large buttons, minimal typing, clear progress, sticky primary CTA where
+appropriate). The Phase 10 security/RLS audit was done earlier; this pass
+covers what was still open — an actual mobile-viewport check, not just
+"the CSS uses Tailwind's responsive classes so it's probably fine."
+
+**Method**: every route in the app (21 total — all public pages, the full
+authenticated app, every admin page) rendered in a real headless browser
+at 375×800 (a standard phone width) against a mocked backend, checking
+for horizontal page overflow and console errors, plus a full-page
+screenshot of each for visual review.
+
+**A real bug this caught**: the Feedback button (new in Phase 9, just
+above) was originally a `fixed bottom-5 right-5` floating pill, the
+common "chat bubble" pattern. At 375px it looked fine — but ClaimDetail
+has its own `sticky bottom-0` bar (the running total + Export Review
+Summary + Generate letter buttons), and at 320px (iPhone SE width) that
+bar's buttons wrap to a taller stack, growing to 219px tall and pushing
+Generate letter directly into the fixed button's footprint — measured
+overlap, not just a visual hunch (`{x: 183–300, y: 634–680}` for
+Feedback vs. `{x: 20–207, y: 592–640}` for Generate letter). A global
+`fixed` corner element and a page's own `sticky` bottom CTA bar will
+always risk this on *some* page at *some* width, since AppLayout (where
+Feedback lives) can't know what any given page puts at its own bottom
+edge. Fixed by moving Feedback out of the floating corner entirely, into
+the header's scrollable nav-pill row (`AppLayout.jsx`) — the same
+`overflow-x-auto` row already used for Dashboard/Vault/Reviews/Account,
+which never competes with a page's own layout for screen space. Re-ran
+the same 320px measurement after the fix: no overlap.
+
+**Verified**: after the fix, all 21 routes re-checked with zero
+horizontal overflow and zero console errors at 375px; the specific
+overlap measurement re-run at 320px confirmed fixed (`false` where it
+was `true`); visually reviewed a sample of the full-page screenshots
+(landing, dashboard, claim detail, admin pages) — text legible, buttons
+full-width and clearly tappable, cards stack cleanly to one column, no
+overlapping elements. Full build + lint clean, no new warnings.
+
+**Not done**: this covers layout/overflow/collision at two viewport
+widths against a mocked backend — it is not a substitute for someone
+actually testing on a real phone with real network conditions, or a
+full accessibility pass (contrast ratios, screen reader labels, focus
+order weren't audited here).
 
 ## Brand
 

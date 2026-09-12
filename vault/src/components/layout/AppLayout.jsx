@@ -44,7 +44,7 @@ export default function AppLayout() {
             </Button>
           </div>
         </div>
-        <nav className="container-vault flex gap-1 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav className="container-vault flex items-center gap-1 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {links.map((l) => (
             <NavLink
               key={l.to}
@@ -58,12 +58,14 @@ export default function AppLayout() {
               {l.label}
             </NavLink>
           ))}
+          {/* Same scrollable row as the nav links above, not a `fixed`
+              floating button — see FeedbackWidget's own comment for why. */}
+          <FeedbackWidget />
         </nav>
       </header>
       <main className="flex-1">
         <Outlet />
       </main>
-      <FeedbackWidget />
     </div>
   );
 }
