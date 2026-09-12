@@ -11,6 +11,8 @@ import {
   REVIEW_FILES_MAX_PER_CLAIM,
 } from "../lib/api/reviewFiles.js";
 import { runAnalysis, fetchFindings, updateFindingStatus } from "../lib/api/analysis.js";
+import { createLetterRecord } from "../lib/api/letters.js";
+import { generateReviewSummaryPdf } from "../lib/reviewSummary/pdf.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
@@ -37,6 +39,8 @@ export default function ClaimDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingInfo, setEditingInfo] = useState(false);
+  const [exportingSummary, setExportingSummary] = useState(false);
+  const [summaryExportedOk, setSummaryExportedOk] = useState(false);
 
   const load = useCallback(async () => {
     const [claimData, itemRows] = await Promise.all([fetchClaim(id), fetchClaimItems(id)]);
@@ -82,6 +86,32 @@ export default function ClaimDetail() {
     } catch (err) {
       setError(err.message);
       load();
+    }
+  }
+
+  // Fetches findings/files fresh at export time (rather than lifting their
+  // state up from FindingsSection/DocumentsSection) so the summary always
+  // reflects the latest decisions and uploads, and the two sections stay
+  // self-contained.
+  async function handleExportSummary() {
+    setExportingSummary(true);
+    setError("");
+    setSummaryExportedOk(false);
+    try {
+      const [findings, files] = await Promise.all([fetchFindings(id), fetchReviewFiles(id)]);
+      const doc = await generateReviewSummaryPdf({ claim, rows, findings, files });
+      const claimLabel = claim.claim_number || claim.insured_name || claim.project_type || "review";
+      doc.save(`Review Summary - ${claimLabel}.pdf`);
+      await createLetterRecord({
+        claimId: id,
+        templateKey: "review_summary",
+        pdfMeta: { generatedAt: new Date().toISOString(), itemCount: rows.length, findingCount: findings.length },
+      });
+      setSummaryExportedOk(true);
+    } catch (err) {
+      setError(`PDF downloaded, but we couldn't save a record of it: ${err.message}`);
+    } finally {
+      setExportingSummary(false);
     }
   }
 
@@ -211,18 +241,34 @@ export default function ClaimDetail() {
               </p>
               <p className="text-3xl font-extrabold text-gold-500">{formatCurrency(total)}</p>
             </div>
-            <Button
-              to={`/claims/${id}/letter`}
-              variant={rows.length === 0 ? "ghost" : "primary"}
-              className={rows.length === 0 ? "pointer-events-none opacity-40" : ""}
-              aria-disabled={rows.length === 0}
-            >
-              Generate letter
-            </Button>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                as="button"
+                type="button"
+                variant="secondary"
+                onClick={handleExportSummary}
+                disabled={exportingSummary}
+              >
+                {exportingSummary ? "Exporting…" : "Export Review Summary"}
+              </Button>
+              <Button
+                to={`/claims/${id}/letter`}
+                variant={rows.length === 0 ? "ghost" : "primary"}
+                className={rows.length === 0 ? "pointer-events-none opacity-40" : ""}
+                aria-disabled={rows.length === 0}
+              >
+                Generate letter
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
+      {summaryExportedOk && (
+        <p className="mt-4 text-sm font-semibold text-gold-500">
+          Review Summary PDF downloaded and saved to this review.
+        </p>
+      )}
       {error && <p className="mt-4 text-sm font-semibold text-red-400">{error}</p>}
     </div>
   );

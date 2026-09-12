@@ -771,6 +771,62 @@ via `team_id`, re-parenting a claim_item via `claim_id`, flipping
 `teams` row at all — fails with a clean permission error, with every
 targeted row confirmed unchanged afterward.
 
+## Verifying the Review Summary PDF export (Estimate Review Phase 7)
+
+Addresses the product spec's Phase 7, "Build documentation/PDF generation"
+— distinct from the original build's own "Phase 7" (Resend emails + admin
+panel, see above) and from Letters (Phase 4 of the original build), which
+generate a carrier-facing letter. This is the missing piece: a record of
+the *review itself*, for the contractor's own file, not addressed to
+anyone. It's what the `claims.status` value `documentation_complete`
+(already in the status dropdown since Phase 2) was waiting on — nothing
+produced that documentation until now.
+
+**What it does**: a new **Export Review Summary** button on the review
+page (next to Generate letter) builds a PDF client-side (same jsPDF
+approach as Letters) covering:
+
+- Project info (trade, property, insured/client, carrier, claim #,
+  adjuster, dates, estimate total, description)
+- Documents on file (file name + type — not content, just a manifest)
+- Attached items, itemized with code citations, quantities, and the
+  running total — identical math to the on-screen total (`claimMath.js`,
+  shared, not reimplemented)
+- Every Vault Review finding with its human decision (added/dismissed/
+  needs more info/still pending), not just the ones added to the claim —
+  so the PDF is an honest record of what Vault surfaced and what was done
+  about each item, not a cherry-picked summary
+- Both disclaimers (`ANALYSIS_DISCLAIMER` + `VAULT_DISCLAIMER`) on every
+  page footer, same as Letters
+
+**Storage**: reuses the existing `letters` table (client-side snapshot
+record: claim_id, template_key, pdf_meta, generated_at) with a new
+`template_key` value, `review_summary`, rather than adding a parallel
+table — the shape needed (a claim-scoped record of "a PDF was generated,
+here's a snapshot of what went into it") is identical. Only schema change:
+widen the `letters_template_key_check` constraint to allow the new value.
+No RLS change needed — `letters_select`/`insert`/`delete` already key off
+the parent claim generically and don't special-case `template_key`.
+
+**Verified**:
+- Ran the full `migration.sql` (with the Phase 7 addition) against a
+  fresh local Postgres 16 instance — applies cleanly. As the
+  `authenticated` role (not superuser) with a real owned claim: inserting
+  a `letters` row with `template_key: 'review_summary'` succeeds; an
+  invalid template_key is rejected by the check constraint; the original
+  3 carrier-letter template keys still insert successfully (no
+  regression).
+- Mocked-backend Playwright pass on `/claims/:id`: seeded a claim, an
+  attached item, an uploaded estimate file, and an added finding: clicking
+  **Export Review Summary** triggers a real file download (captured via
+  Playwright's `download` event so headless Chromium doesn't hang waiting
+  on a save dialog), confirmed to start with the `%PDF-` header and be a
+  non-trivial size (~6.7KB for this seed data, not an empty/broken file),
+  named `Review Summary - {claim number}.pdf`; a `POST /rest/v1/letters`
+  fires with the new template_key; the "downloaded and saved" confirmation
+  renders. Zero console errors. Full build + lint clean, no new warnings
+  beyond the pre-existing baseline.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow

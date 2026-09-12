@@ -925,6 +925,27 @@ revoke update on public.review_findings from authenticated;
 grant update (status, claim_item_id) on public.review_findings to authenticated;
 
 -- ============================================================================
+-- Phase 7 — Review Summary PDF export
+--
+-- Reuses the existing `letters` table (client-side snapshot record of a
+-- generated PDF, same shape needed for both) rather than adding a parallel
+-- table, so the only schema change is widening the template_key check
+-- constraint to also allow "review_summary". No RLS change: letters_select/
+-- insert/delete already key off the parent claim generically and don't
+-- special-case template_key.
+-- ============================================================================
+
+alter table public.letters drop constraint if exists letters_template_key_check;
+alter table public.letters add constraint letters_template_key_check check (
+  template_key in (
+    'initial_scope_clarification',
+    'follow_up_no_response',
+    'response_to_partial_approval',
+    'review_summary'
+  )
+);
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
