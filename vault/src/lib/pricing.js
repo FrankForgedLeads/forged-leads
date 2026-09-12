@@ -7,7 +7,7 @@ export const PLANS = [
     key: "solo",
     name: "Solo",
     tagline: "For one estimator or crew lead running reviews solo.",
-    monthly: 39,
+    monthly: 39.99,
     yearly: 390,
     seats: "1 user",
     features: [
@@ -23,7 +23,7 @@ export const PLANS = [
     key: "crew",
     name: "Crew",
     tagline: "For companies running multiple estimators or adjusters.",
-    monthly: 99,
+    monthly: 99.99,
     yearly: 990,
     seats: "Up to 5 users",
     features: [

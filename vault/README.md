@@ -463,7 +463,7 @@ anything but `true` all get corrected or dropped, never trusted blindly.
 **Model**: defaults to Claude Haiku 4.5 (`ESTIMATE_ANALYSIS_MODEL` to
 override) — the cheapest current Claude model that still handles this
 task, chosen because the product's whole economics depend on AI cost per
-review staying low against the $39/$99 subscriptions. This was the
+review staying low against the $39.99/$99.99 subscriptions. This was the
 decision explicitly deferred at the end of Phase 2; revisit if Haiku's
 findings prove too shallow once there's real usage to judge by.
 

@@ -62,7 +62,7 @@ It also builds a scope-clarification letter for you in about two minutes
 — fill in the claim, pick the items, export a PDF with your company info
 on it.
 
-7-day free trial, $39/mo after (or $99/mo for up to 5 users on your
+7-day free trial, $39.99/mo after (or $99.99/mo for up to 5 users on your
 team). Would take you 5 minutes to look at:
 vault.beeyondestimators.com
 
@@ -150,7 +150,7 @@ city's Craigslist for the right category name, they vary slightly.
 > you in about 2 minutes.
 >
 > Free 12-item checklist, no signup: vault.beeyondestimators.com/scope-checker
-> Full tool: 7-day free trial, $39/mo solo or $99/mo for up to 5 users.
+> Full tool: 7-day free trial, $39.99/mo solo or $99.99/mo for up to 5 users.
 >
 > Text [PHONE] with questions.
 

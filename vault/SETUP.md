@@ -123,14 +123,20 @@ Stripe dashboard). You'll repeat the product/price/webhook parts in
 **Product catalog → Add product**, twice:
 
 **Solo**
-- Price 1: $39.00, Recurring, Monthly → copy the price ID (`price_...`)
+- Price 1: $39.99, Recurring, Monthly → copy the price ID (`price_...`)
   → this is `STRIPE_PRICE_SOLO_MONTHLY`
 - Add another price on the same product: $390.00, Recurring, Yearly →
   `STRIPE_PRICE_SOLO_YEARLY`
 
 **Crew**
-- Price 1: $99.00, Recurring, Monthly → `STRIPE_PRICE_CREW_MONTHLY`
+- Price 1: $99.99, Recurring, Monthly → `STRIPE_PRICE_CREW_MONTHLY`
 - Price 2: $990.00, Recurring, Yearly → `STRIPE_PRICE_CREW_YEARLY`
+
+Match these exactly to `vault/src/lib/pricing.js`'s `PLANS` — the Pricing
+page displays whatever's in that file, but what a customer is actually
+*charged* is whichever Stripe Price ID the checkout function points at
+(`STRIPE_PRICE_*` env vars, Step 4.3). If the two drift apart, a customer
+sees one number and is billed another — always update both together.
 
 Copy all four price IDs somewhere — you'll paste them into Netlify in Step
 4.3.
