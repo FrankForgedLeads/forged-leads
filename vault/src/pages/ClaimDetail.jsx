@@ -13,6 +13,7 @@ import {
 import { runAnalysis, fetchFindings, updateFindingStatus } from "../lib/api/analysis.js";
 import { createLetterRecord } from "../lib/api/letters.js";
 import { generateReviewSummaryPdf } from "../lib/reviewSummary/pdf.js";
+import { logEvent } from "../lib/api/analyticsEvents.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
@@ -538,6 +539,7 @@ const DECIDED_STATUS_LABEL = { added: "Added", dismissed: "Dismissed", needs_inf
 // migration.sql, which only lets the client update a finding's status, not
 // create one; only analyze-review.js (service-role) can do that.
 function FindingsSection({ claimId, claim, onItemAdded }) {
+  const { user } = useAuth();
   const [hasEstimate, setHasEstimate] = useState(false);
   const [checkingFiles, setCheckingFiles] = useState(true);
   const [findings, setFindings] = useState([]);
@@ -589,6 +591,7 @@ function FindingsSection({ claimId, claim, onItemAdded }) {
         });
         const updated = await updateFindingStatus(finding.id, "added", { claim_item_id: claimItem.id });
         setFindings((prev) => prev.map((f) => (f.id === finding.id ? updated : f)));
+        logEvent("findings_added", user?.id, { claim_id: claimId, finding_id: finding.id });
         onItemAdded?.();
       } else {
         const updated = await updateFindingStatus(finding.id, action);

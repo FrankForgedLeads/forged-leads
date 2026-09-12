@@ -82,6 +82,23 @@ export default async (req) => {
   return jsonResponse(200, { received: true });
 };
 
+// Fire-and-forget, same as the client-side logEvent() — a failed analytics
+// insert must never fail (or retry) the webhook itself, since Stripe
+// retries a non-2xx response and none of these events are worth burning a
+// retry over. supabaseAdmin (service_role) bypasses analytics_events' RLS.
+function logEvent(supabaseAdmin, eventName, userId) {
+  if (!userId) return;
+  supabaseAdmin
+    .from("analytics_events")
+    .insert({ event_name: eventName, user_id: userId })
+    .then(({ error }) => {
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error(`[stripe-webhook] Failed to log analytics event "${eventName}":`, error.message);
+      }
+    });
+}
+
 async function handleCheckoutCompleted(stripe, supabaseAdmin, session) {
   const userId = session.client_reference_id;
   if (!userId) {
@@ -128,6 +145,12 @@ async function handleCheckoutCompleted(stripe, supabaseAdmin, session) {
 
   const { error } = await supabaseAdmin.from("profiles").update(update).eq("id", userId);
   if (error) throw error;
+
+  // This is always the very first subscription record for this user (a
+  // brand-new Stripe subscription, just created by this same checkout), so
+  // the status here is unambiguous — no need to compare against a prior
+  // value the way handleSubscriptionUpdated below does.
+  logEvent(supabaseAdmin, subscription.status === "trialing" ? "trial_started" : "subscription_started", userId);
 }
 
 async function handleSubscriptionUpdated(supabaseAdmin, subscription) {
@@ -139,19 +162,50 @@ async function handleSubscriptionUpdated(supabaseAdmin, subscription) {
   };
   if (plan) update.plan = plan;
 
+  // Stripe sends this event on any subscription change, not just a status
+  // transition — fetch the prior status first so trial->paid conversion
+  // and cancellation are logged exactly once, on the transition, rather
+  // than once per webhook delivery (e.g. every unrelated metadata update).
+  const { data: existingProfile } = await supabaseAdmin
+    .from("profiles")
+    .select("id, subscription_status")
+    .eq("stripe_customer_id", subscription.customer)
+    .maybeSingle();
+
   const { error } = await supabaseAdmin
     .from("profiles")
     .update(update)
     .eq("stripe_customer_id", subscription.customer);
   if (error) throw error;
+
+  const previousStatus = existingProfile?.subscription_status;
+  if (existingProfile?.id && previousStatus !== subscription.status) {
+    if (subscription.status === "active" && previousStatus !== "active") {
+      logEvent(supabaseAdmin, "subscription_started", existingProfile.id);
+    } else if (subscription.status === "canceled" && previousStatus !== "canceled") {
+      logEvent(supabaseAdmin, "subscription_canceled", existingProfile.id);
+    }
+  }
 }
 
 async function handleSubscriptionDeleted(supabaseAdmin, subscription) {
+  const { data: existingProfile } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .eq("stripe_customer_id", subscription.customer)
+    .maybeSingle();
+
   const { error } = await supabaseAdmin
     .from("profiles")
     .update({ subscription_status: "canceled" })
     .eq("stripe_customer_id", subscription.customer);
   if (error) throw error;
+
+  // subscription.deleted is a singular, terminal Stripe event (fires once
+  // per subscription's actual end) — unlike the "canceled" status branch
+  // in handleSubscriptionUpdated above, no prior-status comparison is
+  // needed to avoid double-logging.
+  logEvent(supabaseAdmin, "subscription_canceled", existingProfile?.id);
 }
 
 async function handlePaymentFailed(supabaseAdmin, invoice) {

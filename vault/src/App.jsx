@@ -25,6 +25,8 @@ import AdminItemForm from "./pages/admin/AdminItemForm.jsx";
 import AdminLeads from "./pages/admin/AdminLeads.jsx";
 import AdminSubscribers from "./pages/admin/AdminSubscribers.jsx";
 import AdminAnalysis from "./pages/admin/AdminAnalysis.jsx";
+import AdminUsage from "./pages/admin/AdminUsage.jsx";
+import AdminFeedback from "./pages/admin/AdminFeedback.jsx";
 import AdminMonthlyUpdate from "./pages/admin/AdminMonthlyUpdate.jsx";
 import ComingSoon from "./pages/ComingSoon.jsx";
 
@@ -165,6 +167,22 @@ export default function App() {
           element={
             <RequireAdmin>
               <AdminAnalysis />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/usage"
+          element={
+            <RequireAdmin>
+              <AdminUsage />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/feedback"
+          element={
+            <RequireAdmin>
+              <AdminFeedback />
             </RequireAdmin>
           }
         />

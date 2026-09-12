@@ -5,6 +5,7 @@ import { fetchAllItemsForAdmin } from "../../lib/api/adminItems.js";
 import { fetchLeads } from "../../lib/api/adminLeads.js";
 import { fetchSubscribers } from "../../lib/api/adminSubscribers.js";
 import { fetchAnalysisRuns } from "../../lib/api/adminAnalysis.js";
+import { fetchFeedback } from "../../lib/api/feedback.js";
 
 function StatCard({ label, value, sub, alert }) {
   return (
@@ -21,8 +22,8 @@ export default function AdminHome() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([fetchAllItemsForAdmin(), fetchLeads(), fetchSubscribers(), fetchAnalysisRuns()])
-      .then(([items, leads, subscribers, runs]) => {
+    Promise.all([fetchAllItemsForAdmin(), fetchLeads(), fetchSubscribers(), fetchAnalysisRuns(), fetchFeedback()])
+      .then(([items, leads, subscribers, runs, feedback]) => {
         const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
         const recentRuns = runs.filter((r) => new Date(r.started_at).getTime() >= thirtyDaysAgo);
         setStats({
@@ -38,6 +39,7 @@ export default function AdminHome() {
           analysisTotal: runs.length,
           analysisFailed: runs.filter((r) => r.status === "failed").length,
           analysisCost30d: recentRuns.reduce((sum, r) => sum + (r.estimated_cost_usd || 0), 0),
+          feedbackUnreviewed: feedback.filter((f) => f.status === "new").length,
         });
       })
       .catch((e) => setError(e.message));
@@ -46,7 +48,9 @@ export default function AdminHome() {
   return (
     <div className="container-vault py-10">
       <h1 className="text-3xl font-extrabold text-white">Admin</h1>
-      <p className="mt-1 text-white/60">Items, leads, subscribers, and analysis — ADMIN_EMAIL only.</p>
+      <p className="mt-1 text-white/60">
+        Items, leads, subscribers, analysis, usage, and feedback — ADMIN_EMAIL only.
+      </p>
 
       <div className="mt-6">
         <AdminTabs />
@@ -81,6 +85,12 @@ export default function AdminHome() {
             value={stats.analysisFailed}
             alert={stats.analysisFailed > 0}
             sub={stats.analysisFailed > 0 ? "Check Analysis runs — customers saw a failure message" : "None — good sign"}
+          />
+          <StatCard
+            label="Unreviewed feedback"
+            value={stats.feedbackUnreviewed}
+            alert={stats.feedbackUnreviewed > 0}
+            sub={stats.feedbackUnreviewed > 0 ? "Check the Feedback tab" : "None — all caught up"}
           />
         </div>
       )}

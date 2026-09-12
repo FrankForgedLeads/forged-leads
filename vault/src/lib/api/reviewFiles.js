@@ -1,4 +1,5 @@
 import { supabase } from "../supabaseClient.js";
+import { logEvent } from "./analyticsEvents.js";
 
 // Must match the storage.buckets row in supabase/migration.sql — kept here
 // too so the UI can reject an oversized/wrong-type file with a clear
@@ -80,6 +81,10 @@ export async function uploadReviewFile({ claimId, userId, file, fileType }) {
     await supabase.storage.from(BUCKET).remove([storagePath]);
     throw error;
   }
+
+  if (fileType === "estimate") logEvent("estimate_uploaded", userId, { claim_id: claimId });
+  if (fileType === "photo") logEvent("photos_uploaded", userId, { claim_id: claimId });
+
   return data;
 }
 

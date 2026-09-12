@@ -5,6 +5,8 @@ const TABS = [
   { to: "/admin/leads", label: "Leads" },
   { to: "/admin/subscribers", label: "Subscribers" },
   { to: "/admin/analysis", label: "Analysis runs" },
+  { to: "/admin/usage", label: "Usage" },
+  { to: "/admin/feedback", label: "Feedback" },
   { to: "/admin/monthly-update", label: "Monthly update" },
 ];
 

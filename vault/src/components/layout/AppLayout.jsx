@@ -1,6 +1,7 @@
 import { Outlet, Link, NavLink } from "react-router-dom";
 import Logo from "../ui/Logo.jsx";
 import Button from "../ui/Button.jsx";
+import FeedbackWidget from "./FeedbackWidget.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 
 const APP_LINKS = [
@@ -62,6 +63,7 @@ export default function AppLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
+      <FeedbackWidget />
     </div>
   );
 }

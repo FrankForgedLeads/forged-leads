@@ -827,6 +827,91 @@ the parent claim generically and don't special-case `template_key`.
   renders. Zero console errors. Full build + lint clean, no new warnings
   beyond the pre-existing baseline.
 
+## Verifying usage analytics + customer feedback (Estimate Review Phase 9, completing it)
+
+Finishes Phase 9. The admin analysis-run visibility (see the "Phase 9,
+partial" section above) covered two of the ADMIN section's 8 bullet
+points ("View system errors", "View analysis failures"); this closes the
+remaining two — "View anonymous aggregate usage" and "View customer
+feedback" — plus the entire separate ANALYTICS section, which names the
+product's single most important metric explicitly: "Percentage of trial
+users who successfully complete their first estimate review."
+
+**Usage analytics** (`analytics_events` table, `/admin/usage`): of the
+spec's 11 named events, 4 are intentionally *not* separate rows —
+`first_review_started`, `analysis_started`, `analysis_completed`, and
+`documentation_generated` are all fully reconstructable from existing
+tables (`claims`, `analysis_runs`, `letters`) with zero risk of an event
+log drifting from its own source of truth. The other 7 (`signup`,
+`trial_started`, `subscription_started`, `subscription_canceled`,
+`estimate_uploaded`, `photos_uploaded`, `findings_added`) are point-in-time
+transitions with no standing record anywhere else, so those get real
+rows — written by the `handle_new_user()` trigger (signup) and the Stripe
+webhook function (the 3 subscription-lifecycle events, comparing prior vs.
+new status so a transition is logged exactly once, not once per unrelated
+webhook delivery), or fire-and-forget client-side calls at the 3 remaining
+action points (uploading an estimate/photo, adding a finding to a review).
+`/admin/usage` computes trial→first-review rate, trial→paid conversion,
+and reviews-per-paying-customer from these rows plus `profiles`/`claims`
+— simple, honestly-labeled approximations (documented as such on the page
+itself) rather than full cohort/event-ordering analysis, appropriate for
+a single-operator admin view rather than a growth team's analytics stack.
+
+**Customer feedback** (`feedback` table, `/admin/feedback`, and a
+persistent **Feedback** button in the app shell): deliberately just a
+free-text box, no rating/NPS/category picker — minimal friction for a
+contractor who's mid-job, not a structured survey. Admin can mark an item
+reviewed; `AdminHome` gets a matching "Unreviewed feedback" alert tile.
+
+**A real bug this caught**: the first version of `submitFeedback()` did
+`.insert(...).select("*").single()` to return the created row. Under RLS,
+requesting the row back after an insert (PostgREST's
+`Prefer: return=representation`) makes Postgres also check the table's
+*SELECT* policies against the new row, not just the INSERT policy —
+`feedback_select_admin` only grants that to admin, so every real (non-
+admin) customer's feedback submission would have failed with "new row
+violates row-level security policy for table feedback", even though the
+insert itself was completely legitimate. Caught by testing the exact
+client call shape against local Postgres rather than just the schema in
+isolation; fixed by dropping `.select()` — the widget never needed the
+row back. `analytics_events`' `logEvent()` never had this bug since it
+was fire-and-forget from the start (no `.select()` call).
+
+**Verified**: full `migration.sql` re-applied cleanly against a fresh
+local Postgres 16 instance. As the `authenticated` role playing a real
+non-admin user (not superuser): inserting their own `analytics_events`/
+`feedback` row (matching the exact call shape the client code makes, no
+`RETURNING`) succeeds; attributing either to someone else's `user_id`
+fails RLS; selecting either table back returns zero rows (RLS-filtered,
+not an error); updating their own feedback's `status` is blocked
+(`feedback_update_admin` requires `is_admin()`); editing their own
+feedback's `message` is blocked before RLS even runs (column-level grant
+covers only `status`, same least-privilege pattern as the Phase 10
+security fixes). As the `authenticated` role playing admin: both tables
+fully readable, and marking feedback reviewed — with `RETURNING`, matching
+the real `markFeedbackReviewed()` call — succeeds. Also confirmed the
+`handle_new_user()` trigger logs a `signup` event automatically for every
+new `auth.users` row. Mocked-backend Playwright passes: submitting
+feedback from `/dashboard` fires the correct `POST` and shows the
+confirmation; `/admin/usage` renders the funnel stats correctly from
+seeded events/profiles/claims; `/admin/feedback` lists a seeded item and
+"Mark reviewed" fires a `PATCH` touching only the `status` field. A
+separate mobile-viewport (375px) pass confirms no horizontal overflow and
+that the Feedback button is fully on-screen with a tappable target size,
+both before and after opening the modal. Zero console errors throughout.
+Full build + lint clean, no new warnings beyond the pre-existing baseline
+(one new warning from `AdminUsage.jsx`'s 30-day cutoff — same
+`Date.now()`-in-`useMemo` class as `AdminAnalysis.jsx` — fixed the same
+way, via lazy `useState` initialization).
+
+**Still not built** (Phase 9's admin scope, deliberately left out):
+product-announcement broadcasting beyond the existing monthly-update
+email (Phase 7), and deeper subscription management beyond what
+Stripe's own Customer Portal already provides — neither is needed to
+run the business day-to-day, and adding them now would be scope, not a
+gap. Phase 10's UX audit and mobile testing beyond what's covered above
+also remain open.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow

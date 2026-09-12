@@ -946,6 +946,132 @@ alter table public.letters add constraint letters_template_key_check check (
 );
 
 -- ============================================================================
+-- Phase 9 — Usage analytics + customer feedback
+--
+-- Product spec's ANALYTICS section lists 11 events to track (signup,
+-- trial_started, first_review_started, estimate_uploaded, photos_uploaded,
+-- analysis_started, analysis_completed, findings_added,
+-- documentation_generated, subscription_started, subscription_canceled).
+-- Four of those are deliberately NOT separate rows here because they're
+-- already fully reconstructable from existing tables with zero risk of the
+-- event log and the source-of-truth table drifting apart:
+--   - first_review_started -> MIN(claims.created_at) per user
+--   - analysis_started / analysis_completed -> analysis_runs.started_at /
+--     analysis_runs where status = 'succeeded' (Phase 3)
+--   - documentation_generated -> letters.generated_at (Phase 4 / Phase 7)
+-- The other 7 have no existing table to derive them from (a point-in-time
+-- transition, not a standing record) — those get real rows below.
+-- ============================================================================
+
+create table if not exists public.analytics_events (
+  id uuid primary key default gen_random_uuid(),
+  event_name text not null check (
+    event_name in (
+      'signup',
+      'trial_started',
+      'subscription_started',
+      'subscription_canceled',
+      'estimate_uploaded',
+      'photos_uploaded',
+      'findings_added'
+    )
+  ),
+  -- Nullable + on delete cascade rather than not-null: keeps the same shape
+  -- as analysis_runs.user_id (Phase 3) for an account that gets deleted —
+  -- the event should disappear with the user, not orphan a broken FK.
+  user_id uuid references auth.users(id) on delete cascade,
+  metadata jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists analytics_events_event_name_idx on public.analytics_events(event_name, created_at);
+create index if not exists analytics_events_user_id_idx on public.analytics_events(user_id);
+
+alter table public.analytics_events enable row level security;
+
+-- Append-only audit log: authenticated users may record their own events
+-- (client-fired ones — estimate_uploaded, photos_uploaded, findings_added)
+-- and never anyone else's; only admin can read it back; no update/delete
+-- policy at all, for anyone — nothing should ever rewrite analytics history.
+-- The signup/trial_started/subscription_started/subscription_canceled rows
+-- are written by service_role (the signup trigger and the Stripe webhook
+-- function), which bypasses RLS entirely, same as analysis_runs.
+create policy "analytics_events_insert_own" on public.analytics_events
+  for insert with check (user_id = auth.uid());
+
+create policy "analytics_events_select_admin" on public.analytics_events
+  for select using (public.is_admin());
+
+create table if not exists public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  message text not null,
+  -- Which page/screen the feedback was submitted from, for context —
+  -- e.g. "/claims/<id>" — set by the client, not user-editable free text.
+  page_context text,
+  status text not null default 'new' check (status in ('new', 'reviewed')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists feedback_created_at_idx on public.feedback(created_at desc);
+
+alter table public.feedback enable row level security;
+
+create policy "feedback_insert_own" on public.feedback
+  for insert with check (user_id = auth.uid());
+
+create policy "feedback_select_admin" on public.feedback
+  for select using (public.is_admin());
+
+-- Admin-only update, and even then restricted to the one column that's
+-- actually meant to change post-insert (see the column-privilege pattern
+-- established in the Phase 10 security fixes above) — admin has no
+-- legitimate reason to rewrite someone's feedback message or reattribute
+-- whose it was, only to mark it reviewed.
+create policy "feedback_update_admin" on public.feedback
+  for update using (public.is_admin()) with check (public.is_admin());
+
+revoke update on public.feedback from authenticated;
+grant update (status) on public.feedback to authenticated;
+
+-- Extends handle_new_user (defined earlier, Phase 2) to also record a
+-- signup event, now that analytics_events exists. CREATE OR REPLACE is
+-- idempotent and safe to run again against an already-migrated project —
+-- the existing on_auth_user_created trigger already points at this
+-- function by name and picks up the new body automatically; it does not
+-- need to be recreated.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  matched_invite record;
+begin
+  insert into public.profiles (id, email)
+  values (new.id, new.email)
+  on conflict (id) do nothing;
+
+  insert into public.analytics_events (event_name, user_id)
+  values ('signup', new.id);
+
+  select * into matched_invite
+  from public.team_invites
+  where email = new.email and accepted_at is null
+  order by created_at desc
+  limit 1;
+
+  if matched_invite.id is not null then
+    update public.profiles set team_id = matched_invite.team_id where id = new.id;
+    update public.team_invites set accepted_at = now() where id = matched_invite.id;
+  end if;
+
+  return new;
+end;
+$$;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
