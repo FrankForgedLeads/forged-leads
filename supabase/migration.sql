@@ -886,6 +886,44 @@ grant update (full_name, company, phone, role) on public.profiles to authenticat
 
 revoke update on public.team_invites from authenticated;
 
+-- ----------------------------------------------------------------------------
+-- Same missing-WITH-CHECK gap, found by re-checking every other `for update`
+-- policy in this file after the profiles/team_invites fix above, rather than
+-- assuming it was the only instance:
+--
+-- - teams_update_owner_or_admin: same as team_invites — the client never
+--   calls .update() on teams at all (grep confirms only .select() in
+--   src/lib/api/team.js). Dead policy, pure attack surface. Revoked outright.
+-- - claims_update / claim_items_update / review_findings_update_status: all
+--   three grant "can update this row" based on team/ownership, without
+--   restricting which columns. Without a column restriction, a legitimate
+--   teammate (who has genuine, intended update access to a shared claim)
+--   could re-parent that row's claim_id/team_id-linked ownership — e.g. set
+--   claims.team_id or claim_items.claim_id or review_findings.claim_id to a
+--   team/claim they don't belong to, injecting content into a victim's
+--   claim — or, on review_findings specifically, rewrite the AI's own
+--   output after the fact: reason, confidence, scope_status, and critically
+--   requires_human_verification, which the analysis engine (see
+--   estimateAnalysisService.js) deliberately never lets the model set to
+--   anything but true. None of that should be client-writable — the app
+--   only ever updates a narrow field set on each of these tables (verified
+--   by grepping every real call site), so grant only that set.
+-- ----------------------------------------------------------------------------
+
+revoke update on public.teams from authenticated;
+
+revoke update on public.claims from authenticated;
+grant update (
+  status, project_type, trade, property_address, insured_name, estimate_total,
+  date_of_loss, loss_type, claim_number, carrier, adjuster_name, description, notes
+) on public.claims to authenticated;
+
+revoke update on public.claim_items from authenticated;
+grant update (quantity, custom_amount, note) on public.claim_items to authenticated;
+
+revoke update on public.review_findings from authenticated;
+grant update (status, claim_item_id) on public.review_findings to authenticated;
+
 -- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.

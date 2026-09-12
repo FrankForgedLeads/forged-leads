@@ -726,6 +726,51 @@ completed, before this fix. No action needed from Frankie beyond running
 the current `migration.sql` (which now includes the fix) rather than an
 earlier copy.
 
+**Follow-up sweep**: rather than assume `profiles`/`team_invites` were the
+only two instances of this pattern, re-checked every other `for update`
+policy in the file. Found the same gap in three more places and fixed all
+of them the same way:
+
+- `teams_update_owner_or_admin` — same as `team_invites`: the client never
+  calls `.update()` on `teams` at all (confirmed by grep). Dead policy,
+  pure attack surface. Revoked outright.
+- `claims_update` — a legitimate teammate (real, intended update access to
+  a shared claim) could have re-parented that claim into a **different**
+  `team_id` they don't belong to, injecting it into a victim team's claim
+  list. Now grants only the columns `ClaimInfoForm`/the status dropdown
+  actually send (`status`, `project_type`, `trade`, `property_address`,
+  `insured_name`, `estimate_total`, `date_of_loss`, `loss_type`,
+  `claim_number`, `carrier`, `adjuster_name`, `description`, `notes`) —
+  never `user_id` or `team_id`.
+- `claim_items_update` — same re-parenting risk via `claim_id`. Now grants
+  only `quantity`, `custom_amount`, `note` — matching exactly what
+  `persistRow()` in `ClaimDetail.jsx` sends.
+- `review_findings_update_status` — the most important of the three: without
+  this, a user could have rewritten an AI finding's `reason`, `confidence`,
+  `scope_status` after the fact, re-parented it to a claim they don't own
+  via `claim_id`, or — worst — flipped `requires_human_verification` to
+  `false`, undermining the human-in-the-loop guarantee the whole Estimate
+  Review feature's legal/trust framing depends on. Now grants only `status`
+  and `claim_item_id`, matching `updateFindingStatus()`'s only two call
+  shapes in `ClaimDetail.jsx`.
+
+`items_update_admin` was deliberately left alone — every column on `items`
+is meant to be admin-editable (that's the actual admin CRUD feature), so
+there's no legitimate/illegitimate column distinction to enforce there the
+way there is on tables shared between untrusted-relative-to-each-other
+users.
+
+Verified the same way as the first fix: seeded an attacker's own team,
+claim, claim_item, and review_finding (their own, legitimately-owned
+resources — the exact case a real teammate would be in), then as the
+`authenticated` role with `auth.uid()` bound to that attacker: confirmed
+every legitimate update still works (claim status, claim_item quantity,
+marking a finding added) and every exploit attempt — re-parenting a claim
+via `team_id`, re-parenting a claim_item via `claim_id`, flipping
+`requires_human_verification`, rewriting `reason`/`confidence`, updating a
+`teams` row at all — fails with a clean permission error, with every
+targeted row confirmed unchanged afterward.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow
