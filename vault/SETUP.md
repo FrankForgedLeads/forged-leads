@@ -125,12 +125,12 @@ Stripe dashboard). You'll repeat the product/price/webhook parts in
 **Solo**
 - Price 1: $39.99, Recurring, Monthly → copy the price ID (`price_...`)
   → this is `STRIPE_PRICE_SOLO_MONTHLY`
-- Add another price on the same product: $390.00, Recurring, Yearly →
+- Add another price on the same product: $399.99, Recurring, Yearly →
   `STRIPE_PRICE_SOLO_YEARLY`
 
 **Crew**
 - Price 1: $99.99, Recurring, Monthly → `STRIPE_PRICE_CREW_MONTHLY`
-- Price 2: $990.00, Recurring, Yearly → `STRIPE_PRICE_CREW_YEARLY`
+- Price 2: $999.99, Recurring, Yearly → `STRIPE_PRICE_CREW_YEARLY`
 
 Match these exactly to `vault/src/lib/pricing.js`'s `PLANS` — the Pricing
 page displays whatever's in that file, but what a customer is actually
