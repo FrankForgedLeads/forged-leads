@@ -1072,6 +1072,144 @@ end;
 $$;
 
 -- ============================================================================
+-- PHOTO EVIDENCE (vault-photos) — photos linked to a specific claim_item
+--
+-- Deliberately keyed off claim_items.id (one FK), not a separate claim_id +
+-- item_id pair — a claim_items row already *is* "this specific line item on
+-- this specific claim" (see the CLAIM ITEMS section above), so a second pair
+-- of FKs here would just duplicate that and risk drifting out of sync (e.g.
+-- a photo whose claim_id/item_id no longer match any real claim_items row).
+-- One FK, cascade-deleted with its claim_item, can't go stale.
+-- ============================================================================
+
+create table if not exists public.claim_item_photos (
+  id uuid primary key default gen_random_uuid(),
+  claim_item_id uuid not null references public.claim_items(id) on delete cascade,
+  -- Path within the private 'claim-item-photos' bucket, prefixed with the
+  -- uploader's auth.uid() — same shape as review_files.storage_path, same
+  -- storage.objects policy pattern below.
+  storage_path text not null,
+  file_name text not null,
+  mime_type text,
+  size_bytes bigint,
+  -- From EXIF when present (client-side extraction, see
+  -- lib/api/claimItemPhotos.js) — both null together when the photo has no
+  -- GPS tag (most desktop screenshots, some phones with location off).
+  -- Never block or fail an upload for missing EXIF; these just stay null.
+  gps_lat double precision,
+  gps_lng double precision,
+  -- EXIF capture timestamp when present, else set to uploaded_at at insert
+  -- time — always populated, so the UI/PDF never has to fall back at render
+  -- time on whether this is "captured" or "uploaded" info.
+  captured_at timestamptz not null,
+  uploaded_at timestamptz not null default now(),
+  uploaded_by uuid references auth.users(id) on delete set null,
+  caption text
+);
+
+create index if not exists claim_item_photos_claim_item_id_idx on public.claim_item_photos(claim_item_id);
+
+alter table public.claim_item_photos enable row level security;
+
+-- Access follows the parent claim_item -> claim, same two-hop join shape
+-- used nowhere else yet in this file (review_files/letters are one hop,
+-- claim_id directly) since photos hang off claim_items, not claims.
+create policy "claim_item_photos_select" on public.claim_item_photos
+  for select using (
+    exists (
+      select 1 from public.claim_items ci
+      join public.claims c on c.id = ci.claim_id
+      where ci.id = claim_item_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "claim_item_photos_insert" on public.claim_item_photos
+  for insert with check (
+    exists (
+      select 1 from public.claim_items ci
+      join public.claims c on c.id = ci.claim_id
+      where ci.id = claim_item_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "claim_item_photos_delete" on public.claim_item_photos
+  for delete using (
+    exists (
+      select 1 from public.claim_items ci
+      join public.claims c on c.id = ci.claim_id
+      where ci.id = claim_item_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- No update policy: a photo's caption is the only thing that could ever
+-- change post-upload, and v1 doesn't expose editing it — delete + re-add
+-- covers that case for now, keeping this table (like review_files) write-
+-- once/delete, no update surface to secure.
+
+-- ----------------------------------------------------------------------------
+-- STORAGE — private 'claim-item-photos' bucket
+--
+-- Same per-user-folder pattern as 'review-files': objects live at
+-- `${auth.uid()}/${claim_item_id}/${generated filename}`, access scoped to
+-- the caller's own top-level folder. Image types only (no PDF — this bucket
+-- is strictly photo evidence, not general documents) and a 10 MB/file cap,
+-- enforced by Postgres so a direct API call can't bypass it.
+-- Same known v1 limitation as review-files: a Crew teammate sees a shared
+-- claim's photo *rows* but can't fetch a teammate's actual file bytes,
+-- since storage access is scoped by uploader folder, not by team.
+-- ----------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'claim-item-photos',
+  'claim-item-photos',
+  false,
+  10485760, -- 10 MB
+  array['image/jpeg', 'image/png', 'image/webp', 'image/heic']
+)
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "claim_item_photos_storage_select" on storage.objects
+  for select using (
+    bucket_id = 'claim-item-photos'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+create policy "claim_item_photos_storage_insert" on storage.objects
+  for insert with check (
+    bucket_id = 'claim-item-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "claim_item_photos_storage_delete" on storage.objects
+  for delete using (
+    bucket_id = 'claim-item-photos'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

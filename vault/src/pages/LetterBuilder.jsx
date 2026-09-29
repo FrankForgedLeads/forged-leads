@@ -3,9 +3,11 @@ import { useParams, Link } from "react-router-dom";
 import { fetchClaim } from "../lib/api/claims.js";
 import { fetchClaimItems } from "../lib/api/claimItems.js";
 import { createLetterRecord } from "../lib/api/letters.js";
+import { fetchPhotosForClaimItems } from "../lib/api/claimItemPhotos.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { LETTER_TEMPLATES } from "../lib/letters/templates.js";
 import { generateLetterPdf } from "../lib/letters/pdf.js";
+import { loadPhotosForPdf } from "../lib/letters/photoEmbed.js";
 import { unitAmount, lineTotal, claimTotal } from "../lib/claimMath.js";
 import { formatDate } from "../lib/format.js";
 import { VAULT_DISCLAIMER } from "../lib/disclaimer.js";
@@ -65,6 +67,7 @@ export default function LetterBuilder() {
   const itemRows = useMemo(
     () =>
       rows.map((r) => ({
+        claimItemId: r.id,
         title: r.items?.title,
         code: r.items?.xactimate_code,
         citation: r.items?.code_citation,
@@ -94,7 +97,26 @@ export default function LetterBuilder() {
     setExporting(true);
     setError("");
     try {
-      const doc = await generateLetterPdf({ templateKey, fields: { ...fields, total }, itemRows });
+      // Fetched fresh at export time, not kept in component state — photo
+      // evidence is added/removed back on the review page, not here, so
+      // there's no live state to keep in sync; just get the current truth
+      // right before building the PDF. Raw rows first, then resolved to
+      // real embeddable pixel data (fetch + decode + canvas-resize) via
+      // loadPhotosForPdf — see its own comment for why a bad photo there
+      // never aborts the export.
+      const rawPhotos = await fetchPhotosForClaimItems(rows.map((r) => r.id));
+      const photosByClaimItemId = {};
+      for (const photo of rawPhotos) {
+        (photosByClaimItemId[photo.claim_item_id] ??= []).push(photo);
+      }
+      const embeddablePhotosByClaimItemId = await loadPhotosForPdf(photosByClaimItemId);
+
+      const doc = await generateLetterPdf({
+        templateKey,
+        fields: { ...fields, total },
+        itemRows,
+        photosByClaimItemId: embeddablePhotosByClaimItemId,
+      });
       const claimLabel = claim.claim_number || claim.insured_name || "claim";
       const templateLabel = LETTER_TEMPLATES.find((t) => t.key === templateKey)?.name ?? templateKey;
       doc.save(`Letter - ${claimLabel} - ${templateLabel}.pdf`);

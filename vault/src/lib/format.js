@@ -37,3 +37,24 @@ export function formatBytes(bytes) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
+
+export function formatDateTime(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+// Plain "lat, lng" text — good enough for v1 per the product spec (no map
+// needed), paired with googleMapsUrl() below for the one-click "View on
+// map" link. Six decimals is roughly 10cm precision, more than enough for
+// a property photo and matches common GPS-tag display conventions.
+export function formatGps(lat, lng) {
+  if (lat === null || lat === undefined || lng === null || lng === undefined) return null;
+  return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+}
+
+export function googleMapsUrl(lat, lng) {
+  if (lat === null || lat === undefined || lng === null || lng === undefined) return null;
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+}

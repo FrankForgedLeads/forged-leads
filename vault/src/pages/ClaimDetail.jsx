@@ -14,8 +14,10 @@ import { runAnalysis, fetchFindings, updateFindingStatus } from "../lib/api/anal
 import { createLetterRecord } from "../lib/api/letters.js";
 import { generateReviewSummaryPdf } from "../lib/reviewSummary/pdf.js";
 import { logEvent } from "../lib/api/analyticsEvents.js";
+import { fetchPhotosForClaimItems } from "../lib/api/claimItemPhotos.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import Card from "../components/ui/Card.jsx";
+import PhotoEvidence from "../components/claims/PhotoEvidence.jsx";
 import Button from "../components/ui/Button.jsx";
 import { Field, Input, Select, Textarea } from "../components/ui/Field.jsx";
 import { formatCurrency, formatRange, formatBytes, formatDate, midpoint } from "../lib/format.js";
@@ -33,10 +35,20 @@ const STATUS_OPTIONS = [
   { value: "completed", label: "Completed" },
 ];
 
+function groupPhotosByItemId(photos) {
+  const grouped = {};
+  for (const photo of photos) {
+    (grouped[photo.claim_item_id] ??= []).push(photo);
+  }
+  return grouped;
+}
+
 export default function ClaimDetail() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [claim, setClaim] = useState(null);
   const [rows, setRows] = useState([]);
+  const [photosByItemId, setPhotosByItemId] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingInfo, setEditingInfo] = useState(false);
@@ -47,7 +59,17 @@ export default function ClaimDetail() {
     const [claimData, itemRows] = await Promise.all([fetchClaim(id), fetchClaimItems(id)]);
     setClaim(claimData);
     setRows(itemRows);
+    const photos = await fetchPhotosForClaimItems(itemRows.map((r) => r.id));
+    setPhotosByItemId(groupPhotosByItemId(photos));
   }, [id]);
+
+  // Re-fetched (not locally patched) after any upload/delete — photo count
+  // is small enough per item that a fresh round trip is simpler than
+  // reconciling optimistic local state with what the server actually has.
+  const reloadPhotos = useCallback(async () => {
+    const photos = await fetchPhotosForClaimItems(rows.map((r) => r.id));
+    setPhotosByItemId(groupPhotosByItemId(photos));
+  }, [rows]);
 
   useEffect(() => {
     setLoading(true);
@@ -228,6 +250,9 @@ export default function ClaimDetail() {
                 onLocalChange={(fields) => updateRowLocal(row.id, fields)}
                 onBlurSave={() => persistRow(row)}
                 onRemove={() => handleRemove(row.id)}
+                photos={photosByItemId[row.id] || []}
+                userId={user?.id}
+                onPhotosChanged={reloadPhotos}
               />
             ))}
           </div>
@@ -891,7 +916,7 @@ function FileList({ files, loading, onView, onDelete }) {
   );
 }
 
-function ClaimItemRow({ row, onLocalChange, onBlurSave, onRemove }) {
+function ClaimItemRow({ row, onLocalChange, onBlurSave, onRemove, photos, userId, onPhotosChanged }) {
   const item = row.items;
   const unitPlaceholder = midpoint(item?.low_amount, item?.high_amount);
   const total = lineTotal(row);
@@ -962,6 +987,8 @@ function ClaimItemRow({ row, onLocalChange, onBlurSave, onRemove }) {
           <p className="text-lg font-extrabold text-white">{formatCurrency(total)}</p>
         </div>
       </div>
+
+      <PhotoEvidence claimItemId={row.id} photos={photos} userId={userId} onPhotosChanged={onPhotosChanged} />
     </Card>
   );
 }

@@ -7,6 +7,9 @@ const PAGE_WIDTH = 612; // US Letter, pt
 const PAGE_HEIGHT = 792;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 const FOOTER_RESERVE = 46; // space kept clear at the bottom for the disclaimer
+// Photo Evidence (vault-photos): print size for an embedded photo — "a
+// reasonable print size (not full page)" per the product spec. ~2.5in wide.
+const PHOTO_PRINT_WIDTH = 180;
 
 /**
  * Builds the letter PDF and returns the jsPDF document. Caller decides
@@ -16,8 +19,16 @@ const FOOTER_RESERVE = 46; // space kept clear at the bottom for the disclaimer
  * jsPDF (~1MB with its optional html2canvas dependency) is dynamically
  * imported here so it only loads for someone actually exporting a letter,
  * not bundled into every visitor's initial page load.
+ *
+ * photosByClaimItemId (Photo Evidence / vault-photos): { [claimItemId]:
+ * embeddablePhoto[] }, already resolved to real pixel data via
+ * lib/letters/photoEmbed.js's loadPhotosForPdf() *before* calling this —
+ * this function only draws, it never fetches. Each itemRows entry needs a
+ * matching `claimItemId` for its photos to be found; omit the whole param
+ * (or leave an item's id unmatched) and that item simply prints with no
+ * photos, same as before this feature existed.
  */
-export async function generateLetterPdf({ templateKey, fields, itemRows }) {
+export async function generateLetterPdf({ templateKey, fields, itemRows, photosByClaimItemId = {} }) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   let y = MARGIN;
@@ -115,6 +126,34 @@ export async function generateLetterPdf({ templateKey, fields, itemRows }) {
       y += 12;
     }
     doc.setTextColor(0);
+
+    // --- Photo Evidence (vault-photos) — this item's linked photos, right
+    // below its own letter language, per the feature's whole point: item,
+    // justification, proof, not a checklist and photos as separate things.
+    const photos = photosByClaimItemId[row.claimItemId] || [];
+    for (const photo of photos) {
+      const printWidth = Math.min(PHOTO_PRINT_WIDTH, CONTENT_WIDTH - 14);
+      const printHeight = printWidth * (photo.height / photo.width);
+      const captionParts = [photo.dateLabel, photo.gpsLabel].filter(Boolean);
+      if (photo.caption) captionParts.push(photo.caption);
+      const captionText = captionParts.join(" · ");
+      const captionLines = captionText ? doc.splitTextToSize(captionText, printWidth) : [];
+
+      ensureSpace(8 + printHeight + 4 + captionLines.length * 10 + 6);
+      y += 8;
+      doc.addImage(photo.dataUrl, "JPEG", MARGIN + 14, y, printWidth, printHeight);
+      y += printHeight + 4;
+
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      for (const line of captionLines) {
+        doc.text(line, MARGIN + 14, y);
+        y += 10;
+      }
+      doc.setTextColor(0);
+      y += 6;
+    }
   });
 
   for (const p of afterItems) paragraph(p, { gapBefore: 16, bold: true });

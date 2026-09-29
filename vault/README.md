@@ -958,6 +958,91 @@ actually testing on a real phone with real network conditions, or a
 full accessibility pass (contrast ratios, screen reader labels, focus
 order weren't audited here).
 
+## Photo Evidence (internal name: vault-photos)
+
+Not a general photo gallery — every photo is linked to one specific
+`claim_items` row (a specific line item on a specific review), and that
+link is the whole feature. Capture, link, store, export — explicitly no
+AI captioning, voice-to-report, or ghost-overlay/angle-matching in v1.
+
+**Data model**: `claim_item_photos` keyed off `claim_items.id` (one FK,
+cascade-deleted with its claim_item) rather than the spec's original
+`claim_id` + `line_item_id` pair — a `claim_items` row already *is* "this
+line item on this claim" (see the CLAIM ITEMS section of `migration.sql`),
+so a second pair of FKs here would just duplicate that and risk a photo
+whose ids no longer match any real `claim_items` row. One FK can't go
+stale. `gps_lat`/`gps_lng`/`captured_at` come from client-side EXIF
+extraction (`exifr`, dynamically imported so it doesn't bundle into every
+page load); `captured_at` is not-null and falls back to upload time when
+a photo has no EXIF timestamp, so the UI and PDF export never need to
+know which source it came from.
+
+**Where it lives**: a `PhotoEvidence` control under every attached item on
+`/claims/:id` (`components/claims/PhotoEvidence.jsx`) — drag-and-drop or a
+file picker, inline thumbnails immediately after upload (captured date +
+a "View on map" link when GPS is present, no map embed needed for v1 per
+the spec), remove button per photo. Storage is a new private
+`claim-item-photos` Supabase bucket (image types only, 10 MB/file cap),
+same per-user-folder RLS pattern as the existing `review-files` bucket.
+
+**PDF export**: the Letter Builder's existing PDF (`lib/letters/pdf.js`,
+checklist item + letter language) now embeds each item's linked photos
+directly below that item's letter text, at print size (~2.5in wide, not
+full page), with a caption line (date, GPS, optional caption) underneath
+each — the explicit goal from the spec: "item, justification, proof"
+instead of a checklist and photos as separate things. Getting real pixel
+data into jsPDF (it needs bytes, not a URL) means fetching each photo's
+signed URL, decoding it via a browser `<img>`, and re-encoding through a
+canvas as JPEG (`lib/letters/photoEmbed.js`) — this also normalizes every
+upload format to the one jsPDF embeds reliably, and doubles as the resize
+step. A photo that fails to decode (corrupt file, a HEIC variant the
+browser can't handle) is silently skipped rather than aborting the whole
+export — one bad photo must never block getting the rest of the letter
+out. The Review Summary PDF (`lib/reviewSummary/pdf.js`, Phase 7) was
+deliberately left untouched — the product spec named "the existing claim
+PDF export (checklist + letter templates)" specifically, which is the
+Letter Builder's, not the Review Summary's.
+
+**Storage budget**: Supabase's free tier caps total Storage at 1 GB across
+both buckets (`review-files` + `claim-item-photos`) combined. At the 10 MB/
+photo cap here, that's roughly 100 photos before hitting the ceiling —
+in practice photos run much smaller (phone JPEGs are typically 2-6 MB), so
+real headroom is more like 200-400 photos total across every customer's
+every review. Worth flagging to Frankie once real usage data exists: if
+customers are averaging several photos per line item across active
+reviews, the free tier could be exhausted well before 500 MB of *actual*
+usage, since Storage counts the original uploaded bytes, not the
+resized/compressed copies embedded in an exported PDF (those are
+generated on the fly at export time, never stored).
+
+**Verified**: full `migration.sql` re-applied cleanly against a fresh
+local Postgres 16 instance. As the `authenticated` role playing a real
+attacker (not superuser) against a real victim's claim/claim_item: adding
+a photo to their own claim_item succeeds; attempting to attach a photo to
+the victim's claim_item is rejected by RLS; reading the victim's photos
+returns nothing (filtered, not an error); deleting the victim's
+legitimately-owned photo as the attacker silently affects zero rows
+(confirmed unchanged via a superuser read afterward) — same ownership
+pattern as every other claim-scoped table in this schema. Mocked-backend
+Playwright passes: uploading a photo with no EXIF data (a bare 1×1 test
+JPEG) succeeds without erroring or blocking, `gps_lat`/`gps_lng` come back
+null exactly as expected, the thumbnail renders inline, removing it fires
+the delete and clears the thumbnail from the UI, zero console errors. A
+separate export pass seeded 3 different claim items with 3 distinct
+photos on the same review and confirmed the exported PDF actually
+contains embedded JPEG image data (not just a same-size-as-before file)
+and that each item's signed-URL fetch used that item's own storage path —
+i.e. photos don't get mixed up across items. A 320px/375px mobile pass
+confirmed no horizontal overflow and a clean single-column layout for the
+photo section. Full build + lint clean, no new warnings beyond the
+pre-existing baseline.
+
+**Not done** (explicit v1 non-goals per the spec, not oversights): native
+mobile camera SDK (a standard file input covers mobile web fine); a map
+embed for GPS (a "View on map" link to Google Maps instead); editing a
+photo's caption after upload (delete + re-add covers that for now); any
+AI-assisted captioning or scope matching.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow
