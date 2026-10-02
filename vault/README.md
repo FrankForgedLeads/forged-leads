@@ -1043,6 +1043,51 @@ embed for GPS (a "View on map" link to Google Maps instead); editing a
 photo's caption after upload (delete + re-add covers that for now); any
 AI-assisted captioning or scope matching.
 
+## Cart / checkout
+
+Vault only ever sells one thing at a time — Solo or Crew, monthly or
+annual, mutually exclusive — so this is a single-line-item cart, not a
+multi-SKU one. What changed: picking a plan on `/subscribe` used to go
+*straight* to Stripe's hosted Checkout page with no review step; now it
+adds that plan to a cart at `/cart`, which shows the plan, its features,
+the price, and "$0.00 due today" (7-day trial) before the person commits
+to anything. The actual credit/debit card is still entered on Stripe's
+own hosted Checkout page, reached by clicking **Proceed to payment** —
+that's the real PCI-scoped card-processing step, unchanged from before
+and not rebuilt from scratch; this page is the review screen in front of
+it. `/cart?plan=<solo|crew>&interval=<monthly|yearly>` reads its state
+from the URL (survives a refresh, no route state to lose) and bounces
+back to `/subscribe` if the plan is missing or invalid.
+
+**A real bug this caught**: testing the cart at 320px (iPhone SE width)
+for a signed-in-but-not-yet-subscribed visitor — exactly who's on
+`/subscribe` and `/cart` — surfaced a pre-existing header overflow in
+`AppLayout.jsx`: the logo plus "Start free trial" plus "Log out" together
+didn't fit in the header at that width (not something the Phase 10 mobile
+audit caught, since those tests only covered already-subscribed/admin
+users there). Fixed by moving "Start free trial" out of the fixed header
+row and into the same horizontally-scrollable nav-pill row the Feedback
+button already uses — same fix, same reasoning as Phase 10's. A second,
+unrelated 320px overflow turned up in the new Cart page itself: the Crew
+plan's longer tagline wasn't wrapping inside its flex row for lack of
+`min-w-0` on the flex child, so the whole card (and page) grew past the
+viewport instead of wrapping to a second line — a classic flexbox gotcha,
+fixed with one class.
+
+**Verified**: full build + lint clean, no new warnings. Mocked-backend
+Playwright pass: picking Solo monthly from `/subscribe` lands on
+`/cart?plan=solo&interval=monthly` showing the right plan, the right
+price ($39.99), and $0.00 due today; clicking **Proceed to payment**
+fires the real `create-checkout-session` call with that exact plan and
+interval and the browser actually redirects to the returned Stripe URL
+(confirmed via `page.url()` after the redirect, not just that the
+function was called). A bad/missing `plan` query param redirects back to
+`/subscribe` instead of showing a broken cart. 320px/375px passes (after
+the two fixes above) confirm no horizontal overflow and correct
+plan/price rendering on the cart itself; a separate pass on `/dashboard`
+for an already-subscribed user confirms the header fix didn't regress
+that case and no stray "Start free trial" shows once subscribed.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow

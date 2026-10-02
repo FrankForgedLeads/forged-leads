@@ -6,11 +6,10 @@ import { PLANS, yearlySavingsPct } from "../lib/pricing.js";
 export default function PricingTable({
   showTrialNote = true,
   // When provided, plan buttons call onSelectPlan(planKey, "monthly"|"yearly")
-  // instead of linking to /login — used by /subscribe to trigger Stripe
-  // Checkout for an already-signed-in user. loadingPlanKey disables/labels
-  // the button for whichever plan is mid-checkout-creation.
+  // instead of linking to /login — used by /subscribe to add the chosen
+  // plan to the cart (/cart) for an already-signed-in user, rather than
+  // linking out to /login.
   onSelectPlan,
-  loadingPlanKey,
 }) {
   const [annual, setAnnual] = useState(false);
 
@@ -92,11 +91,10 @@ export default function PricingTable({
                   as="button"
                   type="button"
                   onClick={() => onSelectPlan(plan.key, annual ? "yearly" : "monthly")}
-                  disabled={Boolean(loadingPlanKey)}
                   variant={plan.highlight ? "primary" : "secondary"}
                   className="mt-8 w-full"
                 >
-                  {loadingPlanKey === plan.key ? "Redirecting to checkout…" : "Start 7-day free trial"}
+                  Add to cart
                 </Button>
               ) : (
                 <Button

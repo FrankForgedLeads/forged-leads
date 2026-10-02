@@ -11,6 +11,7 @@ import Privacy from "./pages/Privacy.jsx";
 import Login from "./pages/Login.jsx";
 import AuthCallback from "./pages/AuthCallback.jsx";
 import Subscribe from "./pages/Subscribe.jsx";
+import Cart from "./pages/Cart.jsx";
 import Account from "./pages/Account.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Vault from "./pages/Vault.jsx";
@@ -59,6 +60,7 @@ export default function App() {
         {/* Signed in, but not gated on an active subscription — you need to
             reach these to start or manage billing in the first place. */}
         <Route path="/subscribe" element={<Subscribe />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/account" element={<Account />} />
 
         {/* The paid app: subscription_status must be trialing or active. */}

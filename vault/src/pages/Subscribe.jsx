@@ -1,28 +1,19 @@
-import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import PricingTable from "../components/PricingTable.jsx";
-import { createCheckoutSession } from "../lib/api/billing.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 
 export default function Subscribe() {
   const { profile } = useAuth();
   const [searchParams] = useSearchParams();
-  const [loadingPlanKey, setLoadingPlanKey] = useState(null);
-  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const hadSubscriptionBefore = profile?.stripe_customer_id;
   const cancelled = searchParams.get("checkout") === "cancelled";
 
-  async function handleSelectPlan(plan, interval) {
-    setError("");
-    setLoadingPlanKey(plan);
-    try {
-      const { url } = await createCheckoutSession(plan, interval);
-      window.location.href = url;
-    } catch (e) {
-      setError(e.message);
-      setLoadingPlanKey(null);
-    }
+  // Picking a plan no longer goes straight to Stripe — it adds that plan
+  // to the cart for review (see /cart) before anyone's card is touched.
+  function handleSelectPlan(plan, interval) {
+    navigate(`/cart?plan=${plan}&interval=${interval}`);
   }
 
   return (
@@ -39,15 +30,10 @@ export default function Subscribe() {
             Checkout was cancelled — nothing was charged. Pick a plan below whenever you're ready.
           </p>
         )}
-        {error && (
-          <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-400">
-            {error}
-          </p>
-        )}
       </div>
 
       <div className="mt-14">
-        <PricingTable onSelectPlan={handleSelectPlan} loadingPlanKey={loadingPlanKey} />
+        <PricingTable onSelectPlan={handleSelectPlan} />
       </div>
     </div>
   );

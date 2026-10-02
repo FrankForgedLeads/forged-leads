@@ -34,17 +34,22 @@ export default function AppLayout() {
             <span className="hidden text-sm text-white/60 sm:inline">
               {profile?.full_name || user?.email}
             </span>
-            {!isSubscribed && (
-              <Button to="/subscribe" className="px-4 py-2.5 text-sm">
-                Start free trial
-              </Button>
-            )}
             <Button variant="ghost" onClick={signOut} className="px-4 py-2.5 text-sm">
               Log out
             </Button>
           </div>
         </div>
         <nav className="container-vault flex items-center gap-1 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {/* Moved out of the header row and into this scrollable row —
+              same fix as the Feedback button's: at 320px, Logo + "Start
+              free trial" + "Log out" together overflowed the header for
+              every signed-in-but-unsubscribed visitor (i.e. anyone on
+              /subscribe or /cart, exactly where this button matters most). */}
+          {!isSubscribed && (
+            <Button to="/subscribe" className="mr-1 shrink-0 px-4 py-2 text-sm">
+              Start free trial
+            </Button>
+          )}
           {links.map((l) => (
             <NavLink
               key={l.to}
