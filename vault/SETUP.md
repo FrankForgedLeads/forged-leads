@@ -1,7 +1,7 @@
 # Beeyond Vault — Setup Guide
 
 This is the click-by-click guide to take Beeyond Vault from code to a live
-site at **vault.beeyondestimators.com**, taking payments. No coding
+site at **beeyondvault.com**, taking payments. No coding
 required — every step here is clicking around in a dashboard. Budget
 **2–3 hours** the first time through, plus another hour or two for the
 testing checklist at the end. Do it in order — each section depends on the
@@ -15,7 +15,7 @@ Free tiers are enough for launch on every service used here.
 
 - A GitHub account with access to this repository
 - An email address you'll use as the admin login (this becomes `ADMIN_EMAIL`)
-- Access to the Namecheap account that owns `beeyondestimators.com`
+- Access to the Namecheap account that owns `beeyondvault.com`
 - A credit card (Stripe requires one to activate live payments — you won't
   be charged just for setting this up)
 
@@ -103,8 +103,8 @@ come back here:
 
 **Authentication → URL Configuration**:
 
-- **Site URL**: `https://vault.beeyondestimators.com`
-- **Redirect URLs**: add `https://vault.beeyondestimators.com/auth/callback`
+- **Site URL**: `https://beeyondvault.com`
+- **Redirect URLs**: add `https://beeyondvault.com/auth/callback`
   (and, while testing, `http://localhost:5173/auth/callback` too)
 
 Without this, magic-link emails will redirect somewhere wrong or get
@@ -156,7 +156,7 @@ Copy all four price IDs somewhere — you'll paste them into Netlify in Step
 Once your site is deployed (Step 4) and you know its URL:
 
 1. **Developers → Webhooks → Add endpoint**.
-2. Endpoint URL: `https://vault.beeyondestimators.com/.netlify/functions/stripe-webhook`
+2. Endpoint URL: `https://beeyondvault.com/.netlify/functions/stripe-webhook`
 3. Select these 4 events (only these — the webhook code only handles
    these): `checkout.session.completed`, `customer.subscription.updated`,
    `customer.subscription.deleted`, `invoice.payment_failed`.
@@ -255,11 +255,15 @@ than doing anything silently wrong — nothing else in the app is affected.
 ### 4.2 Set the site name / domain first
 
 **Site configuration → Domain management → Add a custom domain**:
-`vault.beeyondestimators.com`. Netlify will show you a DNS target (usually
-a CNAME to something like `your-site-name.netlify.app`, or Netlify DNS
-records if you delegate DNS to them — this guide assumes you keep DNS at
-Namecheap and just add a CNAME, which is simpler and doesn't require
-moving your whole domain).
+`beeyondvault.com`. Set it as the **primary domain**. Netlify will show
+you the exact DNS records to add — for a root/apex domain like this one
+(no subdomain) that's usually an **A record** pointing at Netlify's load
+balancer, plus a **CNAME** for `www` so `www.beeyondvault.com` also
+works. Always use the exact values Netlify's own dashboard shows you in
+this step, not a value written down elsewhere, since Netlify controls
+these and they can change. This guide assumes you keep DNS at Namecheap
+rather than delegating the whole domain to Netlify DNS — simpler, and you
+only need the two records above.
 
 ### 4.3 Set every environment variable
 
@@ -298,16 +302,25 @@ create the webhook pointing at your live URL → add the secret → redeploy.
 
 ## Step 5 — DNS (Namecheap)
 
-1. Namecheap → **Domain List** → `beeyondestimators.com` → **Manage** →
+1. Namecheap → **Domain List** → `beeyondvault.com` → **Manage** →
    **Advanced DNS**.
-2. **Add New Record**: Type `CNAME Record`, Host `vault`, Value = whatever
-   Netlify showed you in Step 4.2 (typically `your-site-name.netlify.app`),
-   TTL Automatic.
+2. Since `beeyondvault.com` is a root/apex domain (not a subdomain like
+   `vault.beeyondestimators.com` would've been), you need two records —
+   use the exact values Netlify showed you in Step 4.2, not the
+   placeholders below:
+   - **Add New Record**: Type `A Record`, Host `@`, Value = the IP address
+     Netlify's domain management page showed you, TTL Automatic.
+   - **Add New Record**: Type `CNAME Record`, Host `www`, Value =
+     `your-site-name.netlify.app` (your actual Netlify site name), TTL
+     Automatic.
+   - If Namecheap's default records include a placeholder "Parking Page"
+     redirect on `@` or `www`, delete it first — it'll conflict with the
+     record you're adding.
 3. Back in Netlify, the domain should show as verified once DNS
    propagates (minutes to a few hours). Netlify auto-provisions an SSL
    certificate once it sees the domain resolving — no action needed, just
    wait if it shows "awaiting certificate."
-4. Confirm `https://vault.beeyondestimators.com` loads the landing page.
+4. Confirm `https://beeyondvault.com` loads the landing page.
 
 ---
 

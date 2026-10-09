@@ -42,7 +42,7 @@ email version to people you're not close enough to text.
 > commonly leave off estimates — code citation, typical price, why it's
 > owed — plus a letter builder so you can document your scope in a couple
 > minutes instead of an hour. Free to try for a week, no strings. Worth
-> 5 min? vault.beeyondestimators.com
+> 5 min? beeyondvault.com
 
 ### Email template (for people you know less well)
 
@@ -64,7 +64,7 @@ on it.
 
 7-day free trial, $39.99/mo after (or $99.99/mo for up to 5 users on your
 team). Would take you 5 minutes to look at:
-vault.beeyondestimators.com
+beeyondvault.com
 
 Let me know what you think — genuinely want feedback since it's brand new.
 
@@ -99,7 +99,7 @@ value-first, not a pitch.
 > Made a free tool for anyone doing FL roofing/restoration claims — 12-item
 > checklist of stuff adjusters commonly miss, shows you a running total of
 > what you might be leaving on the table. No signup needed to try it:
-> vault.beeyondestimators.com/scope-checker
+> beeyondvault.com/scope-checker
 >
 > (Built a paid version too with the full searchable database + a letter
 > builder, but the checklist above is free forever.)
@@ -149,7 +149,7 @@ city's Craigslist for the right category name, they vary slightly.
 > and typical price range. Also builds a scope-clarification letter for
 > you in about 2 minutes.
 >
-> Free 12-item checklist, no signup: vault.beeyondestimators.com/scope-checker
+> Free 12-item checklist, no signup: beeyondvault.com/scope-checker
 > Full tool: 7-day free trial, $39.99/mo solo or $99.99/mo for up to 5 users.
 >
 > Text [PHONE] with questions.
@@ -167,7 +167,7 @@ more of what is:
 
 - **Re-engage week-1 "maybe later" contacts** — a second, shorter nudge:
   *"Still meaning to check out that Vault tool? Trial's still free for a
-  week if you want to poke around: vault.beeyondestimators.com"*
+  week if you want to poke around: beeyondvault.com"*
 - **Ask your week-1/2 trial users for a referral** — one line: *"Know
   anyone else this'd help? Happy to comp them an extra week if you send
   them my way."*
