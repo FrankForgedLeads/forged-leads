@@ -20,8 +20,8 @@ export default function Pricing() {
       <div className="mx-auto mt-16 max-w-2xl rounded-2xl border border-navy-700/60 bg-navy-800/40 p-6 text-sm text-white/60">
         <p>
           <strong className="text-white">Need more than 5 seats?</strong> Email{" "}
-          <a href="mailto:leads@beeyondestimators.com" className="text-gold-500 underline">
-            leads@beeyondestimators.com
+          <a href="mailto:beeyondvault@outlook.com" className="text-gold-500 underline">
+            beeyondvault@outlook.com
           </a>{" "}
           and we'll set up a larger team plan.
         </p>

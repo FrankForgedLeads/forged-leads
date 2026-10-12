@@ -62,8 +62,8 @@ export default function Footer() {
               <h4 className="text-sm font-bold text-white">Contact</h4>
               <ul className="mt-3 space-y-2 text-sm text-white/60">
                 <li>
-                  <a href="mailto:leads@beeyondestimators.com" className="hover:text-white">
-                    leads@beeyondestimators.com
+                  <a href="mailto:beeyondvault@outlook.com" className="hover:text-white">
+                    beeyondvault@outlook.com
                   </a>
                 </li>
               </ul>

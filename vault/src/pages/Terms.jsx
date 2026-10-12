@@ -132,8 +132,8 @@ export default function Terms() {
       <S title="12. Contact">
         <p>
           Questions about these Terms:{" "}
-          <a href="mailto:leads@beeyondestimators.com" className="text-gold-500 underline">
-            leads@beeyondestimators.com
+          <a href="mailto:beeyondvault@outlook.com" className="text-gold-500 underline">
+            beeyondvault@outlook.com
           </a>
         </p>
       </S>

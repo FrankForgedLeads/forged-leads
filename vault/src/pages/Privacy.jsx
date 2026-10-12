@@ -117,8 +117,8 @@ export default function Privacy() {
       <S title="9. Contact">
         <p>
           Questions about this policy or your data:{" "}
-          <a href="mailto:leads@beeyondestimators.com" className="text-gold-500 underline">
-            leads@beeyondestimators.com
+          <a href="mailto:beeyondvault@outlook.com" className="text-gold-500 underline">
+            beeyondvault@outlook.com
           </a>
         </p>
       </S>
