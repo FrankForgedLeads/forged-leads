@@ -20,10 +20,10 @@ export default function Subscribe() {
     <div className="container-vault py-16">
       <div className="mx-auto max-w-2xl text-center">
         <h1 className="text-4xl font-extrabold text-white">
-          {hadSubscriptionBefore ? "Reactivate your subscription" : "Start your 7-day free trial"}
+          {hadSubscriptionBefore ? "Reactivate your subscription" : "Start your 3-day free trial"}
         </h1>
         <p className="mt-4 text-lg text-white/60">
-          Card required to start. No charge until day 8. Cancel anytime from your account.
+          Card required to start. No charge until day 4. Cancel anytime from your account.
         </p>
         {cancelled && (
           <p className="mt-4 rounded-xl border border-navy-600 bg-navy-800/60 px-4 py-3 text-sm text-white/70">

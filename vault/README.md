@@ -160,7 +160,7 @@ polling for a few seconds instead of bouncing a paying customer straight
 back to `/subscribe`), `pages/Subscribe.jsx` and `pages/Account.jsx`, and
 three Netlify Functions: `create-checkout-session.js` (verifies the
 caller's Supabase JWT server-side — never trusts a client-supplied user id
-— then creates a Stripe Checkout session with a 7-day trial, reusing the
+— then creates a Stripe Checkout session with a 3-day trial, reusing the
 same Stripe Customer on a resubscribe instead of minting a new one),
 `create-portal-session.js` (same auth check, opens the Stripe Customer
 Portal), and `stripe-webhook.js` (verifies the Stripe signature against the
@@ -269,7 +269,7 @@ and unchecking items live-updates the running total correctly, and that
 submitting the form (a) inserts the right row shape into `leads` — email,
 answers.checked array, estimated_total, source: 'scope_checker' — and (b)
 calls `notify-lead` with the checked item labels and total, then shows the
-"Start your 7-day free trial" CTA linking to `/pricing`. Also specifically
+"Start your 3-day free trial" CTA linking to `/pricing`. Also specifically
 verified the fire-and-forget failure path: with `notify-lead` deliberately
 left unmocked (so it 404s, matching what actually happens under plain
 `vite dev` without `netlify dev`), the lead still saves and the CTA still
@@ -1051,7 +1051,7 @@ annual, mutually exclusive — so this is a single-line-item cart, not a
 multi-SKU one. What changed: picking a plan on `/subscribe` used to go
 *straight* to Stripe's hosted Checkout page with no review step; now it
 adds that plan to a cart at `/cart`, which shows the plan, its features,
-the price, and "$0.00 due today" (7-day trial) before the person commits
+the price, and "$0.00 due today" (3-day trial) before the person commits
 to anything. The actual credit/debit card is still entered on Stripe's
 own hosted Checkout page, reached by clicking **Proceed to payment** —
 that's the real PCI-scoped card-processing step, unchanged from before

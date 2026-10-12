@@ -78,7 +78,7 @@ function BillingCard({ profile }) {
             {loading ? "Opening billing portal…" : "Manage billing"}
           </Button>
         ) : (
-          <Button to="/subscribe">Start your 7-day free trial</Button>
+          <Button to="/subscribe">Start your 3-day free trial</Button>
         )}
       </div>
     </Card>

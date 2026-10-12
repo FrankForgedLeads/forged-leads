@@ -62,7 +62,7 @@ It also builds a scope-clarification letter for you in about two minutes
 — fill in the claim, pick the items, export a PDF with your company info
 on it.
 
-7-day free trial, $39.99/mo after (or $99.99/mo for up to 5 users on your
+3-day free trial, $39.99/mo after (or $99.99/mo for up to 5 users on your
 team). Would take you 5 minutes to look at:
 beeyondvault.com
 
@@ -131,7 +131,7 @@ traffic. Work through the uncontacted ones:
 
 > Hey [FIRST NAME] — saw you ran the numbers on the Scope Checker
 > ([$X ESTIMATED] on the table). That's just 12 common items — the full
-> Vault has [N] and a letter builder to document it all. Want the 7-day
+> Vault has [N] and a letter builder to document it all. Want the 3-day
 > trial link?
 
 ### Craigslist
@@ -150,7 +150,7 @@ city's Craigslist for the right category name, they vary slightly.
 > you in about 2 minutes.
 >
 > Free 12-item checklist, no signup: beeyondvault.com/scope-checker
-> Full tool: 7-day free trial, $39.99/mo solo or $99.99/mo for up to 5 users.
+> Full tool: 3-day free trial, $39.99/mo solo or $99.99/mo for up to 5 users.
 >
 > Text [PHONE] with questions.
 

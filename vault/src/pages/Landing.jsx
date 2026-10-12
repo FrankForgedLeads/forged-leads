@@ -258,7 +258,7 @@ export default function Landing() {
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Simple pricing</h2>
           <p className="mt-4 text-white/60">
-            7-day free trial on every plan. No free tier inside the app — the Scope Checker is
+            3-day free trial on every plan. No free tier inside the app — the Scope Checker is
             free forever, separately.
           </p>
         </div>

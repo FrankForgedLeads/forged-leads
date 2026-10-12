@@ -62,7 +62,7 @@ export default async (req) => {
         ? { customer: profile.stripe_customer_id }
         : { customer_email: user.email }),
       subscription_data: {
-        trial_period_days: 7,
+        trial_period_days: 3,
         metadata: { supabase_user_id: user.id, plan },
       },
       allow_promotion_codes: true,

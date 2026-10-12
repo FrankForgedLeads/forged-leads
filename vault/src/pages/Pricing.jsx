@@ -8,7 +8,7 @@ export default function Pricing() {
           One subscription. A second set of eyes on every estimate.
         </h1>
         <p className="mt-4 text-lg text-white/60">
-          7-day free trial, card required. No charge until day 8. Cancel anytime from your
+          3-day free trial, card required. No charge until day 4. Cancel anytime from your
           account.
         </p>
       </div>
