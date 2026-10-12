@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# Single-page app: let React Router handle every path client-side. Netlify
+# resolves /.netlify/functions/* to Functions before this catch-all runs,
+# so it doesn't interfere with notify-lead or the Phase 6 Stripe webhook.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
