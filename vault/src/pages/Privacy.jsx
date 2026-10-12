@@ -20,7 +20,7 @@ export default function Privacy() {
         <ul className="list-disc space-y-1 pl-5">
           <li>
             <strong className="text-white">Account info:</strong> name, email, company, phone,
-            role, and password-free login via magic link,
+            role, and your login password (stored encrypted — we never see it in plain text),
           </li>
           <li>
             <strong className="text-white">Claim data:</strong> claim numbers, insured names,
@@ -45,7 +45,7 @@ export default function Privacy() {
       <S title="2. How we use it">
         <ul className="list-disc space-y-1 pl-5">
           <li>To run your account, your claims, and your subscription,</li>
-          <li>To send transactional emails (magic-link login, receipts, letter exports),</li>
+          <li>To send transactional emails (password reset links, receipts, letter exports),</li>
           <li>To send the monthly Vault update email to active subscribers,</li>
           <li>To follow up with leads from the free Scope Checker, and</li>
           <li>To improve the Service.</li>

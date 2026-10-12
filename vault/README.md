@@ -13,17 +13,17 @@ represent policyholders, or negotiate settlements. See `/terms` and
 ## Stack
 
 - Vite + React + React Router, Tailwind CSS v4 — single-page app, mobile-first
-- Supabase (Postgres + RLS + magic-link auth) — Phase 2
+- Supabase (Postgres + RLS + email/password auth) — Phase 2
 - Stripe Checkout / Customer Portal / webhook — Phase 6, direct redirect to
   Checkout's hosted page (no `@stripe/stripe-js` client dependency needed)
 - Netlify hosting + Netlify Functions — Phase 5 (lead notification), Phase 6
   (Stripe), Phase 7 (monthly update, team invites)
 - jsPDF for client-side letter export — Phase 4
 - Resend — Scope Checker lead notification (Phase 5); monthly update to
-  subscribers and Crew team-invite email (Phase 7). Supabase's own magic-link
-  email is separate — see the SETUP.md note in Phase 8 about pointing
-  Supabase's SMTP settings at Resend so it isn't stuck on Supabase's very
-  low free-tier auth-email rate limit.
+  subscribers and Crew team-invite email (Phase 7). Supabase's own
+  password-reset email is separate — see the SETUP.md note in Phase 8
+  about pointing Supabase's SMTP settings at Resend so it isn't stuck on
+  Supabase's very low free-tier auth-email rate limit.
 
 ## Local development
 
@@ -89,7 +89,7 @@ src/
     format.js           Currency/date/range formatting helpers
     subscription.js      Trial-days-left + status-label helpers
     supabaseClient.js Supabase JS client
-    AuthContext.jsx   Session + profile state, magic-link aware
+    AuthContext.jsx   Session + profile state, auth-method agnostic
     api/
       items.js        fetchActiveItems()
       claims.js        fetchClaims/fetchClaim/createClaim/updateClaim/deleteClaim
@@ -107,8 +107,9 @@ src/
     Pricing.jsx
     Terms.jsx
     Privacy.jsx
-    Login.jsx          Magic-link sign-in
-    AuthCallback.jsx   Landing spot for the magic-link redirect
+    Login.jsx          Email + password sign in / sign up / forgot password
+    AuthCallback.jsx   Landing spot for an email-confirmation redirect (fallback)
+    ResetPassword.jsx  Landing spot for the "forgot password" email link
     Subscribe.jsx        Checkout buttons — signed in, not yet gated on a subscription
     Account.jsx           Plan/billing, team (Crew), profile, logout
     Dashboard.jsx      Recent claims, quick search, new claim, trial banner
@@ -1087,6 +1088,55 @@ the two fixes above) confirm no horizontal overflow and correct
 plan/price rendering on the cart itself; a separate pass on `/dashboard`
 for an already-subscribed user confirms the header fix didn't regress
 that case and no stray "Start free trial" shows once subscribed.
+
+## Email + password login (replacing magic-link)
+
+Login was originally magic-link only (`signInWithOtp` — enter your email,
+click a link, you're in). That's been replaced with email + password:
+`Login.jsx` is now one component with three modes (sign in / create
+account / forgot password), switched client-side rather than three
+separate routes, since "back to login" only needs to mean one thing.
+Sign-up calls `supabase.auth.signUp({ email, password })`; with Supabase's
+"Confirm email" setting turned off (documented in `SETUP.md` Step 1.7),
+that returns a live session immediately — no email step for everyday
+sign-up or sign-in, which was the actual point of the change.
+
+Forgot password still has to send an email — there's no secure way around
+that for a password reset — via `resetPasswordForEmail()`, landing on the
+new `ResetPassword.jsx` page (`/auth/reset-password`) where supabase-js
+parses the recovery token out of the URL fragment on load and establishes
+a session, letting `updateUser({ password })` work with no manual token
+handling in app code.
+
+`AuthCallback.jsx` (`/auth/callback`) is kept as a fallback landing spot
+for `signUp`'s `emailRedirectTo` — only reachable if "Confirm email" ever
+gets switched back on in Supabase, so a confirmation link still works
+instead of 404ing. `AuthContext.jsx` needed zero changes: it just reacts
+to `onAuthStateChange`, which fires the same way regardless of which
+Supabase Auth method produced the session. The `handle_new_user()`
+Postgres trigger (profile creation, team-invite auto-accept) fires on
+`after insert on auth.users`, so it's unaffected by the signup method too
+— verified by reading the trigger definition, not assumed.
+
+Supabase's redirect-URL allow-list needed both
+`https://beeyondvault.com/auth/callback` **and**
+`https://beeyondvault.com/auth/reset-password` added — the second one
+didn't exist before this change (documented in `SETUP.md` Step 1.7).
+
+**Verified**: full build + lint clean, no new warnings beyond pre-existing
+ones in unrelated files. Mocked-backend Playwright pass covering all five
+paths with real request bodies checked, not just "no error thrown": (1)
+sign-up with matching passwords calls `signUp` with the exact
+email/password and redirects to `/dashboard` on the session it returns;
+(2) mismatched sign-up passwords are blocked client-side with zero network
+calls, confirming the check runs before hitting Supabase; (3) a wrong
+password on sign-in surfaces Supabase's own `Invalid login credentials`
+message rather than a generic error; (4) "Forgot password?" calls
+`resetPasswordForEmail` with the entered address and shows the "check your
+email" confirmation; (5) landing on `/auth/reset-password` with a
+recovery-shaped URL fragment (mimicking the real email link — a 3-segment
+fake JWT access token, `type=recovery`) successfully calls
+`updateUser({ password })` and shows the success state.
 
 ## Brand
 

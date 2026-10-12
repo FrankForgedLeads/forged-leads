@@ -10,6 +10,7 @@ import Terms from "./pages/Terms.jsx";
 import Privacy from "./pages/Privacy.jsx";
 import Login from "./pages/Login.jsx";
 import AuthCallback from "./pages/AuthCallback.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 import Subscribe from "./pages/Subscribe.jsx";
 import Cart from "./pages/Cart.jsx";
 import Account from "./pages/Account.jsx";
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
 
         <Route path="/scope-checker" element={<ScopeChecker />} />
 

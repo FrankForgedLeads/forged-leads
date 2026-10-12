@@ -83,12 +83,15 @@ three values, used in Step 4:
   commit it, never share it. It only goes into Netlify's server-side
   environment variables (Step 4.3).
 
-### 1.6 Point magic-link auth at Resend (do this after Step 3)
+### 1.6 Point auth emails at Resend (do this after Step 3)
 
-Supabase can send login emails itself, but its **free-tier built-in email
-sender is rate-limited to a handful of emails per hour** — fine for
-testing, not fine for real signups. Once you've set up Resend (Step 3),
-come back here:
+Login is email + password now — no link to click for everyday sign-in —
+but Supabase still needs to send two kinds of emails: **password reset**
+links (when someone clicks "Forgot password?"), and, if you ever turn
+email confirmation back on (see 1.7), signup confirmation links. Its
+**free-tier built-in email sender is rate-limited to a handful of emails
+per hour** — fine for testing, not fine for real signups. Once you've set
+up Resend (Step 3), come back here:
 
 1. **Project Settings → Auth → SMTP Settings**.
 2. Toggle on **Enable Custom SMTP**.
@@ -96,19 +99,31 @@ come back here:
    Password: your Resend API key.
 4. Sender email: something on your verified domain, e.g.
    `login@beeyondestimators.com`. Sender name: `Beeyond Vault`.
-5. Save, then send yourself a test magic link from the live site to
-   confirm it arrives.
+5. Save, then test it by clicking "Forgot password?" on the live site
+   with your own email to confirm the reset link arrives.
 
-### 1.7 Set the auth redirect URLs
+### 1.7 Set the auth redirect URLs and turn off email confirmation
 
 **Authentication → URL Configuration**:
 
 - **Site URL**: `https://beeyondvault.com`
-- **Redirect URLs**: add `https://beeyondvault.com/auth/callback`
-  (and, while testing, `http://localhost:5173/auth/callback` too)
+- **Redirect URLs**: add both of these —
+  `https://beeyondvault.com/auth/callback` and
+  `https://beeyondvault.com/auth/reset-password`
+  (and, while testing, the `http://localhost:5173/...` versions of each too)
 
-Without this, magic-link emails will redirect somewhere wrong or get
+Without this, password-reset emails will redirect somewhere wrong or get
 rejected.
+
+**Authentication → Sign In / Providers → Email**:
+
+- Toggle **Confirm email** OFF.
+
+This is the setting that makes "Create account" log someone in right
+away instead of making them click a confirmation link first — the whole
+point of switching off magic-link in favor of a password. If this stays
+on, new signups will see a "check your email" message instead (the app
+handles that gracefully as a fallback, but it defeats the purpose).
 
 ---
 
@@ -197,8 +212,8 @@ Once test mode fully works end to end:
    Resend shows you exactly as given (type, host, value).
 3. Back in Resend, click **Verify** — DNS can take a few minutes to a few
    hours to propagate. Don't move on until it shows verified, or emails
-   (leads, monthly updates, team invites, magic-link if you wired Step
-   1.6) will silently fail to send from your domain.
+   (leads, monthly updates, team invites, password resets if you wired
+   Step 1.6) will silently fail to send from your domain.
 4. **API Keys → Create API Key**, full access, name it `beeyond-vault`.
    This is `RESEND_API_KEY`.
 
@@ -331,8 +346,13 @@ anything to live. Every item here is something the build could only
 verify with mocked data, not real Supabase/Stripe/Resend — this is where
 that gets checked for real.
 
-- [ ] **Magic-link login**: sign up with a real email, confirm the link
-      arrives (check spam first time) and logging in lands on `/dashboard`
+- [ ] **Sign up + login**: create an account with a real email and
+      password, confirm it lands on `/dashboard` immediately (no email
+      step, assuming Step 1.7's "Confirm email" is off); log out and log
+      back in with the same password
+- [ ] **Forgot password**: click "Forgot password?", confirm the reset
+      email arrives (check spam first time), click it, set a new
+      password, and confirm you can log in with it
 - [ ] **Scope Checker lead**: submit the free tool with a test email,
       confirm a row appears in Admin → Leads, and confirm the
       notification email arrives at `LEADS_EMAIL`
