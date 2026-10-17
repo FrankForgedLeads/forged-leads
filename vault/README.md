@@ -1138,6 +1138,47 @@ recovery-shaped URL fragment (mimicking the real email link — a 3-segment
 fake JWT access token, `type=recovery`) successfully calls
 `updateUser({ password })` and shows the success state.
 
+## PWA (installable on phones)
+
+`beeyondvault.com` can now be "Added to Home Screen" on iOS and installed
+as a real app on Android/Chrome — a standalone icon with no browser
+address bar, not just a bookmark. Three pieces: `public/manifest.webmanifest`
+(name, icons, `display: "standalone"`, theme/background colors matching the
+navy brand), icons generated from `src/assets/beeyond-logo.webp` at
+192/512 (plain, transparent corners) and a separate 512 **maskable**
+variant (logo recentered at ~70% scale on a solid navy square — Android
+applies its own circle/squircle crop to maskable icons, and the plain
+version's badge-shaped art would've lost its edge text to that crop), plus
+`apple-touch-icon.png` (180, flattened onto navy — iOS doesn't handle a
+transparent apple-touch-icon well). `index.html` links the manifest and
+adds the three `apple-mobile-web-app-*` meta tags iOS actually reads
+instead of the manifest for standalone-launch behavior.
+
+`public/sw.js` is a service worker (registered from `main.jsx`, production
+builds only) that exists purely to satisfy the "installable" requirement —
+browsers won't treat a site as a real PWA without one active. It does
+**no caching**: every `fetch` handler just does `fetch(event.request)` and
+passes straight through to the network. This app redeploys often and its
+data changes constantly (claims, Vault items, letters); a caching service
+worker risks serving a stale JS bundle or stale data after a deploy, which
+costs far more than the caching would save. `netlify.toml` sets
+`Cache-Control: no-cache` on `/sw.js` specifically, so browsers always
+re-check it for updates rather than holding an old copy.
+
+**Verified** against the real production build (`vite build` + `vite
+preview`, not a mocked one — installability is a browser-level mechanism
+dev mode doesn't exercise, since the service worker only registers when
+`import.meta.env.PROD`): the manifest is linked and served with the
+required fields (`name`, `display: "standalone"`, a 512×512 `any` icon, a
+`maskable` icon); every icon the manifest declares actually resolves and
+is a real PNG (checked the file's magic bytes, not just a 200 status);
+`apple-touch-icon.png` resolves; the iOS meta tags are present; the
+service worker registers and reaches `active` state
+(`navigator.serviceWorker.ready`); and — the one that would've caught a
+broken SW — reloading the now-SW-controlled page still renders real page
+content with zero console errors, confirming the pass-through fetch
+handler doesn't interfere with normal navigation.
+
 ## Brand
 
 Dark navy (`#0b1220` background, `#10192e`/`#16223e` cards) with a bee-yellow

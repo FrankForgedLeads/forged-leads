@@ -10,3 +10,11 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# sw.js must never be served from a long-lived cache — browsers check
+# this exact URL for updates, and a stale cached copy (CDN or browser)
+# would mean a change to it never reaches anyone.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
