@@ -110,11 +110,19 @@ export default function Terms() {
 
       <S title="9. Limitation of liability">
         <p>
-          The Service is a documentation aid. Beeyond LLC is not liable for claim outcomes,
-          carrier decisions, code interpretations, or any damages arising from reliance on
-          reference data in the Vault. To the maximum extent permitted by law, our total liability
-          for any claim relating to the Service is limited to the amount you paid us in the 12
-          months before the claim arose.
+          The Service is a documentation aid. You — not Beeyond LLC — are solely responsible for
+          the accuracy, completeness, and final content of any estimate you prepare, review, or
+          submit, whether or not you used Vault in preparing it.
+        </p>
+        <p>
+          Beeyond LLC is not liable for claim outcomes, carrier decisions, code interpretations,
+          or any damages arising from reliance on reference data in the Vault. Beeyond LLC has no
+          relationship with, and bears no responsibility for the acts, omissions, or conduct of,
+          any public adjuster, contractor, insurance carrier, or other third party who reviews,
+          relies on, submits, or otherwise acts on an estimate or letter you generate using the
+          Service. To the maximum extent permitted by law, our total liability for any claim
+          relating to the Service is limited to the amount you paid us in the 12 months before the
+          claim arose.
         </p>
       </S>
 
