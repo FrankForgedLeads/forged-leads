@@ -27,7 +27,11 @@ export default function Terms() {
         <p>
           Beeyond Vault is a reference and document-preparation tool for contractors. It helps you
           look up commonly missed estimate line items, organize your own claims, and generate
-          letters describing your own scope of work and pricing.
+          letters describing your own scope of work and pricing. Beeyond Vault does not create,
+          write, prepare, or submit your estimate on your behalf, whether through its reference
+          database or its AI-assisted Estimate Review feature. Any findings the Service surfaces
+          are suggestions for your own review; you decide what to include. You are the sole author
+          of, and solely responsible for, your final estimate.
         </p>
         <p>
           Beeyond Vault does <strong className="text-white">not</strong> adjust insurance claims,
