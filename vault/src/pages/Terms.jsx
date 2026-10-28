@@ -56,9 +56,9 @@ export default function Terms() {
       <S title="4. Subscriptions, trials &amp; billing">
         <p>
           Beeyond Vault is offered on a subscription basis (Solo or Crew, billed monthly or
-          annually) through Stripe. New subscriptions include a 3-day free trial; a valid payment
-          method is required to start the trial, and your card will be charged automatically when
-          the trial ends unless you cancel first.
+          annually) through Stripe. New subscriptions include a free trial; a valid payment method
+          is required to start the trial, and your card will be charged automatically as soon as
+          you run your first Estimate Review, unless you cancel first.
         </p>
         <p>
           Subscriptions renew automatically at the then-current price until canceled. You can

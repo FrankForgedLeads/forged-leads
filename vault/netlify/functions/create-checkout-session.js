@@ -62,7 +62,13 @@ export default async (req) => {
         ? { customer: profile.stripe_customer_id }
         : { customer_email: user.email }),
       subscription_data: {
-        trial_period_days: 3,
+        // Not a day-based trial — the free trial ends when the user runs
+        // their first estimate review (see analyze-review.js, which ends
+        // the trial via the Stripe API right after a successful run). This
+        // long ceiling is just a safety net for someone who signs up and
+        // never comes back; nobody who actually tries the product should
+        // ever hit it.
+        trial_period_days: 90,
         metadata: { supabase_user_id: user.id, plan },
       },
       allow_promotion_codes: true,

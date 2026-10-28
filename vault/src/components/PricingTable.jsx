@@ -102,7 +102,7 @@ export default function PricingTable({
                   variant={plan.highlight ? "primary" : "secondary"}
                   className="mt-8 w-full"
                 >
-                  Start 3-day free trial
+                  Start free trial
                 </Button>
               )}
             </Card>
@@ -112,7 +112,8 @@ export default function PricingTable({
 
       {showTrialNote && (
         <p className="mt-6 text-center text-sm text-white/50">
-          Card required to start. Cancel anytime from your account. No charge until day 4.
+          Card required to start. Cancel anytime from your account. No charge until you run your
+          first estimate review.
         </p>
       )}
     </div>

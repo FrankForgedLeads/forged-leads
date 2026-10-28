@@ -6,8 +6,7 @@ import { useAuth } from "../lib/AuthContext.jsx";
 import { createPortalSession } from "../lib/api/billing.js";
 import { updateProfile } from "../lib/api/profile.js";
 import { fetchMyTeam, inviteTeammate, revokeInvite } from "../lib/api/team.js";
-import { daysLeftInTrial, subscriptionStatusLabel } from "../lib/subscription.js";
-import { formatDate } from "../lib/format.js";
+import { subscriptionStatusLabel } from "../lib/subscription.js";
 
 const PLAN_LABEL = { solo: "Solo", crew: "Crew" };
 const ROLES = [
@@ -21,7 +20,6 @@ const ROLES = [
 function BillingCard({ profile }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const daysLeft = daysLeftInTrial(profile?.trial_ends_at);
 
   async function handleManageBilling() {
     setLoading(true);
@@ -47,12 +45,10 @@ function BillingCard({ profile }) {
         </span>
       </div>
 
-      {profile?.subscription_status === "trialing" && daysLeft !== null && (
+      {profile?.subscription_status === "trialing" && (
         <p className="mt-3 text-sm text-white/60">
-          {daysLeft <= 0
-            ? "Your trial ends today."
-            : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in your free trial.`}{" "}
-          Trial ends {formatDate(profile.trial_ends_at)}.
+          Your first estimate review is free. You'll be charged as soon as you run it — no charge
+          until then.
         </p>
       )}
       {profile?.subscription_status === "past_due" && (
@@ -78,7 +74,7 @@ function BillingCard({ profile }) {
             {loading ? "Opening billing portal…" : "Manage billing"}
           </Button>
         ) : (
-          <Button to="/subscribe">Start your 3-day free trial</Button>
+          <Button to="/subscribe">Start your free trial</Button>
         )}
       </div>
     </Card>

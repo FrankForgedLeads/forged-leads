@@ -99,9 +99,10 @@ export default function Cart() {
           <span className="text-lg font-extrabold text-white">$0.00</span>
         </div>
         <p className="mt-1 text-xs text-white/40">
-          3-day free trial — your card is verified now but not charged. First charge of{" "}
-          {formatCurrency(price)}
-          {periodLabel} is on day 4, unless you cancel first from Account.
+          Your first estimate review is free — your card is verified now but not charged. You'll
+          be charged {formatCurrency(price)}
+          {periodLabel} as soon as you run your first review, unless you cancel first from
+          Account.
         </p>
       </Card>
 

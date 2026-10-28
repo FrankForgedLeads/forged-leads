@@ -5,20 +5,14 @@ import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { formatDate } from "../lib/format.js";
-import { daysLeftInTrial } from "../lib/subscription.js";
 
 function TrialBanner({ profile }) {
-  if (profile?.subscription_status !== "trialing" || !profile?.trial_ends_at) return null;
-
-  const daysLeft = daysLeftInTrial(profile.trial_ends_at);
-  if (daysLeft < 0) return null;
+  if (profile?.subscription_status !== "trialing") return null;
 
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gold-500/40 bg-gold-500/10 px-4 py-3">
       <p className="text-sm text-white">
-        {daysLeft === 0
-          ? "Your free trial ends today."
-          : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in your free trial.`}
+        Your first estimate review is free — run it any time. You won't be charged until you do.
       </p>
       <Button to="/account" variant="secondary" className="px-4 py-2 text-sm">
         Manage billing

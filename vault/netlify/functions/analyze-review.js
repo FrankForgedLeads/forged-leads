@@ -1,3 +1,4 @@
+import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { requireUser } from "./_lib/auth.js";
 import { jsonResponse } from "./_lib/http.js";
@@ -195,6 +196,27 @@ export default async (req) => {
       completed_at: new Date().toISOString(),
     })
     .eq("id", run.id);
+
+  // --- Free trial ends on first use, not on a day count ------------------
+  // See create-checkout-session.js: trial_period_days is a long safety-net
+  // ceiling, not the real trial length. The actual trial ends right here,
+  // the moment someone's first review succeeds — Stripe then bills their
+  // card immediately. Best-effort: if this fails, the long trial ceiling
+  // still ends it eventually, so a failure here never blocks the response.
+  try {
+    const { data: billingProfile } = await admin
+      .from("profiles")
+      .select("subscription_status, stripe_subscription_id")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (billingProfile?.subscription_status === "trialing" && billingProfile.stripe_subscription_id) {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      await stripe.subscriptions.update(billingProfile.stripe_subscription_id, { trial_end: "now" });
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("[analyze-review] Failed to end trial after first review:", e.message);
+  }
 
   return jsonResponse(200, { runId: run.id, findingsCount: findingsToInsert.length });
 };
