@@ -20,5 +20,14 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // Only intervene on GET — POST/PUT/DELETE (login, Stripe checkout,
+  // every write in this app) have a request body, and re-wrapping those
+  // through respondWith(fetch(event.request)) is unreliable across
+  // browsers (confirmed: it broke login in Safari with a
+  // "FetchEvent.respondWith received an error" failure). Not calling
+  // respondWith() at all lets the browser handle the request exactly as
+  // if there were no service worker — which is also fine for GETs here,
+  // this was never meant to cache anything.
+  if (event.request.method !== "GET") return;
   event.respondWith(fetch(event.request));
 });
