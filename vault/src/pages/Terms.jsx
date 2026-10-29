@@ -67,8 +67,12 @@ export default function Terms() {
         <p>
           Subscriptions renew automatically at the then-current price until canceled. You can
           cancel anytime from your account's billing page (Stripe Customer Portal); cancellation
-          takes effect at the end of the current billing period. Fees are non-refundable except
-          where required by law.
+          takes effect at the end of the current billing period, and no further charges occur
+          after that. Fees are non-refundable except where required by law.
+        </p>
+        <p>
+          Canceling does not delete your claims, uploaded files, or findings — that data stays in
+          your account, you just lose access to it until you resubscribe.
         </p>
       </S>
 

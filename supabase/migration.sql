@@ -1210,6 +1210,35 @@ create policy "claim_item_photos_storage_delete" on storage.objects
   );
 
 -- ============================================================================
+-- SECURITY FIX (production audit) — server-side free-review + paywall gate
+--
+-- Vulnerability: netlify/functions/analyze-review.js never checked
+-- profiles.subscription_status before running a paid AI analysis. RLS on
+-- claims/review_files only requires row ownership, not an active
+-- subscription, and RequireSubscription.jsx is a client-side route guard
+-- only — so any signed-up account (even one that never touched Stripe)
+-- could call analyze-review directly and get up to ANALYSIS_DAILY_LIMIT
+-- (20) free AI reviews per day, forever, bypassing the paywall entirely.
+-- Fixed in analyze-review.js by checking subscription_status server-side.
+--
+-- Separately, the "free review ends the trial" logic added earlier only
+-- checked subscription_status === 'trialing' at call time — two requests
+-- fired close together, or one arriving before the trial-end webhook
+-- lands, could both pass that check and both run a full paid analysis
+-- before either one actually converts the trial. free_review_used_at
+-- below is an atomic claim ticket: analyze-review.js reserves it with a
+-- single UPDATE ... WHERE free_review_used_at IS NULL, so only one
+-- concurrent request can ever win it per account, and releases it again
+-- if that specific run fails — so a failed review never burns the
+-- entitlement. Only ever written by the service-role client in
+-- analyze-review.js; no grant needed for `authenticated` (the existing
+-- `revoke update on public.profiles from authenticated` above already
+-- blocks any column not explicitly granted, this one included).
+-- ============================================================================
+
+alter table public.profiles add column if not exists free_review_used_at timestamptz;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

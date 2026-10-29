@@ -49,6 +49,24 @@ export default async (req) => {
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+  // --- Enforce the paywall server-side -----------------------------------
+  // RequireSubscription.jsx only gates client-side routing. Without a check
+  // here, any signed-in account — subscribed or not — could call this
+  // function directly and run paid AI analyses for free, since claims and
+  // review_files can be created by any authenticated owner regardless of
+  // billing status (see their RLS policies in supabase/migration.sql).
+  const { data: billingProfile, error: billingProfileError } = await admin
+    .from("profiles")
+    .select("subscription_status, stripe_subscription_id, free_review_used_at")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (billingProfileError) return jsonResponse(500, { error: billingProfileError.message });
+
+  const BILLABLE_STATUSES = ["trialing", "active"];
+  if (!BILLABLE_STATUSES.includes(billingProfile?.subscription_status)) {
+    return jsonResponse(402, { error: "Subscribe to run an estimate review." });
+  }
+
   // --- Cost control: per-user daily rate limit ------------------------
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { count: runsToday, error: countError } = await admin
@@ -91,11 +109,48 @@ export default async (req) => {
     .single();
   if (runInsertError) return jsonResponse(500, { error: runInsertError.message });
 
+  // --- One free review per trialing account, claimed atomically ----------
+  // A plain status check isn't enough on its own: two requests fired close
+  // together, or one arriving before the trial-end webhook lands, could
+  // both see "trialing" and both run a full paid analysis before either
+  // one converts the trial. This UPDATE ... WHERE free_review_used_at IS
+  // NULL is the actual lock — only one concurrent request can ever win it
+  // for a given account. failRun() below releases it again on any failure,
+  // so a review that fails never burns the entitlement.
+  let reservedFreeReview = false;
+  if (billingProfile.subscription_status === "trialing") {
+    const { data: reserved, error: reserveError } = await admin
+      .from("profiles")
+      .update({ free_review_used_at: new Date().toISOString() })
+      .eq("id", user.id)
+      .is("free_review_used_at", null)
+      .select("id")
+      .maybeSingle();
+    if (reserveError) return jsonResponse(500, { error: reserveError.message });
+    if (!reserved) {
+      await admin
+        .from("analysis_runs")
+        .update({
+          status: "failed",
+          error_message: "Free review already claimed",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", run.id);
+      return jsonResponse(409, {
+        error: "You've already used your free review. Subscribe to keep reviewing estimates.",
+      });
+    }
+    reservedFreeReview = true;
+  }
+
   async function failRun(message) {
     await admin
       .from("analysis_runs")
       .update({ status: "failed", error_message: message, completed_at: new Date().toISOString() })
       .eq("id", run.id);
+    if (reservedFreeReview) {
+      await admin.from("profiles").update({ free_review_used_at: null }).eq("id", user.id);
+    }
   }
 
   let estimateText;
@@ -203,19 +258,17 @@ export default async (req) => {
   // the moment someone's first review succeeds — Stripe then bills their
   // card immediately. Best-effort: if this fails, the long trial ceiling
   // still ends it eventually, so a failure here never blocks the response.
-  try {
-    const { data: billingProfile } = await admin
-      .from("profiles")
-      .select("subscription_status, stripe_subscription_id")
-      .eq("id", user.id)
-      .maybeSingle();
-    if (billingProfile?.subscription_status === "trialing" && billingProfile.stripe_subscription_id) {
+  // reservedFreeReview is only true for a "trialing" account that just won
+  // the atomic claim above, so stripe_subscription_id (read once, at the
+  // top of this function) is guaranteed fresh for this check.
+  if (reservedFreeReview && billingProfile.stripe_subscription_id) {
+    try {
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       await stripe.subscriptions.update(billingProfile.stripe_subscription_id, { trial_end: "now" });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[analyze-review] Failed to end trial after first review:", e.message);
     }
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error("[analyze-review] Failed to end trial after first review:", e.message);
   }
 
   return jsonResponse(200, { runId: run.id, findingsCount: findingsToInsert.length });
