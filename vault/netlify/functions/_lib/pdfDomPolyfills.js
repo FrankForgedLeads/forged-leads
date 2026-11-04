@@ -119,8 +119,13 @@ if (typeof globalThis.Path2D === "undefined") globalThis.Path2D = Path2DPolyfill
 // actually ran and which DOMMatrix ends up winning, to find out whether
 // the problem is bundling/ordering rather than the polyfill logic itself.
 // Remove once the real cause is confirmed and fixed.
+// Using console.error, not console.log — Netlify's function log viewer
+// appears to filter out plain console.log entirely (pdfjs-dist's own
+// console.warn/ERROR lines show up fine, but our earlier console.log
+// diagnostic never appeared anywhere in the log, even searching by text,
+// right after a from-scratch no-cache deploy of this exact code).
 // eslint-disable-next-line no-console
-console.log(
-  "[pdfDomPolyfills] loaded — globalThis.DOMMatrix is now:",
+console.error(
+  "[DIAGNOSTIC] pdfDomPolyfills loaded — globalThis.DOMMatrix is now:",
   globalThis.DOMMatrix?.name || typeof globalThis.DOMMatrix,
 );

@@ -24,7 +24,7 @@ export async function extractPdfText(buffer) {
   // globalThis.DOMMatrix actually is at the exact moment pdf-parse runs,
   // in case something between import time and here changes it.
   // eslint-disable-next-line no-console
-  console.log("[extractPdfText] globalThis.DOMMatrix just before parsing:", globalThis.DOMMatrix?.name || typeof globalThis.DOMMatrix);
+  console.error("[DIAGNOSTIC] extractPdfText: globalThis.DOMMatrix just before parsing:", globalThis.DOMMatrix?.name || typeof globalThis.DOMMatrix);
   const parser = new PDFParse({ data: buffer });
   try {
     const result = await parser.getText();
