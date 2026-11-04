@@ -11,7 +11,20 @@ import { analyzeEstimate, estimateCostUsd } from "./_lib/estimateAnalysisService
 const DAILY_RUN_LIMIT = Number(process.env.ANALYSIS_DAILY_LIMIT) || 20;
 const BUCKET = "review-files";
 
+// TEMPORARY — tracking down a mystery 30s platform timeout (confirmed via
+// Netlify's own function logs: "Duration: 30000 ms" with no error, no
+// thrown exception visible, surviving an explicit 20s client-side timeout
+// on the Anthropic call). This checkpoint logger pinpoints which step
+// inside the handler the time is actually going to. Remove once resolved.
+const t0 = Symbol("t0");
+function checkpoint(state, label) {
+  const now = Date.now();
+  // eslint-disable-next-line no-console
+  console.error(`[review-analyze timing] ${label}: +${now - state[t0]}ms`);
+}
+
 export default async (req) => {
+  const timing = { [t0]: Date.now() };
   if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
 
   const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
@@ -29,6 +42,7 @@ export default async (req) => {
   // have no client-writable insert policy by design (see migration.sql).
   const { user, supabase: userClient, error: authError } = await requireUser(req);
   if (authError) return jsonResponse(401, { error: authError });
+  checkpoint(timing, "auth done");
 
   let body;
   try {
@@ -46,6 +60,7 @@ export default async (req) => {
     .maybeSingle();
   if (claimError) return jsonResponse(500, { error: claimError.message });
   if (!claim) return jsonResponse(404, { error: "Review not found" });
+  checkpoint(timing, "claim fetched");
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -61,6 +76,7 @@ export default async (req) => {
     .eq("id", user.id)
     .maybeSingle();
   if (billingProfileError) return jsonResponse(500, { error: billingProfileError.message });
+  checkpoint(timing, "billing profile fetched");
 
   const BILLABLE_STATUSES = ["trialing", "active"];
   if (!BILLABLE_STATUSES.includes(billingProfile?.subscription_status)) {
@@ -80,6 +96,7 @@ export default async (req) => {
       error: `You've reached today's limit of ${DAILY_RUN_LIMIT} reviews. Try again tomorrow.`,
     });
   }
+  checkpoint(timing, "rate limit check done");
 
   // --- Gather uploaded files -------------------------------------------
   const { data: files, error: filesError } = await admin
@@ -87,6 +104,7 @@ export default async (req) => {
     .select("*")
     .eq("claim_id", claimId);
   if (filesError) return jsonResponse(500, { error: filesError.message });
+  checkpoint(timing, "files listed");
 
   const estimateFiles = (files || []).filter((f) => f.file_type === "estimate");
   if (estimateFiles.length === 0) {
@@ -108,6 +126,7 @@ export default async (req) => {
     .select("*")
     .single();
   if (runInsertError) return jsonResponse(500, { error: runInsertError.message });
+  checkpoint(timing, "run row inserted");
 
   // --- One free review per trialing account, claimed atomically ----------
   // A plain status check isn't enough on its own: two requests fired close
@@ -142,6 +161,7 @@ export default async (req) => {
     }
     reservedFreeReview = true;
   }
+  checkpoint(timing, "free-review reservation done");
 
   async function failRun(message) {
     await admin
@@ -159,7 +179,9 @@ export default async (req) => {
     // one, but a revised estimate might be uploaded alongside the original).
     const texts = await Promise.all(estimateFiles.map(downloadText));
     estimateText = texts.filter(Boolean).join("\n\n").trim();
+    checkpoint(timing, "estimate PDF text extracted");
   } catch (e) {
+    checkpoint(timing, `estimate PDF extraction threw: ${e.message}`);
     await failRun(e.message);
     return jsonResponse(502, { error: "We couldn't read your estimate file. Your files are safe. Please try again." });
   }
@@ -202,6 +224,7 @@ export default async (req) => {
     await failRun(itemsError.message);
     return jsonResponse(500, { error: itemsError.message });
   }
+  checkpoint(timing, `vault items fetched (count: ${vaultItems?.length ?? 0})`);
 
   const projectInfo = {
     "Project type": claim.project_type,
@@ -216,8 +239,11 @@ export default async (req) => {
 
   let result;
   try {
+    checkpoint(timing, "calling analyzeEstimate (the Anthropic API call)");
     result = await analyzeEstimate({ projectInfo, estimateText, documentFiles, vaultItems: vaultItems || [] });
+    checkpoint(timing, "analyzeEstimate returned");
   } catch (e) {
+    checkpoint(timing, `analyzeEstimate threw: ${e.name}: ${e.message}`);
     await failRun(e.message);
     return jsonResponse(502, {
       error: "We couldn't complete this review. Your files are safe. Please try again.",
