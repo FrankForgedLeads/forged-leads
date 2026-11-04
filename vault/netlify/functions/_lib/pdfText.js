@@ -20,11 +20,6 @@ export const MIN_MEANINGFUL_TEXT_LENGTH = 50;
  * the review."
  */
 export async function extractPdfText(buffer) {
-  // Temporary diagnostic — see pdfDomPolyfills.js. Confirms what
-  // globalThis.DOMMatrix actually is at the exact moment pdf-parse runs,
-  // in case something between import time and here changes it.
-  // eslint-disable-next-line no-console
-  console.error("[DIAGNOSTIC] extractPdfText: globalThis.DOMMatrix just before parsing:", globalThis.DOMMatrix?.name || typeof globalThis.DOMMatrix);
   const parser = new PDFParse({ data: buffer });
   try {
     const result = await parser.getText();

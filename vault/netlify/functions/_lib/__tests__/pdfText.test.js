@@ -1,17 +1,22 @@
 // Deliberately does NOT mock pdf-parse/pdfjs-dist — the bug this guards
-// against (production crash: "ReferenceError: DOMMatrix is not defined")
-// only showed up against the real library. Note on reproducing it here:
-// this sandbox's node_modules happens to have a working
-// @napi-rs/canvas-linux-x64-gnu binary (pdf-parse's own, native, normal
-// fallback for this), so the extraction test below can't actually force
-// the "module missing" failure locally the way it genuinely failed on
-// Netlify's deployed function — there's nothing broken to trigger it
-// against in this environment. What the DOMMatrixPolyfill test below
-// proves instead, environment-independently: pdfDomPolyfills.js sets
-// globalThis.DOMMatrix correctly, and it does so by being imported first
-// in pdfText.js (module evaluation order), which is what makes this fix
-// work regardless of whether Netlify's bundler ships that binary or not
-// — our own polyfill wins the race before pdf-parse ever checks.
+// against (production crash, ultimately traced to pdfjs-dist's "fake
+// worker" doing `await import("./pdf.worker.mjs")`, a relative specifier
+// that 404s once esbuild bundles everything into one file for deployment)
+// only showed up against the real, bundled library. Confirmed the actual
+// fix two ways:
+//   1. Directly executing an esbuild bundle of pdfText.js (matching
+//      Netlify's real build) against this fixture, with the native
+//      @napi-rs/canvas binary deliberately removed from node_modules to
+//      reproduce the exact production condition — succeeded.
+//   2. The globalThis.pdfjsWorker test below, which is environment-
+//      independent and doesn't depend on that binary being present or
+//      absent.
+// This sandbox's node_modules happens to have a working
+// @napi-rs/canvas-linux-x64-gnu binary normally, so the extraction test
+// below alone can't force the "module missing" condition — that's what
+// method 1 above was for, done manually rather than as an automated test
+// here (bundling + deleting a dependency isn't something to run on every
+// `npm test`).
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -50,5 +55,16 @@ describe("DOMMatrix polyfill (pdfDomPolyfills.js)", () => {
     expect(d).toBeCloseTo(-1 / height);
     expect(e).toBeCloseTo(0);
     expect(f).toBeCloseTo(height / height); // -1/height * -height = 1
+  });
+});
+
+describe("pdfjs-dist worker escape hatch (pdfDomPolyfills.js)", () => {
+  it("pre-supplies globalThis.pdfjsWorker.WorkerMessageHandler so pdfjs-dist skips its broken dynamic import", () => {
+    // pdfjs-dist's fake-worker setup checks this exact shape
+    // (globalThis.pdfjsWorker?.WorkerMessageHandler) before falling back
+    // to `await import(workerSrc)` — see PDFWorker's
+    // #mainThreadWorkerMessageHandler getter in pdfjs-dist's source.
+    expect(globalThis.pdfjsWorker).toBeDefined();
+    expect(typeof globalThis.pdfjsWorker.WorkerMessageHandler).toBe("function");
   });
 });

@@ -1,3 +1,5 @@
+import { WorkerMessageHandler } from "pdfjs-dist/legacy/build/pdf.worker.mjs";
+
 // pdf-parse (via pdfjs-dist) touches a handful of browser-only globals —
 // DOMMatrix, ImageData, Path2D — during PDF parsing, not just for actual
 // image rendering we never do. Confirmed by reading pdfjs-dist's own
@@ -21,6 +23,28 @@
 // that pulls in pdf-parse/pdfjs-dist, so these globals exist before that
 // code ever runs. ES module imports evaluate in order, so importing this
 // first in pdfText.js is sufficient.
+//
+// THE ACTUAL ROOT CAUSE (found by running the real bundled function
+// output directly, not just inspecting its text — reproduced the exact
+// production crash locally this way): pdfjs-dist's "fake worker" setup
+// loads its own parsing code via `await import(GlobalWorkerOptions.workerSrc)`,
+// where workerSrc defaults to the relative string "./pdf.worker.mjs". That
+// relative specifier resolves against *this bundled file's own location*
+// once esbuild flattens everything into one file for the deployed
+// function — not against pdfjs-dist's real location — so the dynamic
+// import always 404s in production ("Cannot find module
+// '.../pdf.worker.mjs'"). Our DOMMatrix polyfill above was never the
+// problem; this broken dynamic import is why the crash persisted even
+// after it was fixed, and it's also why the production error always read
+// "DOMMatrix is not defined" rather than the module-not-found error seen
+// locally — in production the error happens even earlier.
+//
+// pdfjs-dist has a documented escape hatch for exactly this: if
+// `globalThis.pdfjsWorker.WorkerMessageHandler` is already set, it's used
+// directly and the dynamic import is skipped entirely. Importing it
+// statically here (rather than relying on the broken dynamic import)
+// means esbuild bundles it inline like any other code, with zero runtime
+// path resolution involved.
 
 class DOMMatrixPolyfill {
   constructor(init) {
@@ -112,20 +136,7 @@ if (typeof globalThis.DOMMatrix === "undefined") globalThis.DOMMatrix = DOMMatri
 if (typeof globalThis.ImageData === "undefined") globalThis.ImageData = ImageDataPolyfill;
 if (typeof globalThis.Path2D === "undefined") globalThis.Path2D = Path2DPolyfill;
 
-// Temporary diagnostic — confirmed locally (with the native @napi-rs/canvas
-// binary deliberately removed, reproducing the exact production failure)
-// that this polyfill does prevent the crash. The same code still crashed
-// after deploying to Netlify, so this logs proof of whether the polyfill
-// actually ran and which DOMMatrix ends up winning, to find out whether
-// the problem is bundling/ordering rather than the polyfill logic itself.
-// Remove once the real cause is confirmed and fixed.
-// Using console.error, not console.log — Netlify's function log viewer
-// appears to filter out plain console.log entirely (pdfjs-dist's own
-// console.warn/ERROR lines show up fine, but our earlier console.log
-// diagnostic never appeared anywhere in the log, even searching by text,
-// right after a from-scratch no-cache deploy of this exact code).
-// eslint-disable-next-line no-console
-console.error(
-  "[DIAGNOSTIC] pdfDomPolyfills loaded — globalThis.DOMMatrix is now:",
-  globalThis.DOMMatrix?.name || typeof globalThis.DOMMatrix,
-);
+// Skips pdfjs-dist's broken dynamic import of its own worker script (see
+// the comment above) by pre-supplying what that import would have
+// returned.
+globalThis.pdfjsWorker = { WorkerMessageHandler };
