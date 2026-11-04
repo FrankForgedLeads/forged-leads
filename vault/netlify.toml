@@ -3,24 +3,6 @@
   publish = "dist"
   functions = "netlify/functions"
 
-# analyze-review.js reads PDF text via pdf-parse, which depends on
-# @napi-rs/canvas — a native binary module (a compiled .node file, not
-# plain JS) that pdfjs-dist needs for internal text-position math (hence
-# the ReferenceError "DOMMatrix is not defined" without it). Netlify's
-# default esbuild bundler can't inline a compiled binary into the bundled
-# JS, and silently drops it instead of erroring at build/deploy time —
-# the function then crashes with a raw 502 (uncaught ReferenceError) on
-# every real invocation at runtime. Marking it external keeps it as a
-# real node_modules package copied alongside the function instead of
-# bundled, so the binary actually ships.
-[functions]
-  node_bundler = "esbuild"
-  # The platform binary (@napi-rs/canvas-linux-x64-gnu) is also listed
-  # explicitly — @napi-rs/canvas require()s it by platform/arch at
-  # runtime, and it's a separate npm package, not a file inside
-  # @napi-rs/canvas itself, so it needs its own external entry to ship.
-  external_node_modules = ["@napi-rs/canvas", "@napi-rs/canvas-linux-x64-gnu"]
-
 # Single-page app: let React Router handle every path client-side. Netlify
 # resolves /.netlify/functions/* to Functions before this catch-all runs,
 # so it doesn't interfere with notify-lead or the Phase 6 Stripe webhook.

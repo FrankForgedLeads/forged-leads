@@ -1,3 +1,7 @@
+// Side-effect import — must come before the pdf-parse import below. See
+// pdfDomPolyfills.js for why: pdf-parse's underlying pdfjs-dist crashes
+// without these globals present first.
+import "./pdfDomPolyfills.js";
 import { PDFParse } from "pdf-parse";
 
 // A real, text-based PDF export (the normal case for Xactimate) extracts to
