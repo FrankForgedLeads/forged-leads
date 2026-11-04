@@ -111,3 +111,16 @@ class Path2DPolyfill {
 if (typeof globalThis.DOMMatrix === "undefined") globalThis.DOMMatrix = DOMMatrixPolyfill;
 if (typeof globalThis.ImageData === "undefined") globalThis.ImageData = ImageDataPolyfill;
 if (typeof globalThis.Path2D === "undefined") globalThis.Path2D = Path2DPolyfill;
+
+// Temporary diagnostic — confirmed locally (with the native @napi-rs/canvas
+// binary deliberately removed, reproducing the exact production failure)
+// that this polyfill does prevent the crash. The same code still crashed
+// after deploying to Netlify, so this logs proof of whether the polyfill
+// actually ran and which DOMMatrix ends up winning, to find out whether
+// the problem is bundling/ordering rather than the polyfill logic itself.
+// Remove once the real cause is confirmed and fixed.
+// eslint-disable-next-line no-console
+console.log(
+  "[pdfDomPolyfills] loaded — globalThis.DOMMatrix is now:",
+  globalThis.DOMMatrix?.name || typeof globalThis.DOMMatrix,
+);
