@@ -1,5 +1,3 @@
-import { WorkerMessageHandler } from "pdfjs-dist/legacy/build/pdf.worker.mjs";
-
 // pdf-parse (via pdfjs-dist) touches a handful of browser-only globals —
 // DOMMatrix, ImageData, Path2D — during PDF parsing, not just for actual
 // image rendering we never do. Confirmed by reading pdfjs-dist's own
@@ -19,32 +17,40 @@ import { WorkerMessageHandler } from "pdfjs-dist/legacy/build/pdf.worker.mjs";
 // native-binary-bundling problem: it's plain code, so it bundles exactly
 // like every other file in this project.
 //
-// Imported for its side effect only — must be imported before anything
-// that pulls in pdf-parse/pdfjs-dist, so these globals exist before that
-// code ever runs. ES module imports evaluate in order, so importing this
-// first in pdfText.js is sufficient.
+// Imported for its side effect only — must be imported, and must finish
+// running, before anything that pulls in pdf-parse/pdfjs-dist, so these
+// globals exist before that code ever runs.
 //
-// THE ACTUAL ROOT CAUSE (found by running the real bundled function
-// output directly, not just inspecting its text — reproduced the exact
-// production crash locally this way): pdfjs-dist's "fake worker" setup
-// loads its own parsing code via `await import(GlobalWorkerOptions.workerSrc)`,
-// where workerSrc defaults to the relative string "./pdf.worker.mjs". That
-// relative specifier resolves against *this bundled file's own location*
-// once esbuild flattens everything into one file for the deployed
-// function — not against pdfjs-dist's real location — so the dynamic
-// import always 404s in production ("Cannot find module
-// '.../pdf.worker.mjs'"). Our DOMMatrix polyfill above was never the
-// problem; this broken dynamic import is why the crash persisted even
-// after it was fixed, and it's also why the production error always read
-// "DOMMatrix is not defined" rather than the module-not-found error seen
-// locally — in production the error happens even earlier.
+// CRITICAL: this file must NOT import anything from pdfjs-dist (or
+// anything that transitively does). A *static* `import` always finishes
+// evaluating before any of the importing module's own top-level code runs
+// — that's the ES module spec, and it applies regardless of where the
+// import line sits in the file. pdfjs-dist's own module-load-time code
+// tries to self-polyfill DOMMatrix via the optional native `@napi-rs/canvas`
+// package; when that's absent (as here, deliberately — see below) it logs
+// a warning and then still goes on to use DOMMatrix, throwing
+// "ReferenceError: DOMMatrix is not defined". A previous version of this
+// file statically imported `pdfjs-dist/legacy/build/pdf.worker.mjs` for its
+// WorkerMessageHandler export (see pdfText.js for why that's needed) — and
+// because static imports always run first, pdfjs-dist's self-polyfill
+// crash fired before our own `globalThis.DOMMatrix = ...` line below ever
+// got a chance to run, every single time. The fix: pdfText.js now loads
+// the worker handler with a *dynamic* `import()`, sequenced after this
+// file's synchronous assignment below, so pdfjs-dist's own code only ever
+// runs once DOMMatrix already exists.
 //
-// pdfjs-dist has a documented escape hatch for exactly this: if
-// `globalThis.pdfjsWorker.WorkerMessageHandler` is already set, it's used
-// directly and the dynamic import is skipped entirely. Importing it
-// statically here (rather than relying on the broken dynamic import)
-// means esbuild bundles it inline like any other code, with zero runtime
-// path resolution involved.
+// (Confirmed by reading pdfjs-dist's own worker source: image mask
+// decoding calls `new DOMMatrix().scaleSelf(...).translateSelf(...)`
+// unconditionally — not just for actual image rendering we never do. Its
+// own fix for a missing DOMMatrix is that optional native dependency,
+// @napi-rs/canvas, a compiled binary — but getting a compiled binary to
+// survive Netlify Functions' JS bundler turned out to be unreliable in
+// practice. Since this app only ever extracts plain text — never renders
+// or returns image pixels — correctness of the matrix math and canvas
+// output doesn't matter here, only that calling these APIs doesn't throw.
+// A small pure-JS stand-in sidesteps the native-binary-bundling problem
+// entirely: it's plain code, so it bundles exactly like every other file
+// in this project.)
 
 class DOMMatrixPolyfill {
   constructor(init) {
@@ -135,8 +141,3 @@ class Path2DPolyfill {
 if (typeof globalThis.DOMMatrix === "undefined") globalThis.DOMMatrix = DOMMatrixPolyfill;
 if (typeof globalThis.ImageData === "undefined") globalThis.ImageData = ImageDataPolyfill;
 if (typeof globalThis.Path2D === "undefined") globalThis.Path2D = Path2DPolyfill;
-
-// Skips pdfjs-dist's broken dynamic import of its own worker script (see
-// the comment above) by pre-supplying what that import would have
-// returned.
-globalThis.pdfjsWorker = { WorkerMessageHandler };

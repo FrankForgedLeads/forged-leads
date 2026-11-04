@@ -1,8 +1,27 @@
-// Side-effect import — must come before the pdf-parse import below. See
-// pdfDomPolyfills.js for why: pdf-parse's underlying pdfjs-dist crashes
-// without these globals present first.
+// Side-effect import — must finish running before pdfjs-dist is loaded at
+// all (not just before it's used). See pdfDomPolyfills.js for the full
+// explanation: pdf-parse pulls in pdfjs-dist, whose own module-load-time
+// code crashes without these globals present first, and the only way to
+// guarantee "before" is to keep this a static import (which always runs
+// first) while making every pdfjs-dist-touching import below it dynamic
+// (which only run when actually awaited, i.e. after this line).
 import "./pdfDomPolyfills.js";
-import { PDFParse } from "pdf-parse";
+
+// Pre-supplies what pdfjs-dist's own broken dynamic import of its worker
+// script would have returned (see pdfDomPolyfills.js) — must be set up
+// before pdf-parse is loaded. Memoized so repeated calls within the same
+// warm function instance don't redo the import.
+let pdfjsWorkerReady;
+function ensurePdfjsWorkerReady() {
+  if (!pdfjsWorkerReady) {
+    pdfjsWorkerReady = import("pdfjs-dist/legacy/build/pdf.worker.mjs").then(
+      ({ WorkerMessageHandler }) => {
+        globalThis.pdfjsWorker = { WorkerMessageHandler };
+      },
+    );
+  }
+  return pdfjsWorkerReady;
+}
 
 // A real, text-based PDF export (the normal case for Xactimate) extracts to
 // a meaningful amount of text. A scanned/photographed estimate saved as a
@@ -20,6 +39,8 @@ export const MIN_MEANINGFUL_TEXT_LENGTH = 50;
  * the review."
  */
 export async function extractPdfText(buffer) {
+  await ensurePdfjsWorkerReady();
+  const { PDFParse } = await import("pdf-parse");
   const parser = new PDFParse({ data: buffer });
   try {
     const result = await parser.getText();
