@@ -267,7 +267,7 @@ export default async (req) => {
       await stripe.subscriptions.update(billingProfile.stripe_subscription_id, { trial_end: "now" });
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.error("[analyze-review] Failed to end trial after first review:", e.message);
+      console.error("[review-analyze] Failed to end trial after first review:", e.message);
     }
   }
 

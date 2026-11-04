@@ -569,7 +569,7 @@ const DECIDED_STATUS_LABEL = { added: "Added", dismissed: "Dismissed", needs_inf
 // as status "new" until the contractor explicitly clicks Add to Review,
 // Dismiss, or Needs More Information — see review_findings' RLS in
 // migration.sql, which only lets the client update a finding's status, not
-// create one; only analyze-review.js (service-role) can do that.
+// create one; only review-analyze.js (service-role) can do that.
 function FindingsSection({ claimId, claim, onItemAdded, filesVersion }) {
   const { user } = useAuth();
   const [hasEstimate, setHasEstimate] = useState(false);

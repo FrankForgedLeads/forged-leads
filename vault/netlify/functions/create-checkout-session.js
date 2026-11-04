@@ -63,7 +63,7 @@ export default async (req) => {
         : { customer_email: user.email }),
       subscription_data: {
         // Not a day-based trial — the free trial ends when the user runs
-        // their first estimate review (see analyze-review.js, which ends
+        // their first estimate review (see review-analyze.js, which ends
         // the trial via the Stripe API right after a successful run). This
         // long ceiling is just a safety net for someone who signs up and
         // never comes back; nobody who actually tries the product should

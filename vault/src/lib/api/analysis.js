@@ -3,7 +3,11 @@ import { callFunction } from "./functionClient.js";
 
 /** Kicks off an Estimate Review analysis run. Returns { runId, findingsCount }. */
 export function runAnalysis(claimId) {
-  return callFunction("/.netlify/functions/analyze-review", { claimId });
+  // Renamed from "analyze-review" — Netlify kept serving a stale build of
+  // that function across several deploys with verified-correct new code,
+  // through a from-scratch no-cache rebuild. A fresh function name gives
+  // it nothing stale to reuse.
+  return callFunction("/.netlify/functions/review-analyze", { claimId });
 }
 
 export async function fetchFindings(claimId) {

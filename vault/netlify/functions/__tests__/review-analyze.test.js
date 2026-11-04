@@ -1,10 +1,10 @@
 // Tests for the paywall + atomic free-review logic added to
-// analyze-review.js during the production audit (see supabase/migration.sql
+// review-analyze.js during the production audit (see supabase/migration.sql
 // "SECURITY FIX (production audit)" and the matching block in that
 // function). This does NOT stand up a real Supabase/Stripe/Anthropic
 // instance — it mocks those three modules with a small in-memory store and
 // exercises the actual exported handler, so what's under test is
-// analyze-review.js's own logic (the gate, the atomic claim, the
+// review-analyze.js's own logic (the gate, the atomic claim, the
 // release-on-failure), not Postgres, Stripe, or Claude themselves.
 //
 // What this intentionally does NOT cover, and why:
@@ -28,7 +28,7 @@ const TEST_CLAIM_ID = "22222222-2222-2222-2222-222222222222";
 const TEST_SUBSCRIPTION_ID = "sub_test123";
 
 // --- In-memory fake standing in for both the admin (service-role) client
-// and the user-scoped client analyze-review.js creates — good enough for
+// and the user-scoped client review-analyze.js creates — good enough for
 // testing this function's own logic, since RLS itself is Postgres's job
 // and is reviewed separately, not re-implemented here.
 function makeDb() {
@@ -206,7 +206,7 @@ vi.mock("../_lib/pdfText.js", () => ({
 }));
 
 function makeRequest(body) {
-  return new Request("https://example.com/.netlify/functions/analyze-review", {
+  return new Request("https://example.com/.netlify/functions/review-analyze", {
     method: "POST",
     headers: { authorization: "Bearer valid-token" },
     body: JSON.stringify(body),
@@ -223,9 +223,9 @@ beforeEach(() => {
   process.env.STRIPE_SECRET_KEY = "fake-stripe-key";
 });
 
-describe("analyze-review paywall + free-review gate", () => {
+describe("review-analyze paywall + free-review gate", () => {
   it("a new trialing customer gets exactly one free review, and it ends their trial", async () => {
-    const { default: handler } = await import("../analyze-review.js");
+    const { default: handler } = await import("../review-analyze.js");
     const res = await handler(makeRequest({ claimId: TEST_CLAIM_ID }));
     expect(res.status).toBe(200);
     expect(db.profiles.get(TEST_USER_ID).free_review_used_at).not.toBeNull();
@@ -233,7 +233,7 @@ describe("analyze-review paywall + free-review gate", () => {
   });
 
   it("the same account cannot redeem a second free review", async () => {
-    const { default: handler } = await import("../analyze-review.js");
+    const { default: handler } = await import("../review-analyze.js");
     const first = await handler(makeRequest({ claimId: TEST_CLAIM_ID }));
     expect(first.status).toBe(200);
 
@@ -247,7 +247,7 @@ describe("analyze-review paywall + free-review gate", () => {
     const { analyzeEstimate } = await import("../_lib/estimateAnalysisService.js");
     analyzeEstimate.mockRejectedValueOnce(new Error("model exploded"));
 
-    const { default: handler } = await import("../analyze-review.js");
+    const { default: handler } = await import("../review-analyze.js");
     const failed = await handler(makeRequest({ claimId: TEST_CLAIM_ID }));
     expect(failed.status).toBe(502);
     expect(db.profiles.get(TEST_USER_ID).free_review_used_at).toBeNull();
@@ -259,7 +259,7 @@ describe("analyze-review paywall + free-review gate", () => {
 
   it.each(["active"])("a paying customer (%s) is not blocked by the free-review gate", async (status) => {
     db.profiles.get(TEST_USER_ID).subscription_status = status;
-    const { default: handler } = await import("../analyze-review.js");
+    const { default: handler } = await import("../review-analyze.js");
     const res = await handler(makeRequest({ claimId: TEST_CLAIM_ID }));
     expect(res.status).toBe(200);
     // Active customers never had a trial to end — no Stripe call expected.
@@ -270,7 +270,7 @@ describe("analyze-review paywall + free-review gate", () => {
     "the server rejects analysis for subscription_status=%s (frontend-only gating can't be trusted)",
     async (status) => {
       db.profiles.get(TEST_USER_ID).subscription_status = status;
-      const { default: handler } = await import("../analyze-review.js");
+      const { default: handler } = await import("../review-analyze.js");
       const res = await handler(makeRequest({ claimId: TEST_CLAIM_ID }));
       expect(res.status).toBe(402);
       const body = await res.json();

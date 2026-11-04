@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 // ============================================================================
 // estimateAnalysisService — the ONLY module in this codebase that talks to
-// an AI provider. Every other part of the app (the analyze-review function,
+// an AI provider. Every other part of the app (the review-analyze function,
 // the frontend) goes through analyzeEstimate() below and never sees an
 // Anthropic-specific type or call. Swapping providers later means changing
 // this file, not hunting through the app.
@@ -115,7 +115,7 @@ function coerceFinding(raw, validItemIds) {
 /**
  * The one function the rest of the app calls. Returns structured findings
  * — never free-form text the UI would have to interpret — or throws, which
- * the caller (analyze-review.js) turns into a failed analysis_runs row and
+ * the caller (review-analyze.js) turns into a failed analysis_runs row and
  * a "we couldn't complete this review, your files are safe" response.
  * Never returns partial/fabricated results on a parse failure.
  */
