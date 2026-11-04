@@ -54,6 +54,11 @@ export default function ClaimDetail() {
   const [editingInfo, setEditingInfo] = useState(false);
   const [exportingSummary, setExportingSummary] = useState(false);
   const [summaryExportedOk, setSummaryExportedOk] = useState(false);
+  // Bumped by DocumentsSection whenever its files change (upload/delete) —
+  // FindingsSection only checks for an estimate once on mount, so without
+  // this signal, uploading one wouldn't enable "Run Vault Review" until the
+  // page was reloaded.
+  const [filesVersion, setFilesVersion] = useState(0);
 
   const load = useCallback(async () => {
     const [claimData, itemRows] = await Promise.all([fetchClaim(id), fetchClaimItems(id)]);
@@ -217,11 +222,11 @@ export default function ClaimDetail() {
       </Card>
 
       {/* Documents — estimate + supporting documentation upload */}
-      <DocumentsSection claimId={id} />
+      <DocumentsSection claimId={id} onFilesChanged={() => setFilesVersion((v) => v + 1)} />
 
       {/* Vault Review — the analysis engine's findings, always pending
           human confirmation before anything reaches the claim. */}
-      <FindingsSection claimId={id} claim={claim} onItemAdded={load} />
+      <FindingsSection claimId={id} claim={claim} onItemAdded={load} filesVersion={filesVersion} />
 
       {/* Attached items — wrapped together with the sticky total bar below so
           the bar's sticky containing block starts here, not at the top of
@@ -410,7 +415,7 @@ function ClaimInfoForm({ claim, onSave }) {
 
 const FILE_TYPE_LABEL = { estimate: "Estimate", photo: "Photo", document: "Document" };
 
-function DocumentsSection({ claimId }) {
+function DocumentsSection({ claimId, onFilesChanged }) {
   const { user } = useAuth();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -449,6 +454,7 @@ function DocumentsSection({ claimId }) {
         const row = await uploadReviewFile({ claimId, userId: user.id, file, fileType });
         setFiles((prev) => [...prev, row]);
       }
+      onFilesChanged?.();
     } catch (e) {
       setError(e.message);
     } finally {
@@ -469,6 +475,7 @@ function DocumentsSection({ claimId }) {
     setFiles((prev) => prev.filter((f) => f.id !== file.id));
     try {
       await deleteReviewFile({ id: file.id, storagePath: file.storage_path });
+      onFilesChanged?.();
     } catch (e) {
       setError(e.message);
       load();
@@ -563,7 +570,7 @@ const DECIDED_STATUS_LABEL = { added: "Added", dismissed: "Dismissed", needs_inf
 // Dismiss, or Needs More Information — see review_findings' RLS in
 // migration.sql, which only lets the client update a finding's status, not
 // create one; only analyze-review.js (service-role) can do that.
-function FindingsSection({ claimId, claim, onItemAdded }) {
+function FindingsSection({ claimId, claim, onItemAdded, filesVersion }) {
   const { user } = useAuth();
   const [hasEstimate, setHasEstimate] = useState(false);
   const [checkingFiles, setCheckingFiles] = useState(true);
@@ -587,7 +594,10 @@ function FindingsSection({ claimId, claim, onItemAdded }) {
       .then((files) => setHasEstimate(files.some((f) => f.file_type === "estimate")))
       .finally(() => setCheckingFiles(false));
     loadFindings();
-  }, [claimId, loadFindings]);
+    // filesVersion: bumped by the sibling DocumentsSection on upload/delete
+    // — without it, this only ran once on mount and never found out about
+    // an estimate uploaded after the page loaded.
+  }, [claimId, loadFindings, filesVersion]);
 
   async function handleRun() {
     setRunning(true);
