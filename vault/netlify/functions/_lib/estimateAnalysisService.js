@@ -127,12 +127,26 @@ export async function analyzeEstimate({ projectInfo, estimateText, documentFiles
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const validItemIds = new Set(vaultItems.map((i) => i.id));
 
-  const response = await client.messages.create({
-    model: DEFAULT_MODEL,
-    max_tokens: MAX_OUTPUT_TOKENS,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserPrompt({ projectInfo, estimateText, documentFiles, vaultItems }) }],
-  });
+  // Netlify Functions sit behind AWS API Gateway, which hard-kills any
+  // request at ~29-30s no matter the plan — that cutoff happens at the
+  // platform level, outside this function's own code, so it can't be
+  // caught and review-analyze.js's failRun() cleanup (releasing a claimed
+  // free review, marking the run failed) never runs. A request that was
+  // simply slow then leaves the account stuck thinking its free review is
+  // used up with nothing to show for it. Capping the call here, well
+  // under that platform ceiling, means a slow response fails as an
+  // ordinary caught error instead — review-analyze.js's existing
+  // try/catch around analyzeEstimate() handles it the same as any other
+  // failure.
+  const response = await client.messages.create(
+    {
+      model: DEFAULT_MODEL,
+      max_tokens: MAX_OUTPUT_TOKENS,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: buildUserPrompt({ projectInfo, estimateText, documentFiles, vaultItems }) }],
+    },
+    { timeout: 20_000 },
+  );
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock) throw new Error("Analysis model returned no text content");
