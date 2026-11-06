@@ -138,6 +138,18 @@ export async function analyzeEstimate({ projectInfo, estimateText, documentFiles
   // ordinary caught error instead — review-analyze.js's existing
   // try/catch around analyzeEstimate() handles it the same as any other
   // failure.
+  //
+  // maxRetries: 0 is required alongside the timeout — the Anthropic SDK
+  // retries a timed-out request up to 2 more times by default (confirmed
+  // in its own client.d.ts: "request timeouts are retried by default, so
+  // in a worst-case scenario you may wait much longer than this timeout
+  // before the promise succeeds or fails"). A 20s timeout with the
+  // default 2 retries meant up to 3 attempts (~60s total) before the SDK
+  // ever gave up — well past the platform's ~30s kill, which is exactly
+  // why the earlier timeout alone made no observable difference (caught
+  // live: the real request hung the full 30s with no "returned" or
+  // "threw" checkpoint logged at all). One attempt, one short timeout,
+  // fail fast and clean.
   const response = await client.messages.create(
     {
       model: DEFAULT_MODEL,
@@ -145,7 +157,7 @@ export async function analyzeEstimate({ projectInfo, estimateText, documentFiles
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: buildUserPrompt({ projectInfo, estimateText, documentFiles, vaultItems }) }],
     },
-    { timeout: 20_000 },
+    { timeout: 15_000, maxRetries: 0 },
   );
 
   const textBlock = response.content.find((b) => b.type === "text");
