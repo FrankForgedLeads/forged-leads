@@ -127,36 +127,20 @@ export async function analyzeEstimate({ projectInfo, estimateText, documentFiles
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const validItemIds = new Set(vaultItems.map((i) => i.id));
 
-  // Netlify Functions sit behind AWS API Gateway, which hard-kills any
-  // request at ~29-30s no matter the plan — that cutoff happens at the
-  // platform level, outside this function's own code, so it can't be
-  // caught and review-analyze.js's failRun() cleanup (releasing a claimed
-  // free review, marking the run failed) never runs. A request that was
-  // simply slow then leaves the account stuck thinking its free review is
-  // used up with nothing to show for it. Capping the call here, well
-  // under that platform ceiling, means a slow response fails as an
-  // ordinary caught error instead — review-analyze.js's existing
-  // try/catch around analyzeEstimate() handles it the same as any other
-  // failure.
+  // This call now runs inside review-analyze-background.js, a Netlify
+  // Background Function with up to 15 minutes to work — not a regular
+  // synchronous Function, which (along with the AWS API Gateway in front
+  // of it) hard-kills any request around 29-30s no matter the plan. That
+  // platform cap is what forced earlier, much shorter timeouts here
+  // (first 20s, then 25s) — both proved too short in live testing (the
+  // Anthropic account's real, non-zero usage cost confirmed Claude was
+  // genuinely still generating a full response past those limits, not
+  // hanging). Three minutes leaves generous room for an unusually slow
+  // response while still failing well inside the 15-minute budget.
   //
-  // maxRetries: 0 is required alongside the timeout — the Anthropic SDK
-  // retries a timed-out request up to 2 more times by default (confirmed
-  // in its own client.d.ts: "request timeouts are retried by default, so
-  // in a worst-case scenario you may wait much longer than this timeout
-  // before the promise succeeds or fails"). A 20s timeout with the
-  // default 2 retries meant up to 3 attempts (~60s total) before the SDK
-  // ever gave up — well past the platform's ~30s kill, which is exactly
-  // why the earlier timeout alone made no observable difference (caught
-  // live: the real request hung the full 30s with no "returned" or
-  // "threw" checkpoint logged at all). One attempt, one short timeout,
-  // fail fast and clean.
-  // 15s wasn't actually enough: live testing (API key cost shows real
-  // usage, i.e. genuine completions, not failed/rejected calls) confirms
-  // Claude is really generating a full response, just taking longer than
-  // 15s — this isn't a hang, it's real generation time for this prompt
-  // size. Pushed as close to Netlify's ~29-30s platform ceiling as safely
-  // possible, leaving headroom for the ~1.5s of setup work (auth, PDF
-  // extract, DB reads) that happens before this call starts.
+  // maxRetries: 0 stays — the Anthropic SDK retries a timed-out request
+  // up to 2 more times by default (see its own client.d.ts), which would
+  // silently triple this timeout if left on.
   const response = await client.messages.create(
     {
       model: DEFAULT_MODEL,
@@ -164,7 +148,7 @@ export async function analyzeEstimate({ projectInfo, estimateText, documentFiles
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: buildUserPrompt({ projectInfo, estimateText, documentFiles, vaultItems }) }],
     },
-    { timeout: 25_000, maxRetries: 0 },
+    { timeout: 180_000, maxRetries: 0 },
   );
 
   const textBlock = response.content.find((b) => b.type === "text");
