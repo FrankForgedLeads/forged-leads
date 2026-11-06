@@ -1239,6 +1239,22 @@ create policy "claim_item_photos_storage_delete" on storage.objects
 alter table public.profiles add column if not exists free_review_used_at timestamptz;
 
 -- ============================================================================
+-- PHOTO LOG — GPS + timestamp on review_files (Beeyond Vault)
+-- ----------------------------------------------------------------------------
+-- Supports the "photo log" feature: taking a photo directly from the camera
+-- tags it with where and when it was taken, so a claim's photos read like a
+-- jobsite log rather than a bare file list. Nullable — a regular file-picker
+-- upload (or a browser that denies location permission) just leaves these
+-- blank; the upload itself is never blocked on having them. No new RLS
+-- policy needed: review_files_insert already allows the claim owner to
+-- insert any column on their own claim's rows (see that policy above).
+-- ============================================================================
+
+alter table public.review_files add column if not exists captured_at timestamptz;
+alter table public.review_files add column if not exists latitude double precision;
+alter table public.review_files add column if not exists longitude double precision;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

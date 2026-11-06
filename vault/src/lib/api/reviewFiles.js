@@ -41,13 +41,33 @@ export async function fetchReviewFiles(claimId) {
   return data;
 }
 
+// Best-effort GPS fix for the photo log — resolves to null rather than
+// rejecting on denied permission, no geolocation support, or a slow/stuck
+// fix, since a photo without a location is still a perfectly good photo
+// and must never block the actual upload.
+function getCurrentPositionSafe({ timeoutMs = 8000 } = {}) {
+  return new Promise((resolve) => {
+    if (!("geolocation" in navigator)) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+      () => resolve(null),
+      { timeout: timeoutMs, maximumAge: 60_000 },
+    );
+  });
+}
+
 // Uploads straight from the browser to Storage (never through a Netlify
 // Function — see the Phase 2 architecture notes: functions have a ~6MB
 // request-body ceiling on the free tier, so routing file bytes through one
 // would break on anything but the smallest photos), then records the
 // review_files row. Storage path is prefixed with the uploader's own user
 // id, matching the storage.objects RLS policies in the migration.
-export async function uploadReviewFile({ claimId, userId, file, fileType }) {
+//
+// capturedAt/latitude/longitude are optional — pass them for a camera
+// capture (see uploadPhotoLogEntry below) to power the photo log view;
+// a plain file-picker upload leaves them null, which is fine, they're
+// nullable columns.
+export async function uploadReviewFile({ claimId, userId, file, fileType, capturedAt, latitude, longitude }) {
   const invalidReason = validateReviewFile(file);
   if (invalidReason) throw new Error(invalidReason);
 
@@ -71,6 +91,9 @@ export async function uploadReviewFile({ claimId, userId, file, fileType }) {
       mime_type: file.type,
       size_bytes: file.size,
       uploaded_by: userId,
+      captured_at: capturedAt ?? null,
+      latitude: latitude ?? null,
+      longitude: longitude ?? null,
     })
     .select("*")
     .single();
@@ -86,6 +109,26 @@ export async function uploadReviewFile({ claimId, userId, file, fileType }) {
   if (fileType === "photo") logEvent("photos_uploaded", userId, { claim_id: claimId });
 
   return data;
+}
+
+// The "Take Photo" entry point — captures the moment and (best-effort)
+// location right when the photo is taken, then uploads it as a photo-log
+// entry. A plain "Upload documentation" file picker goes through
+// uploadReviewFile directly instead, with no location (the user didn't
+// just take it, so tagging it with wherever they happen to be browsing
+// from would be misleading).
+export async function uploadPhotoLogEntry({ claimId, userId, file }) {
+  const capturedAt = new Date().toISOString();
+  const position = await getCurrentPositionSafe();
+  return uploadReviewFile({
+    claimId,
+    userId,
+    file,
+    fileType: "photo",
+    capturedAt,
+    latitude: position?.latitude,
+    longitude: position?.longitude,
+  });
 }
 
 export async function deleteReviewFile({ id, storagePath }) {

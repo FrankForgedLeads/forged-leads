@@ -5,6 +5,7 @@ import { fetchClaimItems, updateClaimItem, deleteClaimItem, addClaimItem } from 
 import {
   fetchReviewFiles,
   uploadReviewFile,
+  uploadPhotoLogEntry,
   deleteReviewFile,
   getReviewFileSignedUrl,
   validateReviewFile,
@@ -20,7 +21,7 @@ import Card from "../components/ui/Card.jsx";
 import PhotoEvidence from "../components/claims/PhotoEvidence.jsx";
 import Button from "../components/ui/Button.jsx";
 import { Field, Input, Select, Textarea } from "../components/ui/Field.jsx";
-import { formatCurrency, formatRange, formatBytes, formatDate, midpoint } from "../lib/format.js";
+import { formatCurrency, formatRange, formatBytes, formatDate, formatDateTime, midpoint } from "../lib/format.js";
 import { categoryLabel } from "../lib/categories.js";
 import { LOSS_TYPES } from "../lib/lossTypes.js";
 import { TRADES } from "../lib/trades.js";
@@ -224,6 +225,10 @@ export default function ClaimDetail() {
       {/* Documents — estimate + supporting documentation upload */}
       <DocumentsSection claimId={id} onFilesChanged={() => setFilesVersion((v) => v + 1)} />
 
+      {/* Photo Log — jobsite photos taken via the camera, each tagged with
+          when and (if permitted) where it was taken. */}
+      <PhotoLogSection claimId={id} filesVersion={filesVersion} />
+
       {/* Vault Review — the analysis engine's findings, always pending
           human confirmation before anything reaches the claim. */}
       <FindingsSection claimId={id} claim={claim} onItemAdded={load} filesVersion={filesVersion} />
@@ -423,6 +428,7 @@ function DocumentsSection({ claimId, onFilesChanged }) {
   const [error, setError] = useState("");
   const estimateInputRef = useRef(null);
   const docsInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   const load = useCallback(() => {
     fetchReviewFiles(claimId)
@@ -454,6 +460,36 @@ function DocumentsSection({ claimId, onFilesChanged }) {
         const row = await uploadReviewFile({ claimId, userId: user.id, file, fileType });
         setFiles((prev) => [...prev, row]);
       }
+      onFilesChanged?.();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  // Separate from handleFiles above: a camera capture is always exactly one
+  // photo, tagged with the moment and (best-effort, permission-dependent)
+  // location it was taken — the point of the photo log. A plain
+  // "Upload documentation" pick from the file library skips that tagging
+  // (see uploadPhotoLogEntry's own comment for why).
+  async function handleTakePhoto(fileList) {
+    const file = fileList[0];
+    if (!file) return;
+    if (files.length + 1 > REVIEW_FILES_MAX_PER_CLAIM) {
+      setError(`You can attach up to ${REVIEW_FILES_MAX_PER_CLAIM} files per review.`);
+      return;
+    }
+    const invalidReason = validateReviewFile(file);
+    if (invalidReason) {
+      setError(invalidReason);
+      return;
+    }
+    setError("");
+    setUploading(true);
+    try {
+      const row = await uploadPhotoLogEntry({ claimId, userId: user.id, file });
+      setFiles((prev) => [...prev, row]);
       onFilesChanged?.();
     } catch (e) {
       setError(e.message);
@@ -547,10 +583,117 @@ function DocumentsSection({ claimId, onFilesChanged }) {
           >
             {uploading ? "Uploading…" : "Upload documentation"}
           </Button>
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              handleTakePhoto(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <Button
+            as="button"
+            type="button"
+            variant="secondary"
+            className="mt-2 flex w-full items-center justify-center gap-2 text-sm"
+            disabled={uploading}
+            onClick={() => cameraInputRef.current?.click()}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"
+              />
+              <circle cx="12" cy="13" r="3.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {uploading ? "Uploading…" : "Take photo (adds to photo log)"}
+          </Button>
         </Card>
       </div>
 
       {error && <p className="mt-3 text-sm font-semibold text-red-400">{error}</p>}
+    </div>
+  );
+}
+
+// Photo Log — a timeline of jobsite photos, each tagged with when (and, if
+// location permission was granted, where) it was taken. Separate from the
+// flat file list in DocumentsSection above: this is what makes "Take
+// photo" worth using over a regular upload — a reviewer can see a photo
+// was actually taken on-site, not pulled from a camera roll later.
+function PhotoLogSection({ claimId, filesVersion }) {
+  const [photos, setPhotos] = useState([]);
+  const [urls, setUrls] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetchReviewFiles(claimId)
+      .then(async (files) => {
+        const photoFiles = files
+          .filter((f) => f.file_type === "photo")
+          .sort((a, b) => new Date(b.captured_at || b.created_at) - new Date(a.captured_at || a.created_at));
+        const signedUrlPairs = await Promise.all(
+          photoFiles.map((f) => getReviewFileSignedUrl(f.storage_path).then((url) => [f.id, url])),
+        );
+        if (cancelled) return;
+        setPhotos(photoFiles);
+        setUrls(Object.fromEntries(signedUrlPairs));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [claimId, filesVersion]);
+
+  // No separate loading/empty states — DocumentsSection above already
+  // establishes the page's loading context, and an empty photo log with
+  // nothing uploaded yet doesn't need its own empty-state card.
+  if (loading || photos.length === 0) return null;
+
+  return (
+    <div className="mt-8">
+      <h2 className="text-lg font-extrabold text-white">Photo Log</h2>
+      <p className="mt-1 text-sm text-white/50">
+        Photos taken with "Take photo," newest first.
+      </p>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {photos.map((photo) => (
+          <Card key={photo.id}>
+            {urls[photo.id] && (
+              <a href={urls[photo.id]} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={urls[photo.id]}
+                  alt={photo.file_name}
+                  className="h-40 w-full rounded-lg object-cover"
+                />
+              </a>
+            )}
+            <p className="mt-3 text-xs font-semibold text-white">
+              {formatDateTime(photo.captured_at || photo.created_at)}
+            </p>
+            {photo.latitude != null && photo.longitude != null ? (
+              <a
+                href={`https://www.google.com/maps?q=${photo.latitude},${photo.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-block text-xs text-gold-500 hover:underline"
+              >
+                View location on map
+              </a>
+            ) : (
+              <p className="mt-1 text-xs text-white/40">Location not available</p>
+            )}
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
