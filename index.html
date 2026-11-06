@@ -233,6 +233,119 @@ table.cmp td.other{color:var(--muted)}
 .pfeat li{font-size:.9rem;color:var(--muted);padding:6px 0 6px 26px;position:relative}
 .pfeat li::before{content:"\2713";position:absolute;left:0;color:var(--red);font-weight:800}
 .pcard .btn{margin-top:auto}
+
+/* ===== MIDNIGHT (VAULT) DARK THEME ===== */
+:root{
+  --gold:#E8B84B; --gold-l:#F5C842;
+  --bg:#0A1120; --bg2:#0E1526;
+  --text:#C7D0DE; --muted:#8A94A6; --border:#243249;
+  --surface:#111C32; --head:#F6F8FC;
+  --hex:rgba(232,184,75,0.045); --hex-str:rgba(232,184,75,0.13);
+}
+body{background:var(--bg);color:var(--text)}
+h1,h2,h3,h4{color:var(--head)}
+.bg2{background:rgba(14,21,38,.6)}
+.sec-intro,.cmp-note{color:var(--muted)}
+/* nav */
+#navbar{background:rgba(10,17,32,.82)}
+#navbar.scrolled{background:rgba(10,17,32,.96);border-color:var(--border);box-shadow:0 2px 20px rgba(0,0,0,.4)}
+.nav-brand span{color:var(--head)}
+.nav-links a{color:var(--text)}
+.nav-links a:hover{color:var(--gold-l)}
+.lang-pill{color:var(--head);background:transparent;border-color:var(--border)}
+.lang-pill:hover{border-color:var(--gold)}
+#hamburger span{background:var(--gold-l)}
+#mob-menu{background:rgba(10,17,32,.98)}
+#mob-menu a{color:var(--head)}
+#mob-close{color:var(--head)}
+/* buttons */
+.btn-red{background:var(--gold-l);color:#0A1120;box-shadow:0 6px 22px rgba(245,200,66,.28)}
+.btn-red:hover{background:var(--gold);color:#0A1120}
+.btn-out{color:var(--head);border-color:var(--border)}
+.btn-out:hover{background:var(--gold-l);color:#0A1120;border-color:var(--gold-l)}
+/* hero */
+.eyebrow{color:var(--gold-l)}
+.hero h1 em{color:var(--gold-l)}
+.hero-sub{color:var(--muted)}
+.hero-trust{color:var(--text)}
+.hero-trust a{color:var(--gold-l)}
+.hero-who{color:var(--head)}
+.hero-micro a{color:var(--gold-l)}
+.hero-trust-badges li{color:var(--text);background:rgba(232,184,75,.07);border-color:var(--border)}
+.hero-trust-badges li::before{color:var(--gold-l)}
+.hero-logo{filter:drop-shadow(0 10px 30px rgba(0,0,0,.55))}
+/* cards */
+.card{background:var(--surface);border-color:var(--border);border-top-color:var(--gold)}
+.card:hover{box-shadow:0 14px 36px rgba(0,0,0,.45)}
+.card.red-top{border-top-color:var(--gold-l)}
+.card h3,.card.navy-h h3{color:var(--head)}
+.card p{color:var(--muted)}
+/* steps */
+.step{background:var(--surface);border-color:var(--border);border-left-color:var(--gold)}
+.step .n,.step3 .n{background:var(--gold-l);color:#0A1120}
+.step3{background:var(--surface);border-color:var(--border);border-top-color:var(--gold)}
+.step p,.step3 p{color:var(--muted)}
+/* comparison */
+.cmp-wrap{box-shadow:0 8px 30px rgba(0,0,0,.4)}
+table.cmp{background:var(--surface)}
+table.cmp th{background:#0E1830;color:var(--gold-l)}
+table.cmp td{border-bottom-color:var(--border)}
+table.cmp tr:nth-child(even) td{background:rgba(255,255,255,.03)}
+table.cmp td.feat{color:var(--head)}
+table.cmp td.fl{color:var(--gold-l)}
+table.cmp td.other{color:var(--muted)}
+/* pills */
+.pill{border-color:var(--gold);color:var(--gold-l);background:transparent}
+.pill:hover{background:var(--gold-l);color:#0A1120}
+.areas-note{color:var(--text)}
+.areas-note a{color:var(--gold-l)}
+/* faq */
+.faq-item{background:var(--surface);border-color:var(--border)}
+.faq-q{color:var(--head)}
+.faq-q .pm{color:var(--gold-l)}
+.faq-a{color:var(--muted)}
+/* cta */
+.cta{background:linear-gradient(180deg,#0E1830,#0A1120);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.cta p{color:rgba(255,255,255,.72)}
+.cta-call{color:rgba(255,255,255,.8)}
+.cta-call a{color:var(--gold-l)}
+/* form */
+.form-wrap{background:var(--surface);border-color:var(--border);box-shadow:0 10px 40px rgba(0,0,0,.45)}
+.fg label{color:var(--head)}
+.fg input,.fg select,.fg textarea{background:#0C1526;border-color:var(--border);color:var(--text)}
+.fg input::placeholder,.fg textarea::placeholder{color:#5f6b7e}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold)}
+.fg select option{background:#0C1526;color:var(--text)}
+.consent{color:var(--muted)}
+.consent a{color:var(--gold-l)}
+.form-ok{background:#123020;color:#8ff0b0}
+/* founder */
+.founder-photo{border-color:var(--surface);background:var(--surface)}
+.founder-top .sub,.founder-story p{color:var(--muted)}
+.founder-quote{border-left-color:var(--gold);color:var(--head)}
+/* footer */
+.site-footer{background:#0C1424;border-top-color:var(--border)}
+.foot-brand span{color:var(--head)}
+.foot-tag{color:var(--gold-l)}
+.foot-links a{color:var(--gold-l)}
+.foot-copy{color:var(--text)}
+.foot-notice{background:rgba(255,255,255,.03);border-color:var(--border);color:var(--muted)}
+.foot-notice b{color:var(--gold-l)}
+.foot-legal a{color:var(--gold-l)}
+/* chat */
+#chat-panel{background:var(--surface);border-color:var(--border)}
+.cbm{background:#0E1830;border-color:var(--border);color:var(--text)}
+.co{background:transparent;border-color:var(--gold);color:var(--gold-l)}
+.co:hover{background:var(--gold-l);color:#0A1120}
+#chat-input-row input{background:#0C1526;border-color:var(--border);color:var(--text)}
+.cs{background:var(--gold-l);color:#0A1120}
+/* pricing */
+.price{color:var(--head)}
+.price span{color:var(--muted)}
+.pcard.pop{border-top-color:var(--gold-l)}
+.pbadge{background:var(--gold-l);color:#0A1120}
+.pfeat li{color:var(--muted)}
+.pfeat li::before{color:var(--gold-l)}
 </style>
 </head>
 
@@ -413,7 +526,7 @@ table.cmp td.other{color:var(--muted)}
         <a href="#contact" class="btn btn-out" data-es='Obtener Leads Exclusivos'>Get Exclusive Leads</a>
       </div>
     </div>
-    <div style="max-width:820px;margin:2.4rem auto 0;background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.6rem 1.9rem;box-shadow:0 4px 18px rgba(27,42,74,.06)">
+    <div style="max-width:820px;margin:2.4rem auto 0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.6rem 1.9rem;box-shadow:0 4px 18px rgba(0,0,0,.4)">
       <h3 style="font-size:1.15rem;text-align:center;margin-bottom:1.1rem" data-es='C&oacute;mo Funciona la Facturaci&oacute;n'>How Billing Works</h3>
       <ul class="pfeat" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.2rem 1.8rem;margin:0;text-align:left">
         <li data-es='Los planes mensuales se facturan por adelantado.'>Monthly plans are billed in advance.</li>
