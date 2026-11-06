@@ -150,6 +150,13 @@ export async function analyzeEstimate({ projectInfo, estimateText, documentFiles
   // live: the real request hung the full 30s with no "returned" or
   // "threw" checkpoint logged at all). One attempt, one short timeout,
   // fail fast and clean.
+  // 15s wasn't actually enough: live testing (API key cost shows real
+  // usage, i.e. genuine completions, not failed/rejected calls) confirms
+  // Claude is really generating a full response, just taking longer than
+  // 15s — this isn't a hang, it's real generation time for this prompt
+  // size. Pushed as close to Netlify's ~29-30s platform ceiling as safely
+  // possible, leaving headroom for the ~1.5s of setup work (auth, PDF
+  // extract, DB reads) that happens before this call starts.
   const response = await client.messages.create(
     {
       model: DEFAULT_MODEL,
@@ -157,7 +164,7 @@ export async function analyzeEstimate({ projectInfo, estimateText, documentFiles
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: buildUserPrompt({ projectInfo, estimateText, documentFiles, vaultItems }) }],
     },
-    { timeout: 15_000, maxRetries: 0 },
+    { timeout: 25_000, maxRetries: 0 },
   );
 
   const textBlock = response.content.find((b) => b.type === "text");
