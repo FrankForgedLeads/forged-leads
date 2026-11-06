@@ -10,7 +10,7 @@ import {
   validateReviewFile,
   REVIEW_FILES_MAX_PER_CLAIM,
 } from "../lib/api/reviewFiles.js";
-import { runAnalysis, fetchFindings, updateFindingStatus } from "../lib/api/analysis.js";
+import { runAnalysis, pollRun, fetchFindings, updateFindingStatus } from "../lib/api/analysis.js";
 import { createLetterRecord } from "../lib/api/letters.js";
 import { generateReviewSummaryPdf } from "../lib/reviewSummary/pdf.js";
 import { logEvent } from "../lib/api/analyticsEvents.js";
@@ -603,7 +603,12 @@ function FindingsSection({ claimId, claim, onItemAdded, filesVersion }) {
     setRunning(true);
     setRunError("");
     try {
-      await runAnalysis(claimId);
+      // runAnalysis returns as soon as the review starts, not when it's
+      // done — the AI call itself runs in a Netlify Background Function
+      // (it can genuinely take longer than any synchronous request is
+      // allowed to), so pollRun watches the run row until it finishes.
+      const { runId } = await runAnalysis(claimId);
+      await pollRun(runId);
       loadFindings();
     } catch (e) {
       setRunError(e.message);

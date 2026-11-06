@@ -1,30 +1,13 @@
-import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { requireUser } from "./_lib/auth.js";
 import { jsonResponse } from "./_lib/http.js";
-import { extractPdfText, MIN_MEANINGFUL_TEXT_LENGTH } from "./_lib/pdfText.js";
-import { analyzeEstimate, estimateCostUsd } from "./_lib/estimateAnalysisService.js";
 
 // Cost-control ceiling — see README/SETUP for the reasoning. Deliberately
 // generous for real usage, deliberately not "unlimited": the whole point
 // of analysis_runs existing is to make this checkable without guessing.
 const DAILY_RUN_LIMIT = Number(process.env.ANALYSIS_DAILY_LIMIT) || 20;
-const BUCKET = "review-files";
-
-// TEMPORARY — tracking down a mystery 30s platform timeout (confirmed via
-// Netlify's own function logs: "Duration: 30000 ms" with no error, no
-// thrown exception visible, surviving an explicit 20s client-side timeout
-// on the Anthropic call). This checkpoint logger pinpoints which step
-// inside the handler the time is actually going to. Remove once resolved.
-const t0 = Symbol("t0");
-function checkpoint(state, label) {
-  const now = Date.now();
-  // eslint-disable-next-line no-console
-  console.error(`[review-analyze timing] ${label}: +${now - state[t0]}ms`);
-}
 
 export default async (req) => {
-  const timing = { [t0]: Date.now() };
   if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
 
   const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
@@ -37,12 +20,11 @@ export default async (req) => {
 
   // requireUser's client is scoped to the caller's own JWT — used only to
   // confirm they actually have access to this claim via the same RLS the
-  // rest of the app relies on. Every other read/write in this function
-  // uses the service-role client below, since review_findings/analysis_runs
-  // have no client-writable insert policy by design (see migration.sql).
+  // rest of the app relies on. Every other read/write below uses the
+  // service-role client, since review_files/analysis_runs have no
+  // client-writable insert policy by design (see migration.sql).
   const { user, supabase: userClient, error: authError } = await requireUser(req);
   if (authError) return jsonResponse(401, { error: authError });
-  checkpoint(timing, "auth done");
 
   let body;
   try {
@@ -60,7 +42,6 @@ export default async (req) => {
     .maybeSingle();
   if (claimError) return jsonResponse(500, { error: claimError.message });
   if (!claim) return jsonResponse(404, { error: "Review not found" });
-  checkpoint(timing, "claim fetched");
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -76,7 +57,6 @@ export default async (req) => {
     .eq("id", user.id)
     .maybeSingle();
   if (billingProfileError) return jsonResponse(500, { error: billingProfileError.message });
-  checkpoint(timing, "billing profile fetched");
 
   const BILLABLE_STATUSES = ["trialing", "active"];
   if (!BILLABLE_STATUSES.includes(billingProfile?.subscription_status)) {
@@ -96,37 +76,26 @@ export default async (req) => {
       error: `You've reached today's limit of ${DAILY_RUN_LIMIT} reviews. Try again tomorrow.`,
     });
   }
-  checkpoint(timing, "rate limit check done");
 
-  // --- Gather uploaded files -------------------------------------------
+  // --- Confirm an estimate is actually uploaded before starting ----------
   const { data: files, error: filesError } = await admin
     .from("review_files")
     .select("*")
     .eq("claim_id", claimId);
   if (filesError) return jsonResponse(500, { error: filesError.message });
-  checkpoint(timing, "files listed");
 
   const estimateFiles = (files || []).filter((f) => f.file_type === "estimate");
   if (estimateFiles.length === 0) {
     return jsonResponse(400, { error: "Upload an estimate before running a review." });
   }
 
-  async function downloadText(file) {
-    if (file.mime_type !== "application/pdf") return null;
-    const { data: blob, error: downloadError } = await admin.storage.from(BUCKET).download(file.storage_path);
-    if (downloadError) throw new Error(`Couldn't read ${file.file_name}: ${downloadError.message}`);
-    const buffer = Buffer.from(await blob.arrayBuffer());
-    return extractPdfText(buffer);
-  }
-
-  // --- Run the analysis, tracked end-to-end in analysis_runs -----------
+  // --- Create the run row, tracked end-to-end in analysis_runs -----------
   const { data: run, error: runInsertError } = await admin
     .from("analysis_runs")
     .insert({ claim_id: claimId, user_id: user.id, status: "running" })
     .select("*")
     .single();
   if (runInsertError) return jsonResponse(500, { error: runInsertError.message });
-  checkpoint(timing, "run row inserted");
 
   // --- One free review per trialing account, claimed atomically ----------
   // A plain status check isn't enough on its own: two requests fired close
@@ -161,7 +130,6 @@ export default async (req) => {
     }
     reservedFreeReview = true;
   }
-  checkpoint(timing, "free-review reservation done");
 
   async function failRun(message) {
     await admin
@@ -173,129 +141,40 @@ export default async (req) => {
     }
   }
 
-  let estimateText;
+  // --- Hand off the actual (slow) AI work to a Background Function -------
+  // Netlify's regular Functions, and the AWS API Gateway in front of them,
+  // hard-kill any request around 29-30s no matter the plan — confirmed
+  // live, repeatedly: Claude genuinely takes longer than that (even 25s
+  // wasn't enough) to finish a full findings response for this prompt
+  // size. There's no synchronous timeout value that's both safe and long
+  // enough, so the AI call now runs in review-analyze-background.js, a
+  // Background Function (up to 15 minutes, no hard platform cutoff). The
+  // frontend polls analysis_runs for completion instead of awaiting one
+  // request — see fetchRun() in src/lib/api/analysis.js and
+  // FindingsSection in ClaimDetail.jsx.
+  //
+  // The background function re-verifies this exact run row still exists,
+  // belongs to this claim/user, and is still "running" before doing
+  // anything — only this request, moments earlier, could have put a row
+  // in exactly that state, so a forged POST straight at its URL finds
+  // nothing to act on.
   try {
-    // Concatenate text from every uploaded estimate file (usually just
-    // one, but a revised estimate might be uploaded alongside the original).
-    const texts = await Promise.all(estimateFiles.map(downloadText));
-    estimateText = texts.filter(Boolean).join("\n\n").trim();
-    checkpoint(timing, "estimate PDF text extracted");
-  } catch (e) {
-    checkpoint(timing, `estimate PDF extraction threw: ${e.message}`);
-    await failRun(e.message);
-    return jsonResponse(502, { error: "We couldn't read your estimate file. Your files are safe. Please try again." });
-  }
-
-  if (estimateText.length < MIN_MEANINGFUL_TEXT_LENGTH) {
-    await failRun("Estimate PDF extracted no meaningful text (likely a scanned image)");
-    return jsonResponse(422, {
-      error:
-        "We couldn't read text from your estimate — it may be a scanned image rather than a text-based PDF. Try re-exporting it as a text PDF, or continue without an automatic review.",
+    const origin = req.headers.get("origin") || new URL(req.url).origin;
+    await fetch(`${origin}/.netlify/functions/review-analyze-background`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        runId: run.id,
+        claimId,
+        userId: user.id,
+        reservedFreeReview,
+        stripeSubscriptionId: billingProfile.stripe_subscription_id,
+      }),
     });
-  }
-
-  // Non-estimate documents: extract text from any PDFs among them too
-  // (free, no AI) so an uploaded invoice or moisture report can inform the
-  // review. Photos are listed by name only — never pretend a photo was
-  // analyzed when it wasn't (see estimateAnalysisService's own note on
-  // this in its prompt).
-  const otherFiles = (files || []).filter((f) => f.file_type !== "estimate");
-  const documentFiles = await Promise.all(
-    otherFiles.map(async (f) => {
-      let extractedText = null;
-      if (f.file_type === "document" && f.mime_type === "application/pdf") {
-        try {
-          extractedText = await downloadText(f);
-        } catch {
-          extractedText = null; // non-fatal — just fall back to filename-only context
-        }
-      }
-      return { file_name: f.file_name, file_type: f.file_type, extractedText };
-    }),
-  );
-
-  const { data: vaultItems, error: itemsError } = await admin
-    .from("items")
-    .select(
-      "id, title, category, xactimate_code, code_citation, low_amount, high_amount, unit, why_owed, jurisdiction_notes",
-    )
-    .eq("is_active", true);
-  if (itemsError) {
-    await failRun(itemsError.message);
-    return jsonResponse(500, { error: itemsError.message });
-  }
-  checkpoint(timing, `vault items fetched (count: ${vaultItems?.length ?? 0})`);
-
-  const projectInfo = {
-    "Project type": claim.project_type,
-    Trade: claim.trade,
-    "Property location": claim.property_address,
-    "Estimate total": claim.estimate_total,
-    "Date of loss": claim.date_of_loss,
-    "Loss type": claim.loss_type,
-    Description: claim.description,
-    Notes: claim.notes,
-  };
-
-  let result;
-  try {
-    checkpoint(timing, "calling analyzeEstimate (the Anthropic API call)");
-    result = await analyzeEstimate({ projectInfo, estimateText, documentFiles, vaultItems: vaultItems || [] });
-    checkpoint(timing, "analyzeEstimate returned");
   } catch (e) {
-    checkpoint(timing, `analyzeEstimate threw: ${e.name}: ${e.message}`);
     await failRun(e.message);
-    return jsonResponse(502, {
-      error: "We couldn't complete this review. Your files are safe. Please try again.",
-    });
+    return jsonResponse(502, { error: "We couldn't start this review. Your files are safe. Please try again." });
   }
 
-  // --- Persist findings + close out the run -----------------------------
-  const findingsToInsert = result.findings.map((f) => ({
-    ...f,
-    claim_id: claimId,
-    analysis_run_id: run.id,
-  }));
-
-  if (findingsToInsert.length > 0) {
-    const { error: findingsError } = await admin.from("review_findings").insert(findingsToInsert);
-    if (findingsError) {
-      await failRun(findingsError.message);
-      return jsonResponse(500, { error: findingsError.message });
-    }
-  }
-
-  await admin
-    .from("analysis_runs")
-    .update({
-      status: "succeeded",
-      model: result.model,
-      input_tokens: result.usage.input_tokens,
-      output_tokens: result.usage.output_tokens,
-      estimated_cost_usd: estimateCostUsd(result.model, result.usage),
-      findings_count: findingsToInsert.length,
-      completed_at: new Date().toISOString(),
-    })
-    .eq("id", run.id);
-
-  // --- Free trial ends on first use, not on a day count ------------------
-  // See create-checkout-session.js: trial_period_days is a long safety-net
-  // ceiling, not the real trial length. The actual trial ends right here,
-  // the moment someone's first review succeeds — Stripe then bills their
-  // card immediately. Best-effort: if this fails, the long trial ceiling
-  // still ends it eventually, so a failure here never blocks the response.
-  // reservedFreeReview is only true for a "trialing" account that just won
-  // the atomic claim above, so stripe_subscription_id (read once, at the
-  // top of this function) is guaranteed fresh for this check.
-  if (reservedFreeReview && billingProfile.stripe_subscription_id) {
-    try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-      await stripe.subscriptions.update(billingProfile.stripe_subscription_id, { trial_end: "now" });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error("[review-analyze] Failed to end trial after first review:", e.message);
-    }
-  }
-
-  return jsonResponse(200, { runId: run.id, findingsCount: findingsToInsert.length });
+  return jsonResponse(200, { runId: run.id, status: "running" });
 };
