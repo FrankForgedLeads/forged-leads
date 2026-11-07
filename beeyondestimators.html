@@ -550,6 +550,7 @@ table.cmp td.other{color:var(--muted)}
       <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Estimado en Xactimate'>Xactimate Estimate</h4><p data-es='Alcance completo por partida escrito en Xactimate.'>Full line-item scope written in Xactimate.</p></div></div>
       <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Archivo ESX'>ESX File</h4><p data-es='El archivo Xactimate nativo, listo para importar.'>The native Xactimate file, ready to import.</p></div></div>
       <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Copia en PDF'>PDF Copy</h4><p data-es='Un PDF limpio y presentable para la aseguradora o el cliente.'>A clean, presentable PDF for the carrier or client.</p></div></div>
+      <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Totalmente con Tu Marca'>Fully Branded as Yours</h4><p data-es='Tu logo, nombre de empresa e informaci&oacute;n de contacto en cada estimado &mdash; sale luciendo como tuyo, no nuestro.'>Your logo, company name, and contact info on every estimate &mdash; it goes out looking like yours, not ours.</p></div></div>
       <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Partidas Organizadas'>Organized Line Items</h4><p data-es='Estructurado por habitaci&oacute;n y fase para que sea f&aacute;cil de leer.'>Structured by room and phase so it&rsquo;s easy to read.</p></div></div>
       <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Formato Listo para la Aseguradora'>Insurance-Ready Formatting</h4><p data-es='C&oacute;digos correctos y lista de precios vigente que la aseguradora reconoce.'>Correct codes and current price list carriers recognize.</p></div></div>
       <div class="inc-item fade-in"><span class="ck">&#10003;</span><div><h4 data-es='Revisi&oacute;n de Alcance'>Scope Review</h4><p data-es='Verificamos el alcance para atrapar partidas omitidas.'>We check the scope to catch anything missed.</p></div></div>
@@ -780,6 +781,10 @@ table.cmp td.other{color:var(--muted)}
         </ul>
       </div>
     </div>
+    <div class="fade-in" style="max-width:760px;margin:1.6rem auto 0;text-align:center;background:rgba(232,184,75,.07);border:1px solid var(--border);border-radius:12px;padding:1rem 1.4rem">
+      <p style="font-weight:700;color:var(--head);font-size:1.02rem" data-es='&#9889; &iquest;Lo necesitas r&aacute;pido? Entrega urgente disponible.'>&#9889; Need it faster? Rush delivery available.</p>
+      <p style="color:var(--muted);font-size:.9rem;margin-top:.25rem" data-es='Agrega $75 para entrega al siguiente d&iacute;a h&aacute;bil (24 horas) en cualquier estimado &mdash; sujeto a disponibilidad.'>Add $75 for next-business-day (24-hour) turnaround on any estimate &mdash; subject to availability.</p>
+    </div>
     <p class="cmp-note" data-es='Sencillo: tarifa plana de $100 para reclamos de menos de $10,000, o 1% del estimado para todo lo que supere $10,000 &mdash; incluyendo reclamos por hurac&aacute;n, fuego y cat&aacute;strofe. M&iacute;nimo $100 por estimado. Opciones de volumen y retenedor mensual disponibles. Cada archivo se cotiza antes de empezar.'>Simple: a flat $100 for claims under $10,000, or 1% of the estimate for anything over $10,000 &mdash; including hurricane, fire, and catastrophe claims. $100 minimum. Volume &amp; monthly retainer options available. Every file is quoted before we start.</p>
   </div>
 </section>
@@ -851,26 +856,35 @@ table.cmp td.other{color:var(--muted)}
     <h2 class="sec-title" data-es='Cu&eacute;ntanos Sobre la P&eacute;rdida. Te Responderemos R&aacute;pido.'>Tell Us About the Loss. We'll Reply Fast.</h2>
     <p style="text-align:center;margin:-.4rem 0 1.4rem;font-size:1.02rem" data-es='O ll&aacute;manos al '>Or call us at <a href="tel:+19545460839" style="color:var(--red);font-weight:800;text-decoration:none">(954) 546-0839</a></p>
     <div class="form-wrap">
-      <form id="lead-form" novalidate>
+      <form id="lead-form" action="https://formsubmit.co/beeyondestimators@outlook.com" method="POST" enctype="multipart/form-data" target="es_sink" novalidate>
         <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <input type="hidden" name="_subject" value="New Beeyond Estimators request">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
         <div class="fr2">
-          <div class="fg"><label for="fn" data-es='Nombre Completo *'>Full Name *</label><input id="fn" type="text" maxlength="100"><span class="err" id="fn-e"></span></div>
-          <div class="fg"><label for="femail" data-es='Correo Electr&oacute;nico *'>Email *</label><input id="femail" type="email" maxlength="254"><span class="err" id="femail-e"></span></div>
+          <div class="fg"><label for="fn" data-es='Nombre Completo *'>Full Name *</label><input id="fn" name="Name" type="text" maxlength="100"><span class="err" id="fn-e"></span></div>
+          <div class="fg"><label for="femail" data-es='Correo Electr&oacute;nico *'>Email *</label><input id="femail" name="Email" type="email" maxlength="254"><span class="err" id="femail-e"></span></div>
         </div>
         <div class="fr2">
-          <div class="fg"><label for="fphone" data-es='Tel&eacute;fono *'>Phone *</label><input id="fphone" type="tel" maxlength="20"><span class="err" id="fphone-e"></span></div>
-          <div class="fg"><label for="ftrade" data-es='Servicio Necesitado *'>Service Needed *</label><select id="ftrade"><option value="" data-es='&mdash; Selecciona servicio &mdash;'>&mdash; Select service &mdash;</option><option data-es='Estimado de Mitigaci&oacute;n de Agua'>Water Mitigation Estimate</option><option data-es='Estimado de Moho'>Mold Estimate</option><option data-es='Estimado de Fuego y Humo'>Fire &amp; Smoke Estimate</option><option data-es='Estimado de Tormenta / Techo'>Storm / Roof Estimate</option><option data-es='Estructural / Reconstrucci&oacute;n'>Structural / Rebuild</option><option data-es='Contenidos'>Contents</option><option data-es='Suplemento'>Supplement</option><option data-es='Revisi&oacute;n / Tasaci&oacute;n'>Estimate Review / Appraisal</option></select><span class="err" id="ftrade-e"></span></div>
+          <div class="fg"><label for="fphone" data-es='Tel&eacute;fono *'>Phone *</label><input id="fphone" name="Phone" type="tel" maxlength="20"><span class="err" id="fphone-e"></span></div>
+          <div class="fg"><label for="ftrade" data-es='Servicio Necesitado *'>Service Needed *</label><select id="ftrade" name="Service Needed"><option value="" data-es='&mdash; Selecciona servicio &mdash;'>&mdash; Select service &mdash;</option><option data-es='Estimado de Mitigaci&oacute;n de Agua'>Water Mitigation Estimate</option><option data-es='Estimado de Moho'>Mold Estimate</option><option data-es='Estimado de Fuego y Humo'>Fire &amp; Smoke Estimate</option><option data-es='Estimado de Tormenta / Techo'>Storm / Roof Estimate</option><option data-es='Estructural / Reconstrucci&oacute;n'>Structural / Rebuild</option><option data-es='Contenidos'>Contents</option><option data-es='Suplemento'>Supplement</option><option data-es='Revisi&oacute;n / Tasaci&oacute;n'>Estimate Review / Appraisal</option></select><span class="err" id="ftrade-e"></span></div>
         </div>
         <div class="fr2">
-          <div class="fg"><label for="farea" data-es='Ubicaci&oacute;n de la P&eacute;rdida *'>Loss Location *</label><input id="farea" type="text" maxlength="100" placeholder="City, State"><span class="err" id="farea-e"></span></div>
-          <div class="fg"><label for="fbudget" data-es='Fecha L&iacute;mite *'>Deadline *</label><select id="fbudget"><option value="" data-es='&mdash; Selecciona plazo &mdash;'>&mdash; Select deadline &mdash;</option><option data-es='Urgente (24 h)'>ASAP / Rush (24 hr)</option><option data-es='En 2&ndash;3 d&iacute;as'>Within 2&ndash;3 days</option><option data-es='Esta semana'>This week</option><option data-es='Solo explorando'>Just exploring</option></select><span class="err" id="fbudget-e"></span></div>
+          <div class="fg"><label for="farea" data-es='Ubicaci&oacute;n de la P&eacute;rdida *'>Loss Location *</label><input id="farea" name="Loss Location" type="text" maxlength="100" placeholder="City, State"><span class="err" id="farea-e"></span></div>
+          <div class="fg"><label for="fbudget" data-es='Fecha L&iacute;mite *'>Deadline *</label><select id="fbudget" name="Deadline"><option value="" data-es='&mdash; Selecciona plazo &mdash;'>&mdash; Select deadline &mdash;</option><option data-es='Urgente (24 h)'>ASAP / Rush (24 hr)</option><option data-es='En 2&ndash;3 d&iacute;as'>Within 2&ndash;3 days</option><option data-es='Esta semana'>This week</option><option data-es='Solo explorando'>Just exploring</option></select><span class="err" id="fbudget-e"></span></div>
         </div>
-        <div class="fg"><label for="ftime" data-es='Soy... *'>I am a... *</label><select id="ftime"><option value="" data-es='&mdash; Selecciona &mdash;'>&mdash; Select one &mdash;</option><option data-es='Contratista de Restauraci&oacute;n'>Restoration Contractor</option><option data-es='Contratista de Techado'>Roofing Contractor</option><option data-es='Contratista General'>General Contractor</option><option data-es='Contratista de Moho / Remediaci&oacute;n'>Mold / Remediation Contractor</option><option data-es='Empresa de Restauraci&oacute;n'>Restoration Company</option><option data-es='Ajustador P&uacute;blico'>Public Adjuster</option><option data-es='Abogado'>Attorney</option><option data-es='Administrador de Propiedades'>Property Manager</option><option data-es='Otro'>Other</option></select><span class="err" id="ftime-e"></span></div>
-        <div class="fg"><label for="fmsg" data-es='Cu&eacute;ntanos sobre la p&eacute;rdida (opcional)'>Tell us about the loss (optional)</label><textarea id="fmsg" rows="4" maxlength="1000"></textarea></div>
+        <div class="fg"><label for="ftime" data-es='Soy... *'>I am a... *</label><select id="ftime" name="I am a"><option value="" data-es='&mdash; Selecciona &mdash;'>&mdash; Select one &mdash;</option><option data-es='Contratista de Restauraci&oacute;n'>Restoration Contractor</option><option data-es='Contratista de Techado'>Roofing Contractor</option><option data-es='Contratista General'>General Contractor</option><option data-es='Contratista de Moho / Remediaci&oacute;n'>Mold / Remediation Contractor</option><option data-es='Empresa de Restauraci&oacute;n'>Restoration Company</option><option data-es='Ajustador P&uacute;blico'>Public Adjuster</option><option data-es='Abogado'>Attorney</option><option data-es='Administrador de Propiedades'>Property Manager</option><option data-es='Otro'>Other</option></select><span class="err" id="ftime-e"></span></div>
+        <div class="fg"><label for="fmsg" data-es='Cu&eacute;ntanos sobre la p&eacute;rdida (opcional)'>Tell us about the loss (optional)</label><textarea id="fmsg" name="Loss Details" rows="4" maxlength="1000"></textarea></div>
+        <div class="fr2">
+          <div class="fg"><label for="fpdf" data-es='Sube tu archivo de estimado (PDF o ESX) &mdash; opcional'>Upload your estimate file (PDF or ESX) &mdash; optional</label><input id="fpdf" name="Estimate File" type="file" accept=".pdf,.esx,.zip,.doc,.docx"><span class="err" id="fpdf-e"></span></div>
+          <div class="fg"><label for="fphotos" data-es='Sube fotos &mdash; opcional'>Upload photos &mdash; optional</label><input id="fphotos" name="Photos" type="file" accept="image/*,.pdf,.heic" multiple><span class="err" id="fphotos-e"></span></div>
+        </div>
+        <p style="font-size:.76rem;color:var(--muted);margin:-.4rem 0 1.1rem;line-height:1.55" data-es='Adjunta tu estimado y fotos de los da&ntilde;os (hasta ~10 MB en total). &iquest;Muchas fotos grandes? Env&iacute;alas por correo a <a href="mailto:beeyondestimators@outlook.com" style="color:var(--gold-l)">beeyondestimators@outlook.com</a>.'>Attach your estimate and damage photos (up to ~10&nbsp;MB total). Lots of large photos? Email them to <a href="mailto:beeyondestimators@outlook.com" style="color:var(--gold-l)">beeyondestimators@outlook.com</a>.</p>
         <label class="consent"><input type="checkbox" id="fconsent"><span data-es='Al enviar, acepto que Beeyond Estimators pueda contactarme al tel&eacute;fono y correo que proporcion&eacute; &mdash; incluyendo por llamada y mensaje de texto &mdash; sobre mi solicitud de estimado. Pueden aplicar tarifas de mensajes y datos. Responde STOP para cancelar. Consulta nuestra <a href="#">Pol&iacute;tica de Privacidad</a> &middot; <a href="#">T&eacute;rminos</a>.'>By submitting, I agree that Beeyond Estimators may contact me at the phone and email I provided &mdash; including by phone call and text message &mdash; about my estimate request. Message and data rates may apply. Reply STOP to opt out. See our <a href="#">Privacy Policy</a> &middot; <a href="#">Terms</a>.</span></label>
-        <button type="submit" id="fsub" class="btn btn-red" style="width:100%" data-es='Enviar Mi Solicitud'>Send My Request</button>
-        <div class="form-ok" id="fsuc" data-es='Gracias &mdash; recibimos tu solicitud de estimado. Te responderemos r&aacute;pido, normalmente en unas horas.'>Thanks &mdash; your estimate request is in. We'll reply fast, usually within a few hours.</div>
+        <button type="submit" id="fsub" class="btn btn-red" style="width:100%" data-es='Enviar Mi Solicitud y Archivos'>Send My Request &amp; Files</button>
+        <div class="form-ok" id="fsuc" data-es='Gracias &mdash; recibimos tu solicitud y archivos. Te responderemos r&aacute;pido, normalmente en unas horas.'>Thanks &mdash; your request and files are in. We'll reply fast, usually within a few hours.</div>
       </form>
+      <iframe name="es_sink" class="hp" tabindex="-1" aria-hidden="true" title="submit sink"></iframe>
     </div>
   </div>
 </section>
@@ -943,18 +957,17 @@ if(btn)btn.addEventListener('click',function(){setLang(window.FL_LANG==='es'?'en
 function sendLead(data){data._subject=(data._subject||'New Beeyond Estimators request'+(data.name?' — '+data.name:''));data._template='table';data._captcha='false';return fetch('https://formsubmit.co/ajax/beeyondestimators@outlook.com',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(data)});}
 /* form */
 (function(){var f=document.getElementById('lead-form'),sub=document.getElementById('fsub'),suc=document.getElementById('fsuc'),log=[];var eRe=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,pRe=/^[0-9\s\-\(\)\+]{7,20}$/;function se(id,m){var e=document.getElementById(id+'-e');if(e)e.textContent=m;}function ce(id){var e=document.getElementById(id+'-e');if(e)e.textContent='';}
-f.addEventListener('submit',function(ev){ev.preventDefault();var hp=f.querySelector('[name="website"]');if(hp&&hp.value!==''){suc.style.display='block';return;}var now=Date.now();log=log.filter(function(t){return now-t<60000;});if(log.length>=3)return;var ok=true,first=null;
-var n=sani(document.getElementById('fn').value,100);ce('fn');if(!n){se('fn','*');ok=false;first=first||'fn';}
-var em=sani(document.getElementById('femail').value,254);ce('femail');if(!em||!eRe.test(em)){se('femail','*');ok=false;first=first||'femail';}
-var ph=sani(document.getElementById('fphone').value,20);ce('fphone');if(!ph||!pRe.test(ph)){se('fphone','*');ok=false;first=first||'fphone';}
+f.addEventListener('submit',function(ev){var hp=f.querySelector('[name="website"]');if(hp&&hp.value!==''){ev.preventDefault();suc.style.display='block';return;}var now=Date.now();log=log.filter(function(t){return now-t<60000;});if(log.length>=3){ev.preventDefault();return;}var ok=true,first=null;
+var n=document.getElementById('fn').value.trim();ce('fn');if(!n){se('fn','*');ok=false;first=first||'fn';}
+var em=document.getElementById('femail').value.trim();ce('femail');if(!em||!eRe.test(em)){se('femail','*');ok=false;first=first||'femail';}
+var ph=document.getElementById('fphone').value.trim();ce('fphone');if(!ph||!pRe.test(ph)){se('fphone','*');ok=false;first=first||'fphone';}
 var tr=document.getElementById('ftrade').value;ce('ftrade');if(!tr){se('ftrade','*');ok=false;first=first||'ftrade';}
-var ar=sani(document.getElementById('farea').value,100);ce('farea');if(!ar){se('farea','*');ok=false;first=first||'farea';}
+var ar=document.getElementById('farea').value.trim();ce('farea');if(!ar){se('farea','*');ok=false;first=first||'farea';}
 var bu=document.getElementById('fbudget').value;ce('fbudget');if(!bu){se('fbudget','*');ok=false;first=first||'fbudget';}
 var ti=document.getElementById('ftime').value;ce('ftime');if(!ti){se('ftime','*');ok=false;first=first||'ftime';}
 if(!document.getElementById('fconsent').checked){ok=false;first=first||'fconsent';}
-if(!ok){var el=document.getElementById(first);if(el)el.scrollIntoView({behavior:'smooth',block:'center'});return;}
-log.push(Date.now());sub.disabled=true;
-sendLead({name:n,email:em,phone:ph,service_needed:tr,loss_location:ar,deadline:bu,role:ti,message:sani(document.getElementById('fmsg').value,1000)}).then(function(r){return r.json();}).catch(function(){return{};}).then(function(){suc.style.display='block';f.reset();setTimeout(function(){sub.disabled=false;suc.style.display='none';},5000);});});})();
+if(!ok){ev.preventDefault();var el=document.getElementById(first);if(el)el.scrollIntoView({behavior:'smooth',block:'center'});return;}
+log.push(Date.now());sub.disabled=true;suc.style.display='block';setTimeout(function(){f.reset();sub.disabled=false;setTimeout(function(){suc.style.display='none';},4500);},400);});})();
 
 /* Beeyondadmin chat (bilingual) */
 (function(){var bub=document.getElementById('chat-bubble'),pan=document.getElementById('chat-panel'),msgs=document.getElementById('chat-messages'),opts=document.getElementById('chat-options'),inrow=document.getElementById('chat-input-row'),inp=document.getElementById('chat-text-input'),snd=document.getElementById('chat-send-btn'),rst=document.getElementById('chat-restart');
