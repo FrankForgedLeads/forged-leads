@@ -71,6 +71,33 @@ You don't need a button for these — use an **Invoice**:
 
 ---
 
+## ⭐ The Pay-Before-Release Workflow (so nobody runs off with your estimate)
+
+This is how you make sure you get paid BEFORE the client ever sees the file.
+Never send the ESX/PDF until the invoice is paid.
+
+1. **Finish the estimate** — but don't send it yet.
+2. **Create a Square invoice** for the exact amount:
+   - Under $10k claim → **$100**
+   - Over $10k claim → **1% of the estimate**
+   - Add **+$75** if they asked for rush.
+   - Phone app or Dashboard → **Invoices → Create Invoice** → enter their
+     email/phone, a description ("Xactimate estimate — [their job]"), and the amount.
+3. **Send it.** Square texts/emails them a professional invoice with a "Pay" button.
+4. **They pay by card** (or **Zelle** you if they're out and about — give them your
+   Zelle info directly, don't post it publicly).
+5. **Square pings your phone** the second it's paid.
+6. **NOW release the file** — email them the ESX + PDF.
+
+That's it. No payment, no file. The website already tells clients this is how it
+works ("released upon payment"), so it's your normal, professional policy — not an
+awkward ask.
+
+**Tip:** In the Square app you can save the invoice as a template so each new one
+takes 30 seconds.
+
+---
+
 ## What to send back so the sites go live
 
 Paste these links in the chat:
