@@ -2,7 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AdminTabs from "../../components/admin/AdminTabs.jsx";
 import Card from "../../components/ui/Card.jsx";
-import { fetchAnalysisRuns } from "../../lib/api/adminAnalysis.js";
+import { fetchAnalysisRuns, fetchFindingsStatusCounts } from "../../lib/api/adminAnalysis.js";
+
+// Below this many decided findings (added + dismissed), the validation
+// rate is too small a sample to mean anything — shown with a caveat
+// instead of a bare percentage. Never publish this number externally
+// until it's well past this floor.
+const MIN_SAMPLE_FOR_ACCURACY = 20;
 
 const STATUS_STYLE = {
   succeeded: "border-green-500 bg-green-500/10 text-green-400",
@@ -43,6 +49,7 @@ function StatCard({ label, value, sub }) {
 
 export default function AdminAnalysis() {
   const [runs, setRuns] = useState([]);
+  const [findingCounts, setFindingCounts] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [failedOnly, setFailedOnly] = useState(false);
@@ -51,11 +58,25 @@ export default function AdminAnalysis() {
   const [thirtyDaysAgo] = useState(() => Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   useEffect(() => {
-    fetchAnalysisRuns()
-      .then(setRuns)
+    Promise.all([fetchAnalysisRuns(), fetchFindingsStatusCounts()])
+      .then(([runsData, counts]) => {
+        setRuns(runsData);
+        setFindingCounts(counts);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
+
+  const accuracy = useMemo(() => {
+    if (!findingCounts) return null;
+    const decided = findingCounts.added + findingCounts.dismissed;
+    return {
+      decided,
+      pending: findingCounts.new + findingCounts.needs_info,
+      validationRate: decided > 0 ? Math.round((findingCounts.added / decided) * 100) : null,
+      meaningful: decided >= MIN_SAMPLE_FOR_ACCURACY,
+    };
+  }, [findingCounts]);
 
   const stats = useMemo(() => {
     const recent = runs.filter((r) => new Date(r.started_at).getTime() >= thirtyDaysAgo);
@@ -89,6 +110,32 @@ export default function AdminAnalysis() {
         <StatCard label="Runs, last 30 days" value={stats.count30d} />
         <StatCard label="Estimated cost, last 30 days" value={`$${stats.cost30d.toFixed(2)}`} />
       </div>
+
+      {accuracy && (
+        <div className="mt-6">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-white/50">
+            Accuracy — from real customer decisions, not a one-off test
+          </h2>
+          <p className="mt-1 text-xs text-white/40">
+            Of every finding a real customer has actually decided on (added it to their letter, or
+            dismissed it), what share did they confirm was worth adding. This grows as the product gets
+            used — it is never a synthetic benchmark.
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            <StatCard
+              label="Validation rate"
+              value={accuracy.validationRate === null ? "—" : `${accuracy.validationRate}%`}
+              sub={
+                accuracy.meaningful
+                  ? `${accuracy.decided} decided findings`
+                  : `Only ${accuracy.decided} decided so far — needs ${MIN_SAMPLE_FOR_ACCURACY}+ before this is meaningful`
+              }
+            />
+            <StatCard label="Findings added to a letter" value={findingCounts.added} />
+            <StatCard label="Findings dismissed" value={findingCounts.dismissed} />
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 flex items-center gap-3">
         <button

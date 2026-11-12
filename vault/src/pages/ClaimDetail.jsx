@@ -770,7 +770,14 @@ function FindingsSection({ claimId, claim, onItemAdded, filesVersion }) {
           claimId,
           itemId: finding.item_id,
           quantity: finding.suggested_quantity || 1,
-          note: finding.evidence ? `Vault Review: ${finding.evidence}` : "Added from Vault Review",
+          // supplement_narrative is ready-to-use letter language the model
+          // drafted specifically for this (see estimateAnalysisService.js)
+          // — this is what actually shows up in the generated letter now,
+          // not just an internal citation. Falls back to the old behavior
+          // for findings generated before this field existed.
+          note:
+            finding.supplement_narrative ||
+            (finding.evidence ? `Vault Review: ${finding.evidence}` : "Added from Vault Review"),
         });
         const updated = await updateFindingStatus(finding.id, "added", { claim_item_id: claimItem.id });
         setFindings((prev) => prev.map((f) => (f.id === finding.id ? updated : f)));
@@ -940,6 +947,18 @@ function FindingCard({ finding, acting, onAction }) {
           <span className="font-semibold text-white/80">Supporting documentation: </span>
           {finding.evidence}
         </p>
+      )}
+
+      {finding.supplement_narrative && (
+        <div className="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/5 p-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-gold-500">
+            Letter language, drafted by Vault
+          </p>
+          <p className="mt-1 text-sm text-white/80">{finding.supplement_narrative}</p>
+          <p className="mt-1 text-xs text-white/40">
+            Review before use — this becomes the line's note if you add it to your letter.
+          </p>
+        </div>
       )}
 
       <dl className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">

@@ -29,6 +29,7 @@ vi.mock("../_lib/estimateAnalysisService.js", () => ({
         title: "Missing flashing",
         scope_status: "not_found_in_estimate",
         reason: "x",
+        supplement_narrative: "Our scope of work includes drip edge flashing, required per FBC R905.2.8.5.",
         confidence: "low",
         requires_human_verification: true,
       },
@@ -92,6 +93,13 @@ describe("review-analyze-background", () => {
     expect(res.status).toBe(200);
     expect(db.analysis_runs.get(run.id).status).toBe("succeeded");
     expect(db.review_findings).toHaveLength(1);
+    // The drafted, carrier-facing letter language (see
+    // estimateAnalysisService.js and ClaimDetail.jsx's handleAction,
+    // which uses this field when a finding is added to a claim) must
+    // actually reach the stored finding, not get dropped along the way.
+    expect(db.review_findings[0].supplement_narrative).toBe(
+      "Our scope of work includes drip edge flashing, required per FBC R905.2.8.5.",
+    );
     expect(stripeUpdateMock).toHaveBeenCalledWith(TEST_SUBSCRIPTION_ID, { trial_end: "now" });
   });
 

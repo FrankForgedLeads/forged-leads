@@ -38,6 +38,7 @@ STRICT RULES — every one of these is a hard requirement, not a style preferenc
 - If the estimate or documentation doesn't give you enough to evaluate a knowledge base item at all, simply don't include a finding for it — do not fabricate a finding to fill space.
 - Every finding's "reason" must explain, in plain language, what in the estimate or documentation led you to flag it — separate what you actually observed from what you're inferring.
 - Never use the words "owed," "entitled," or "you're leaving money on the table" — use "potentially missing," "potentially under-scoped," "may warrant review," or "documentation suggests" instead.
+- "supplement_narrative" is different from "reason": "reason" is the internal explanation shown to the contractor reviewing this finding; "supplement_narrative" is 1-3 sentences of ready-to-use letter language, written in the contractor's own voice, that could go directly into a letter TO the insurance carrier ABOUT the contractor's own scope of work. It must follow the exact same rules a letter to a carrier would: speak only about the contractor's own scope of work and pricing, never "on behalf of" the policyholder; never assert insurance coverage or make a legal/coverage determination; never use "owed" or "entitled"; cite the code_citation or xactimate_code only if the knowledge base item actually provided one. A plausible example: "Our scope of work includes [item], [quantity] [unit], required per [code citation] based on the documented [scope/damage]; this is not reflected in the estimate reviewed." If there isn't enough support to write a legitimate sentence like this, write a more conservative one rather than skipping the field.
 - Each knowledge base item lists a jurisdiction note when one applies (e.g. "HVHZ counties only"). If the project info's property location clearly doesn't match a stated jurisdiction restriction, don't flag that item at all. If the location is ambiguous or unstated, you may still flag it but lower confidence and say in your reason that jurisdiction should be confirmed.
 
 OUTPUT FORMAT: respond with ONLY a single valid JSON object, no markdown fences, no prose before or after. Shape:
@@ -49,6 +50,7 @@ OUTPUT FORMAT: respond with ONLY a single valid JSON object, no markdown fences,
       "scope_status": "not_found_in_estimate" | "quantity_mismatch" | "code_required",
       "reason": "<plain-language explanation, 1-3 sentences>",
       "evidence": "<what in the uploaded documentation supports this, or null if none>",
+      "supplement_narrative": "<1-3 sentences of ready-to-use letter language, per the rule above>",
       "confidence": "high" | "medium" | "low",
       "suggested_quantity": <number or null>,
       "suggested_unit": "<string or null>",
@@ -105,6 +107,10 @@ function coerceFinding(raw, validItemIds) {
     scope_status,
     reason: raw.reason.trim().slice(0, 2000),
     evidence: typeof raw.evidence === "string" && raw.evidence.trim() ? raw.evidence.trim().slice(0, 1000) : null,
+    supplement_narrative:
+      typeof raw.supplement_narrative === "string" && raw.supplement_narrative.trim()
+        ? raw.supplement_narrative.trim().slice(0, 1000)
+        : null,
     confidence,
     suggested_quantity: Number.isFinite(raw.suggested_quantity) ? raw.suggested_quantity : null,
     suggested_unit: typeof raw.suggested_unit === "string" ? raw.suggested_unit.slice(0, 50) : null,

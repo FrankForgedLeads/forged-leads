@@ -1277,6 +1277,28 @@ create index if not exists profiles_card_fingerprint_idx on public.profiles(card
   where card_fingerprint is not null;
 
 -- ============================================================================
+-- SUPPLEMENT NARRATIVE — ready-to-use letter language per finding
+-- ----------------------------------------------------------------------------
+-- Previously, a finding added to a claim only carried its short internal
+-- "evidence" field into the letter (see ClaimDetail.jsx's handleAction:
+-- note was `Vault Review: ${finding.evidence}`) — useful for the
+-- contractor reviewing the finding, but not phrased as something you'd
+-- actually hand a carrier. supplement_narrative is a separate field: 1-3
+-- sentences of polished, carrier-facing justification language the model
+-- writes at the same time as the finding itself (see estimateAnalysisService.js),
+-- following the same legal guardrails as the rest of the app (the
+-- contractor's own scope of work, never a coverage claim or a statement
+-- made "on behalf of" the insured — see letters/templates.js's own note on
+-- this). Nullable: older findings generated before this column existed
+-- simply don't have one. No column grant needed — review_findings has no
+-- insert policy for `authenticated` at all (only the service-role client in
+-- review-analyze-background.js creates rows), and its one update grant
+-- below already lists only (status, claim_item_id).
+-- ============================================================================
+
+alter table public.review_findings add column if not exists supplement_narrative text;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
