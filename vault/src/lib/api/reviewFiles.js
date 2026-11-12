@@ -15,8 +15,16 @@ export const REVIEW_FILE_ALLOWED_TYPES = [
 ];
 // A soft cap on files per review — not a hard product limit, just a sane
 // ceiling so nobody accidentally uploads hundreds of photos to one claim
-// against the Storage free tier.
-export const REVIEW_FILES_MAX_PER_CLAIM = 30;
+// against the Storage free tier. Scaled by plan: Crew covers a team working
+// the same claim (multiple people's photos stacking up on one review), so
+// it gets a higher ceiling than Solo. Enforced client-side only, same as
+// before — this is a UX guardrail, not a security boundary.
+export const REVIEW_FILES_MAX_PER_CLAIM_BY_PLAN = { solo: 60, crew: 150 };
+export const REVIEW_FILES_MAX_PER_CLAIM_DEFAULT = 60;
+
+export function maxReviewFilesForPlan(plan) {
+  return REVIEW_FILES_MAX_PER_CLAIM_BY_PLAN[plan] ?? REVIEW_FILES_MAX_PER_CLAIM_DEFAULT;
+}
 
 const BUCKET = "review-files";
 

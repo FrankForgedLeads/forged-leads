@@ -9,7 +9,7 @@ import {
   deleteReviewFile,
   getReviewFileSignedUrl,
   validateReviewFile,
-  REVIEW_FILES_MAX_PER_CLAIM,
+  maxReviewFilesForPlan,
 } from "../lib/api/reviewFiles.js";
 import { runAnalysis, pollRun, fetchFindings, updateFindingStatus } from "../lib/api/analysis.js";
 import { createLetterRecord } from "../lib/api/letters.js";
@@ -421,7 +421,8 @@ function ClaimInfoForm({ claim, onSave }) {
 const FILE_TYPE_LABEL = { estimate: "Estimate", photo: "Photo", document: "Document" };
 
 function DocumentsSection({ claimId, onFilesChanged }) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const maxFiles = maxReviewFilesForPlan(profile?.plan);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -443,8 +444,8 @@ function DocumentsSection({ claimId, onFilesChanged }) {
 
   async function handleFiles(fileList, defaultType) {
     const incoming = Array.from(fileList);
-    if (files.length + incoming.length > REVIEW_FILES_MAX_PER_CLAIM) {
-      setError(`You can attach up to ${REVIEW_FILES_MAX_PER_CLAIM} files per review.`);
+    if (files.length + incoming.length > maxFiles) {
+      setError(`You can attach up to ${maxFiles} files per review.`);
       return;
     }
     setError("");
@@ -476,8 +477,8 @@ function DocumentsSection({ claimId, onFilesChanged }) {
   async function handleTakePhoto(fileList) {
     const file = fileList[0];
     if (!file) return;
-    if (files.length + 1 > REVIEW_FILES_MAX_PER_CLAIM) {
-      setError(`You can attach up to ${REVIEW_FILES_MAX_PER_CLAIM} files per review.`);
+    if (files.length + 1 > maxFiles) {
+      setError(`You can attach up to ${maxFiles} files per review.`);
       return;
     }
     const invalidReason = validateReviewFile(file);
