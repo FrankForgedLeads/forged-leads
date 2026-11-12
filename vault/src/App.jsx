@@ -22,6 +22,7 @@ import ClaimDetail from "./pages/ClaimDetail.jsx";
 import LetterBuilder from "./pages/LetterBuilder.jsx";
 import ScopeChecker from "./pages/ScopeChecker.jsx";
 import AdminHome from "./pages/admin/AdminHome.jsx";
+import AdminRevenue from "./pages/admin/AdminRevenue.jsx";
 import AdminItems from "./pages/admin/AdminItems.jsx";
 import AdminItemForm from "./pages/admin/AdminItemForm.jsx";
 import AdminLeads from "./pages/admin/AdminLeads.jsx";
@@ -123,6 +124,14 @@ export default function App() {
           element={
             <RequireAdmin>
               <AdminHome />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/revenue"
+          element={
+            <RequireAdmin>
+              <AdminRevenue />
             </RequireAdmin>
           }
         />
