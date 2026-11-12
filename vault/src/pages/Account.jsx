@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 import { Field, Input, Select } from "../components/ui/Field.jsx";
 import { useAuth } from "../lib/AuthContext.jsx";
-import { createPortalSession } from "../lib/api/billing.js";
+import { createPortalSession, deleteAccount } from "../lib/api/billing.js";
 import { updateProfile } from "../lib/api/profile.js";
 import { fetchMyTeam, inviteTeammate, revokeInvite } from "../lib/api/team.js";
 import { subscriptionStatusLabel } from "../lib/subscription.js";
@@ -299,6 +300,72 @@ function ProfileCard({ profile, userId, onSaved }) {
   );
 }
 
+function DangerZoneCard({ signOut }) {
+  const navigate = useNavigate();
+  const [confirming, setConfirming] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleDelete() {
+    setDeleting(true);
+    setError("");
+    try {
+      await deleteAccount();
+      await signOut();
+      navigate("/", { replace: true });
+    } catch (e) {
+      setError(e.message);
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <Card className="border-red-500/30">
+      <h2 className="font-bold text-red-400">Delete account</h2>
+      <p className="mt-2 text-sm text-white/60">
+        Permanently deletes your account: cancels your subscription, and removes every claim,
+        document, photo, and finding you own. This cannot be undone.
+      </p>
+
+      {!confirming ? (
+        <Button variant="secondary" className="mt-4" onClick={() => setConfirming(true)}>
+          Delete my account
+        </Button>
+      ) : (
+        <div className="mt-4 space-y-3">
+          <Field label='Type "DELETE" to confirm'>
+            <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" />
+          </Field>
+          {error && <p className="text-sm font-semibold text-red-400">{error}</p>}
+          <div className="flex gap-3">
+            <Button
+              as="button"
+              type="button"
+              variant="danger"
+              disabled={confirmText !== "DELETE" || deleting}
+              onClick={handleDelete}
+            >
+              {deleting ? "Deleting…" : "Permanently delete my account"}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setConfirming(false);
+                setConfirmText("");
+                setError("");
+              }}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export default function Account() {
   const { user, profile, signOut, refreshProfile } = useAuth();
 
@@ -319,6 +386,8 @@ export default function Account() {
             Log out
           </Button>
         </Card>
+
+        <DangerZoneCard signOut={signOut} />
       </div>
     </div>
   );

@@ -81,6 +81,44 @@ describe("review-analyze (fast path: paywall + free-review gate + handoff)", () 
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("a new account sharing a payment card with an account that already used its free review is blocked", async () => {
+    const OTHER_USER_ID = "33333333-3333-3333-3333-333333333333";
+    const sharedFingerprint = "fp_shared_card";
+    db.profiles.set(OTHER_USER_ID, {
+      id: OTHER_USER_ID,
+      subscription_status: "trialing",
+      stripe_subscription_id: null,
+      free_review_used_at: new Date().toISOString(), // already used its free review
+      card_fingerprint: sharedFingerprint,
+    });
+    db.profiles.get(TEST_USER_ID).card_fingerprint = sharedFingerprint;
+
+    const { default: handler } = await import("../review-analyze.js");
+    const res = await handler(makeRequest({ claimId: TEST_CLAIM_ID }));
+    expect(res.status).toBe(409);
+    expect(fetchMock).not.toHaveBeenCalled();
+    // The duplicate-card block fires before the atomic claim even runs —
+    // this account's own free_review_used_at must stay untouched.
+    expect(db.profiles.get(TEST_USER_ID).free_review_used_at).toBeNull();
+  });
+
+  it("a shared card is fine if neither account has used its free review yet", async () => {
+    const OTHER_USER_ID = "44444444-4444-4444-4444-444444444444";
+    const sharedFingerprint = "fp_shared_card_unused";
+    db.profiles.set(OTHER_USER_ID, {
+      id: OTHER_USER_ID,
+      subscription_status: "trialing",
+      stripe_subscription_id: null,
+      free_review_used_at: null, // hasn't used its free review
+      card_fingerprint: sharedFingerprint,
+    });
+    db.profiles.get(TEST_USER_ID).card_fingerprint = sharedFingerprint;
+
+    const { default: handler } = await import("../review-analyze.js");
+    const res = await handler(makeRequest({ claimId: TEST_CLAIM_ID }));
+    expect(res.status).toBe(200);
+  });
+
   it("a paying customer isn't blocked by the free-review gate, and reservedFreeReview is false", async () => {
     db.profiles.get(TEST_USER_ID).subscription_status = "active";
     const { default: handler } = await import("../review-analyze.js");

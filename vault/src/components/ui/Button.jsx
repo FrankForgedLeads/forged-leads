@@ -7,6 +7,7 @@ const variants = {
   primary: "bg-gold-500 text-navy-950 hover:bg-gold-400 shadow-lg shadow-gold-500/10",
   secondary: "bg-navy-700 text-white hover:bg-navy-600 border border-navy-500/50",
   ghost: "bg-transparent text-white hover:bg-navy-800 border border-navy-600",
+  danger: "bg-red-500 text-white hover:bg-red-600",
 };
 
 export default function Button({

@@ -107,7 +107,9 @@ async function handleCheckoutCompleted(stripe, supabaseAdmin, session) {
     return;
   }
 
-  const subscription = await stripe.subscriptions.retrieve(session.subscription);
+  const subscription = await stripe.subscriptions.retrieve(session.subscription, {
+    expand: ["default_payment_method"],
+  });
   const plan = planFromSubscription(subscription);
 
   const update = {
@@ -117,6 +119,15 @@ async function handleCheckoutCompleted(stripe, supabaseAdmin, session) {
     trial_ends_at: toIso(subscription.trial_end),
   };
   if (plan) update.plan = plan;
+
+  // Duplicate-free-trial detection (see migration.sql's own note on this
+  // column): the fingerprint identifies the physical card without
+  // exposing its number, and stays the same across a card's expansion as
+  // long as the card number itself doesn't change. A non-card payment
+  // method (ACH, wallet without a card fingerprint, etc.) just leaves this
+  // null — review-analyze.js's check fails open in that case.
+  const cardFingerprint = subscription.default_payment_method?.card?.fingerprint;
+  if (cardFingerprint) update.card_fingerprint = cardFingerprint;
 
   // Crew: the owner's subscription covers the team. Create the team on
   // first Crew checkout and attach the owner to it so team_id-based

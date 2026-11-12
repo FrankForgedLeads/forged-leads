@@ -1255,6 +1255,28 @@ alter table public.review_files add column if not exists latitude double precisi
 alter table public.review_files add column if not exists longitude double precision;
 
 -- ============================================================================
+-- DUPLICATE FREE-TRIAL DETECTION — card_fingerprint on profiles
+-- ----------------------------------------------------------------------------
+-- Closes the loophole the one-free-review-per-account rule doesn't: signing
+-- up again with a new email but the *same* payment card. Stripe's card
+-- fingerprint identifies the physical card without exposing its number —
+-- stripe-webhook.js records it on checkout.session.completed, and
+-- review-analyze.js checks it before granting a free review: if any other
+-- account sharing this fingerprint has already used its free review, this
+-- one can't claim a second. Nullable and fails open by design — if the
+-- fingerprint hasn't been recorded yet (webhook race, non-card payment
+-- method), the check is simply skipped rather than blocking a legitimate
+-- customer. No column grant needed: `revoke update on public.profiles from
+-- authenticated` above already blocks any column not in that explicit
+-- grant list, same as free_review_used_at — only ever written by the
+-- service-role client in stripe-webhook.js.
+-- ============================================================================
+
+alter table public.profiles add column if not exists card_fingerprint text;
+create index if not exists profiles_card_fingerprint_idx on public.profiles(card_fingerprint)
+  where card_fingerprint is not null;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

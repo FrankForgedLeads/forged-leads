@@ -53,7 +53,7 @@ export default async (req) => {
   // billing status (see their RLS policies in supabase/migration.sql).
   const { data: billingProfile, error: billingProfileError } = await admin
     .from("profiles")
-    .select("subscription_status, stripe_subscription_id, free_review_used_at")
+    .select("subscription_status, stripe_subscription_id, free_review_used_at, card_fingerprint")
     .eq("id", user.id)
     .maybeSingle();
   if (billingProfileError) return jsonResponse(500, { error: billingProfileError.message });
@@ -107,6 +107,38 @@ export default async (req) => {
   // so a review that fails never burns the entitlement.
   let reservedFreeReview = false;
   if (billingProfile.subscription_status === "trialing") {
+    // Duplicate-free-trial detection: the one-free-review-per-account rule
+    // above doesn't stop someone from signing up again with a new email
+    // and the same payment card. card_fingerprint identifies the physical
+    // card (set by stripe-webhook.js on checkout) without exposing its
+    // number. Fails open by design — a missing fingerprint (webhook race,
+    // non-card payment method) just skips this check rather than blocking
+    // a legitimate customer; see migration.sql's own note on this column.
+    if (billingProfile.card_fingerprint) {
+      const { data: duplicate, error: duplicateError } = await admin
+        .from("profiles")
+        .select("id")
+        .eq("card_fingerprint", billingProfile.card_fingerprint)
+        .neq("id", user.id)
+        .not("free_review_used_at", "is", null)
+        .limit(1)
+        .maybeSingle();
+      if (duplicateError) return jsonResponse(500, { error: duplicateError.message });
+      if (duplicate) {
+        await admin
+          .from("analysis_runs")
+          .update({
+            status: "failed",
+            error_message: "Free review already claimed on this payment card",
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", run.id);
+        return jsonResponse(409, {
+          error: "You've already used your free review. Subscribe to keep reviewing estimates.",
+        });
+      }
+    }
+
     const { data: reserved, error: reserveError } = await admin
       .from("profiles")
       .update({ free_review_used_at: new Date().toISOString() })

@@ -27,6 +27,8 @@ export function makeDb() {
       { id: "f1", claim_id: TEST_CLAIM_ID, file_type: "estimate", mime_type: "application/pdf", storage_path: "p1" },
     ],
     items: [{ id: "i1", title: "Test item", category: "roofing", is_active: true }],
+    teams: new Map(),
+    storageObjects: [], // [{ path }] — used by delete-account.test.js
     analysis_runs: new Map(),
     review_findings: [],
   };
@@ -58,6 +60,10 @@ export function makeFakeClient(db) {
         state.filters.push(["eq", col, val]);
         return api;
       },
+      neq: (col, val) => {
+        state.filters.push(["neq", col, val]);
+        return api;
+      },
       gte: (col, val) => {
         state.filters.push(["gte", col, val]);
         return api;
@@ -66,6 +72,17 @@ export function makeFakeClient(db) {
         state.filters.push(["is", col, val]);
         return api;
       },
+      // Mirrors Supabase JS's .not(column, operator, value), which negates
+      // the given operator. Only "is" is needed so far (checking a column
+      // IS NOT a given value, e.g. IS NOT NULL).
+      not: (col, op, val) => {
+        if (op !== "is") throw new Error(`Fake client's .not() only supports the "is" operator, got "${op}"`);
+        state.filters.push(["not_is", col, val]);
+        return api;
+      },
+      // No-op in this fake — nothing here returns enough rows for a limit
+      // to matter, but real code calls it and the builder must accept it.
+      limit: () => api,
       single: () => {
         state.single = true;
         return api;
@@ -83,10 +100,39 @@ export function makeFakeClient(db) {
     from: builder,
     auth: {
       getUser: async () => ({ data: { user: { id: TEST_USER_ID, email: "test@example.com" } }, error: null }),
+      // Used by delete-account.test.js. Simulates the real cascade just
+      // enough for that test's own assertions — this is a fake, not a
+      // re-implementation of Postgres's actual `on delete cascade` (that's
+      // verified by reading the foreign keys in migration.sql instead).
+      admin: {
+        deleteUser: async (id) => {
+          db.profiles.delete(id);
+          for (const [claimId, claim] of db.claims) {
+            if (claim.user_id === id) db.claims.delete(claimId);
+          }
+          return { data: {}, error: null };
+        },
+      },
     },
     storage: {
       from: () => ({
         download: async () => ({ data: { arrayBuffer: async () => new ArrayBuffer(8) }, error: null }),
+        // db.storageObjects holds full paths as plain strings (e.g.
+        // "userId/claimId/file.jpg"). list() returns the immediate
+        // children of a prefix, matching the one level at a time shape
+        // Supabase Storage's own .list() returns.
+        list: async (prefix) => {
+          const names = new Set(
+            db.storageObjects
+              .filter((p) => p.startsWith(`${prefix}/`))
+              .map((p) => p.slice(prefix.length + 1).split("/")[0]),
+          );
+          return { data: [...names].map((name) => ({ name })), error: null };
+        },
+        remove: async (paths) => {
+          db.storageObjects = db.storageObjects.filter((p) => !paths.includes(p));
+          return { data: paths.map((path) => ({ path })), error: null };
+        },
       }),
     },
   };
@@ -95,7 +141,9 @@ export function makeFakeClient(db) {
 function matchesFilters(row, filters) {
   return filters.every(([kind, col, val]) => {
     if (kind === "eq") return row[col] === val;
+    if (kind === "neq") return row[col] !== val;
     if (kind === "is") return (row[col] ?? null) === val;
+    if (kind === "not_is") return (row[col] ?? null) !== val;
     if (kind === "gte") return row[col] >= val;
     return true;
   });
@@ -106,7 +154,10 @@ function execute(db, state) {
 
   if (table === "profiles") {
     const rows = [...db.profiles.values()].filter((r) => matchesFilters(r, filters));
-    if (op === "select") return { data: state.maybeSingle ? rows[0] ?? null : rows, error: null };
+    if (op === "select") {
+      if (state.countOnly) return { data: null, error: null, count: rows.length };
+      return { data: state.maybeSingle ? rows[0] ?? null : rows, error: null };
+    }
     if (op === "update") {
       const updated = rows.map((r) => Object.assign(r, payload));
       return { data: state.maybeSingle ? updated[0] ?? null : updated, error: null };
@@ -115,6 +166,11 @@ function execute(db, state) {
 
   if (table === "claims") {
     const rows = [...db.claims.values()].filter((r) => matchesFilters(r, filters));
+    return { data: state.maybeSingle ? rows[0] ?? null : rows, error: null };
+  }
+
+  if (table === "teams") {
+    const rows = [...db.teams.values()].filter((r) => matchesFilters(r, filters));
     return { data: state.maybeSingle ? rows[0] ?? null : rows, error: null };
   }
 
