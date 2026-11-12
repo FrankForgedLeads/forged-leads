@@ -13,6 +13,7 @@ export const PLANS = [
     features: [
       "Full Vault access — the knowledge base behind every review",
       "Unlimited saved projects",
+      "Jobsite photo log — camera capture tagged with time & location",
       "Documentation builder, all 3 templates",
       "PDF export with your company block",
       "Monthly update emails",
