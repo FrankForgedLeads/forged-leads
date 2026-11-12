@@ -23,6 +23,10 @@ export default function AppLayout() {
     ...(isAdmin ? [{ to: "/admin", label: "Admin" }] : []),
   ];
 
+  // Not a route — a static PDF served from /public (see vault/public/guide).
+  // Shown regardless of subscription status, same reasoning as "Account":
+  // someone deciding whether to subscribe can still want the walkthrough.
+
   return (
     <div className="flex min-h-screen flex-col bg-navy-950">
       <header className="sticky top-0 z-40 border-b border-navy-700/60 bg-navy-950/90 backdrop-blur">
@@ -63,6 +67,14 @@ export default function AppLayout() {
               {l.label}
             </NavLink>
           ))}
+          <a
+            href="/guide/Beeyond-Vault-How-To-Guide.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 rounded-lg px-4 py-2 text-sm font-bold text-white/70 transition hover:bg-navy-800 hover:text-white"
+          >
+            Guide
+          </a>
           {/* Same scrollable row as the nav links above, not a `fixed`
               floating button — see FeedbackWidget's own comment for why. */}
           <FeedbackWidget />
