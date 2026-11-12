@@ -12,6 +12,7 @@ import {
   maxReviewFilesForPlan,
 } from "../lib/api/reviewFiles.js";
 import { runAnalysis, pollRun, fetchFindings, updateFindingStatus } from "../lib/api/analysis.js";
+import { fetchVoiceNotes, createVoiceNote, updateVoiceNote, deleteVoiceNote } from "../lib/api/voiceNotes.js";
 import { createLetterRecord } from "../lib/api/letters.js";
 import { generateReviewSummaryPdf } from "../lib/reviewSummary/pdf.js";
 import { logEvent } from "../lib/api/analyticsEvents.js";
@@ -228,6 +229,10 @@ export default function ClaimDetail() {
       {/* Photo Log — jobsite photos taken via the camera, each tagged with
           when and (if permitted) where it was taken. */}
       <PhotoLogSection claimId={id} filesVersion={filesVersion} />
+
+      {/* Voice Notes — dictate a field note instead of typing it; Claude
+          cleans up the raw transcript into a short, organized write-up. */}
+      <VoiceNotesSection claimId={id} />
 
       {/* Vault Review — the analysis engine's findings, always pending
           human confirmation before anything reaches the claim. */}
@@ -695,6 +700,276 @@ function PhotoLogSection({ claimId, filesVersion }) {
           </Card>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Voice Notes — dictation via the browser's built-in SpeechRecognition (no
+// vendor, no API key, nothing streamed anywhere but the browser itself
+// until the contractor chooses to save). Safari tends to end a listening
+// session after a pause rather than staying open indefinitely the way
+// Chrome does; recognitionRef's onend handler below treats that the same
+// as a deliberate stop so nothing spoken is lost either way — it just
+// means tapping "Resume" to keep adding to the same draft.
+function getSpeechRecognitionCtor() {
+  if (typeof window === "undefined") return null;
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+function VoiceNotesSection({ claimId }) {
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [listening, setListening] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editDraft, setEditDraft] = useState("");
+  const [expandedRawId, setExpandedRawId] = useState(null);
+  const recognitionRef = useRef(null);
+  const finalTranscriptRef = useRef("");
+
+  const load = useCallback(() => {
+    fetchVoiceNotes(claimId)
+      .then(setNotes)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [claimId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const supported = !!getSpeechRecognitionCtor();
+
+  function startListening() {
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) return;
+    setError("");
+    const recognition = new Ctor();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalTranscriptRef.current = `${finalTranscriptRef.current} ${result[0].transcript}`.trim();
+        } else {
+          interim += result[0].transcript;
+        }
+      }
+      setDraft(`${finalTranscriptRef.current} ${interim}`.trim());
+    };
+    recognition.onerror = (event) => {
+      if (event.error === "no-speech" || event.error === "aborted") return;
+      setError(`Dictation error: ${event.error}`);
+    };
+    // Fires both on a deliberate stop() and on Safari's own pause-timeout —
+    // either way, listening is just no longer active; the draft itself is
+    // untouched (see finalTranscriptRef) so "Resume" below can keep adding
+    // to it.
+    recognition.onend = () => setListening(false);
+
+    recognitionRef.current = recognition;
+    finalTranscriptRef.current = draft;
+    recognition.start();
+    setListening(true);
+  }
+
+  function stopListening() {
+    recognitionRef.current?.stop();
+  }
+
+  async function handleSave() {
+    const transcript = draft.trim();
+    if (!transcript) return;
+    stopListening();
+    setSaving(true);
+    setError("");
+    try {
+      const note = await createVoiceNote({ claimId, transcript });
+      setNotes((prev) => [note, ...prev]);
+      setDraft("");
+      finalTranscriptRef.current = "";
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function discardDraft() {
+    stopListening();
+    setDraft("");
+    finalTranscriptRef.current = "";
+    setError("");
+  }
+
+  function startEditing(note) {
+    setEditingId(note.id);
+    setEditDraft(note.note);
+  }
+
+  async function saveEdit(note) {
+    try {
+      const updated = await updateVoiceNote(note.id, { note: editDraft.trim() || note.note });
+      setNotes((prev) => prev.map((n) => (n.id === note.id ? updated : n)));
+      setEditingId(null);
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
+  async function handleDelete(note) {
+    setNotes((prev) => prev.filter((n) => n.id !== note.id));
+    try {
+      await deleteVoiceNote(note.id);
+    } catch (e) {
+      setError(e.message);
+      load();
+    }
+  }
+
+  return (
+    <div className="mt-8">
+      <h2 className="text-lg font-extrabold text-white">Voice Notes</h2>
+      <p className="mt-1 text-sm text-white/50">
+        Dictate a field note out loud — Vault cleans it up into a short, organized write-up you
+        can edit before it's kept on this review.
+      </p>
+
+      {!supported ? (
+        <Card className="mt-4">
+          <p className="text-sm text-white/60">
+            Voice dictation isn't supported in this browser. Try Chrome or Safari on your phone
+            or computer.
+          </p>
+        </Card>
+      ) : (
+        <Card className="mt-4">
+          {listening && (
+            <div className="mb-3 flex items-center gap-2 text-sm font-bold text-gold-500">
+              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-gold-500" />
+              Listening…
+            </div>
+          )}
+          <Textarea
+            rows={4}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Tap Record and start talking — what you say will show up here."
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            {!listening ? (
+              <Button as="button" type="button" onClick={startListening} className="px-4 py-2 text-sm">
+                {draft ? "Resume recording" : "Record"}
+              </Button>
+            ) : (
+              <Button
+                as="button"
+                type="button"
+                variant="secondary"
+                onClick={stopListening}
+                className="px-4 py-2 text-sm"
+              >
+                Stop
+              </Button>
+            )}
+            <Button
+              as="button"
+              type="button"
+              onClick={handleSave}
+              disabled={!draft.trim() || saving}
+              className="px-4 py-2 text-sm"
+            >
+              {saving ? "Cleaning up…" : "Save note"}
+            </Button>
+            {draft && (
+              <Button
+                as="button"
+                type="button"
+                variant="ghost"
+                onClick={discardDraft}
+                className="px-4 py-2 text-sm"
+              >
+                Discard
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {error && <p className="mt-3 text-sm font-semibold text-red-400">{error}</p>}
+
+      {!loading && notes.length > 0 && (
+        <div className="mt-4 space-y-3">
+          {notes.map((note) => (
+            <Card key={note.id}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <h3 className="text-base font-extrabold text-white">{note.title}</h3>
+                <span className="text-xs text-white/40">{formatDateTime(note.created_at)}</span>
+              </div>
+
+              {editingId === note.id ? (
+                <div className="mt-3">
+                  <Textarea rows={4} value={editDraft} onChange={(e) => setEditDraft(e.target.value)} />
+                  <div className="mt-2 flex gap-2">
+                    <Button as="button" type="button" onClick={() => saveEdit(note)} className="px-4 py-2 text-sm">
+                      Save
+                    </Button>
+                    <Button
+                      as="button"
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setEditingId(null)}
+                      className="px-4 py-2 text-sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-2 whitespace-pre-wrap text-sm text-white/80">{note.note}</p>
+              )}
+
+              {editingId !== note.id && (
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => startEditing(note)}
+                    className="text-xs font-semibold text-gold-500 hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedRawId((v) => (v === note.id ? null : note.id))}
+                    className="text-xs font-semibold text-white/50 hover:text-white"
+                  >
+                    {expandedRawId === note.id ? "Hide what you said" : "Show what you said"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(note)}
+                    className="text-xs font-semibold text-white/50 hover:text-red-400"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+
+              {expandedRawId === note.id && (
+                <p className="mt-2 rounded-lg bg-navy-950/50 p-3 text-xs text-white/50">
+                  {note.raw_transcript}
+                </p>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

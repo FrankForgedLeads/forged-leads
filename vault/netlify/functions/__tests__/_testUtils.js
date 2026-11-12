@@ -31,6 +31,7 @@ export function makeDb() {
     storageObjects: [], // [{ path }] — used by delete-account.test.js
     analysis_runs: new Map(),
     review_findings: [],
+    claim_voice_notes: [],
   };
 }
 
@@ -207,6 +208,19 @@ function execute(db, state) {
       const rows = Array.isArray(payload) ? payload : [payload];
       db.review_findings.push(...rows);
       return { data: rows, error: null };
+    }
+  }
+
+  if (table === "claim_voice_notes") {
+    if (op === "insert") {
+      const row = { id: `note_${db.claim_voice_notes.length + 1}`, created_at: new Date().toISOString(), ...payload };
+      db.claim_voice_notes.push(row);
+      return { data: state.single ? row : [row], error: null };
+    }
+    if (op === "select") {
+      const rows = db.claim_voice_notes.filter((r) => matchesFilters(r, filters));
+      if (state.countOnly) return { data: null, error: null, count: rows.length };
+      return { data: state.maybeSingle ? rows[0] ?? null : rows, error: null };
     }
   }
 

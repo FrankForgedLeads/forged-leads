@@ -1299,6 +1299,84 @@ create index if not exists profiles_card_fingerprint_idx on public.profiles(card
 alter table public.review_findings add column if not exists supplement_narrative text;
 
 -- ============================================================================
+-- VOICE NOTES — speak a jobsite note, get back a clean, organized write-up
+-- ----------------------------------------------------------------------------
+-- Dictate instead of typing a field note. The browser's own speech-to-text
+-- (no vendor, no API key) produces a raw transcript client-side; the
+-- voice-note Netlify Function (service-role, same reasoning as
+-- review-analyze.js) sends that transcript to Claude to turn rambling
+-- spoken text into a short title plus an organized note — never inventing
+-- facts, never guessing at words the model couldn't make out, always
+-- leaving a [unclear] marker instead. The contractor sees the cleaned
+-- result immediately and can edit it before it's used anywhere else; the
+-- raw_transcript is kept alongside it so nothing spoken is ever silently
+-- lost to a bad cleanup pass.
+-- ============================================================================
+
+create table if not exists public.claim_voice_notes (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete set null,
+  raw_transcript text not null,
+  title text not null,
+  note text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists claim_voice_notes_claim_id_idx on public.claim_voice_notes(claim_id);
+
+alter table public.claim_voice_notes enable row level security;
+
+-- Access follows the parent claim, same shape as review_files/review_findings.
+-- No insert policy for `authenticated` — only the service-role client in
+-- voice-note.js creates rows, after it has verified an active subscription
+-- and applied a daily rate limit (voice notes call Claude just like
+-- Estimate Review does, so the same cost-control reasoning applies).
+create policy "claim_voice_notes_select" on public.claim_voice_notes
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "claim_voice_notes_update" on public.claim_voice_notes
+  for update using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "claim_voice_notes_delete" on public.claim_voice_notes
+  for delete using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+-- Column-restricted, same reasoning as claims/claim_items/review_findings
+-- above: a teammate with genuine edit access to a shared claim's voice note
+-- should be able to fix up the cleaned title/note, never re-parent the row
+-- to a different claim or rewrite the raw_transcript it was generated from.
+revoke update on public.claim_voice_notes from authenticated;
+grant update (title, note) on public.claim_voice_notes to authenticated;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
