@@ -128,6 +128,23 @@ describe("review-analyze-background", () => {
     expect(db.profiles.get(TEST_USER_ID).free_review_used_at).toBeNull();
   });
 
+  it("only sends vault items matching the claim's state (or state-agnostic items) to the AI", async () => {
+    db.items.push(
+      { id: "i2", title: "FL item", category: "roofing", is_active: true, state: "FL" },
+      { id: "i3", title: "SC item", category: "roofing", is_active: true, state: "SC" },
+      { id: "i4", title: "Universal item", category: "water_mitigation", is_active: true, state: null },
+    );
+    const run = seedRunningRun(db);
+    db.claims.get(TEST_CLAIM_ID).state = "FL";
+    const { analyzeEstimate } = await import("../_lib/estimateAnalysisService.js");
+    const { default: handler } = await import("../review-analyze-background.js");
+    await handler(makeRequest({ runId: run.id, claimId: TEST_CLAIM_ID, userId: TEST_USER_ID }));
+
+    const sentItemIds = analyzeEstimate.mock.calls[0][0].vaultItems.map((i) => i.id);
+    expect(sentItemIds).toEqual(expect.arrayContaining(["i2", "i4"]));
+    expect(sentItemIds).not.toContain("i3");
+  });
+
   it("does nothing if no matching running run exists (forged or already-completed ids)", async () => {
     const { analyzeEstimate } = await import("../_lib/estimateAnalysisService.js");
     const { default: handler } = await import("../review-analyze-background.js");

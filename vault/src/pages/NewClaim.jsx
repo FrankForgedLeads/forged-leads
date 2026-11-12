@@ -7,6 +7,7 @@ import Button from "../components/ui/Button.jsx";
 import { Field, Input, Select, Textarea } from "../components/ui/Field.jsx";
 import { LOSS_TYPES } from "../lib/lossTypes.js";
 import { TRADES } from "../lib/trades.js";
+import { SUPPORTED_STATES } from "../lib/states.js";
 
 export default function NewClaim() {
   const { user } = useAuth();
@@ -15,6 +16,11 @@ export default function NewClaim() {
     claim_number: "",
     insured_name: "",
     property_address: "",
+    // Only one option right now (see lib/states.js) — this field exists so
+    // the Vault Review engine knows which state's knowledge base to use
+    // once a second state actually ships, without a migration touching
+    // every existing claim.
+    state: SUPPORTED_STATES[0].code,
     carrier: "",
     adjuster_name: "",
     date_of_loss: "",
@@ -79,13 +85,24 @@ export default function NewClaim() {
             </Field>
           </div>
 
-          <Field label="Property location">
-            <Input
-              value={form.property_address}
-              onChange={set("property_address")}
-              placeholder="123 Main St, Fort Lauderdale, FL"
-            />
-          </Field>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Property location">
+              <Input
+                value={form.property_address}
+                onChange={set("property_address")}
+                placeholder="123 Main St, Fort Lauderdale, FL"
+              />
+            </Field>
+            <Field label="Property state">
+              <Select value={form.state} onChange={set("state")}>
+                {SUPPORTED_STATES.map((s) => (
+                  <option key={s.code} value={s.code}>
+                    {s.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Insured / client name">

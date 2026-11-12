@@ -1377,6 +1377,51 @@ revoke update on public.claim_voice_notes from authenticated;
 grant update (title, note) on public.claim_voice_notes to authenticated;
 
 -- ============================================================================
+-- MULTI-STATE SUPPORT — items.state, claims.state
+-- ----------------------------------------------------------------------------
+-- Every item up to now implicitly assumed Florida — there was no state
+-- column at all, so expanding the Vault to another state would have meant
+-- an AI review handing a South Carolina contractor a finding that cites
+-- Florida Building Code, which is worse than no finding at all (confidently
+-- wrong, not just absent). This is the one-time fix that makes every future
+-- state addition safe.
+--
+-- items.state: NULL means the item applies everywhere — true for anything
+-- citing a national standard instead of a state code (IICRC S500/S520 for
+-- Water Mitigation/Mold, plain labor/material lines with no code_citation
+-- at all). A real state code ('FL', 'SC', ...) means the item is only
+-- relevant in that state. The backfill below is mechanical and ONLY a
+-- starting point — re-verify any item this logic mis-tags.
+--
+-- claims.state: which state the property is in, so review-analyze-background.js
+-- knows which items are even eligible to be considered for this claim.
+-- Backfilled to 'FL' for every existing claim (every one predates this
+-- column, and every one actually is a Florida property) — this preserves
+-- today's behavior exactly for every current customer.
+-- ============================================================================
+
+alter table public.items add column if not exists state text;
+
+update public.items
+set state = 'FL'
+where state is null
+  and (
+    code_citation ilike '%FBC%'
+    or code_citation ilike '%HVHZ%'
+    or code_citation ilike '%Miami-Dade%'
+  );
+
+alter table public.claims add column if not exists state text;
+
+update public.claims set state = 'FL' where state is null;
+
+revoke update on public.claims from authenticated;
+grant update (
+  status, project_type, trade, property_address, state, insured_name, estimate_total,
+  date_of_loss, loss_type, claim_number, carrier, adjuster_name, description, notes
+) on public.claims to authenticated;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

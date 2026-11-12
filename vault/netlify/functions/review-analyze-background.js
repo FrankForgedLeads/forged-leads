@@ -124,12 +124,20 @@ export default async (req) => {
     }),
   );
 
+  // state IS NULL = applies everywhere (national standards like IICRC
+  // S500/S520, or plain labor/material lines with no code_citation at
+  // all); otherwise the item only applies in that one state. Falls back
+  // to 'FL' for a claim that somehow has no state set (shouldn't happen —
+  // every claim gets backfilled to 'FL' on creation, see NewClaim.jsx —
+  // but this is what every pre-multi-state claim actually is anyway).
+  const claimState = claim.state || "FL";
   const { data: vaultItems, error: itemsError } = await admin
     .from("items")
     .select(
       "id, title, category, xactimate_code, code_citation, low_amount, high_amount, unit, why_owed, jurisdiction_notes",
     )
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .or(`state.is.null,state.eq.${claimState}`);
   if (itemsError) {
     await failRun(itemsError.message);
     return jsonResponse(500, { error: itemsError.message });

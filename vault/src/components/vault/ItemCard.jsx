@@ -1,15 +1,26 @@
 import Card from "../ui/Card.jsx";
 import Button from "../ui/Button.jsx";
 import { categoryLabel } from "../../lib/categories.js";
+import { stateName } from "../../lib/states.js";
 import { formatRange, formatDate } from "../../lib/format.js";
 
 export default function ItemCard({ item, onAdd, adding, added }) {
   return (
     <Card className="flex flex-col">
       <div className="flex items-start justify-between gap-3">
-        <span className="rounded-full border border-navy-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white/60">
-          {categoryLabel(item.category)}
-        </span>
+        <div className="flex flex-wrap gap-1.5">
+          <span className="rounded-full border border-navy-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white/60">
+            {categoryLabel(item.category)}
+          </span>
+          {/* No badge when item.state is null — that means the item cites a
+              national standard (IICRC, etc.) and applies everywhere, which
+              doesn't need calling out the way a specific state does. */}
+          {item.state && (
+            <span className="rounded-full border border-gold-500/40 bg-gold-500/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-gold-500">
+              {stateName(item.state)}
+            </span>
+          )}
+        </div>
         <span className="whitespace-nowrap text-right text-sm font-extrabold text-gold-500">
           {formatRange(item.low_amount, item.high_amount, item.unit)}
         </span>

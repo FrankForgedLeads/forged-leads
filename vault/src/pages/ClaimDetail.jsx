@@ -28,6 +28,7 @@ import { LOSS_TYPES } from "../lib/lossTypes.js";
 import { TRADES } from "../lib/trades.js";
 import { lineTotal, claimTotal } from "../lib/claimMath.js";
 import { ANALYSIS_DISCLAIMER } from "../lib/disclaimer.js";
+import { SUPPORTED_STATES, stateName } from "../lib/states.js";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "New" },
@@ -206,6 +207,7 @@ export default function ClaimDetail() {
             <InfoRow label="Project type" value={claim.project_type} />
             <InfoRow label="Trade" value={claim.trade} />
             <InfoRow label="Property location" value={claim.property_address} />
+            <InfoRow label="Property state" value={claim.state ? stateName(claim.state) : null} />
             <InfoRow label="Insured / client name" value={claim.insured_name} />
             <InfoRow label="Estimate total" value={claim.estimate_total ? formatCurrency(claim.estimate_total) : null} />
             <InfoRow label="Date of loss" value={claim.date_of_loss} />
@@ -329,6 +331,7 @@ function ClaimInfoForm({ claim, onSave }) {
     project_type: claim.project_type || "",
     trade: claim.trade || "",
     property_address: claim.property_address || "",
+    state: claim.state || SUPPORTED_STATES[0].code,
     insured_name: claim.insured_name || "",
     estimate_total: claim.estimate_total ?? "",
     date_of_loss: claim.date_of_loss || "",
@@ -373,9 +376,20 @@ function ClaimInfoForm({ claim, onSave }) {
           </Select>
         </Field>
       </div>
-      <Field label="Property location">
-        <Input value={form.property_address} onChange={set("property_address")} />
-      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Property location">
+          <Input value={form.property_address} onChange={set("property_address")} />
+        </Field>
+        <Field label="Property state">
+          <Select value={form.state} onChange={set("state")}>
+            {SUPPORTED_STATES.map((s) => (
+              <option key={s.code} value={s.code}>
+                {s.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Insured / client name">
           <Input value={form.insured_name} onChange={set("insured_name")} />

@@ -81,6 +81,13 @@ export function makeFakeClient(db) {
         state.filters.push(["not_is", col, val]);
         return api;
       },
+      // Mirrors Supabase JS's .or("col.op.val,col.op.val"), real syntax
+      // used by review-analyze-background.js's state filter. Only "is"
+      // (against the literal string "null") and "eq" are needed so far.
+      or: (filterString) => {
+        state.filters.push(["or", null, filterString]);
+        return api;
+      },
       // No-op in this fake — nothing here returns enough rows for a limit
       // to matter, but real code calls it and the builder must accept it.
       limit: () => api,
@@ -146,6 +153,17 @@ function matchesFilters(row, filters) {
     if (kind === "is") return (row[col] ?? null) === val;
     if (kind === "not_is") return (row[col] ?? null) !== val;
     if (kind === "gte") return row[col] >= val;
+    if (kind === "or") {
+      // val here is the raw "col.op.val,col.op.val" string (col/the
+      // second array slot is unused for this kind — see the .or() builder
+      // method above).
+      return val.split(",").some((clause) => {
+        const [orCol, op, orVal] = clause.split(".");
+        if (op === "is") return (row[orCol] ?? null) === (orVal === "null" ? null : orVal);
+        if (op === "eq") return row[orCol] === orVal;
+        throw new Error(`Fake client's .or() only supports "is"/"eq" clauses, got "${op}"`);
+      });
+    }
     return true;
   });
 }
