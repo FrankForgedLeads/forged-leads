@@ -1422,6 +1422,70 @@ grant update (
 ) on public.claims to authenticated;
 
 -- ============================================================================
+-- PRICE REFERENCES
+--
+-- A separate, read-only browsing table for general regional cost ranges
+-- (e.g. "mold remediation runs $10-25/SF in South Florida"). Deliberately
+-- NOT the same table as `items`: items drives the automated missing-item
+-- scan in review-analyze-background.js and every row there has to carry a
+-- real code_citation/why_owed justification. A price reference has no such
+-- justification — it's just "here's what this typically costs" — so mixing
+-- the two would risk the scan treating a generic price lookup as a missing
+-- line item. This table is never read by review-analyze-background.js.
+--
+-- Every row must cite a real, named source (source_name/source_url) and the
+-- date it was checked (last_verified_date). No row may be inserted with
+-- invented pricing or an unnamed source.
+-- ============================================================================
+
+create table if not exists public.price_references (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (
+    category in (
+      'roofing', 'water_mitigation', 'mold', 'interior',
+      'exterior', 'general_conditions', 'code_upgrades'
+    )
+  ),
+  description text not null,
+  unit text not null, -- e.g. SF, LF, EA, job, visit
+  price_low numeric(10, 2),
+  price_high numeric(10, 2),
+  region_note text, -- e.g. "South Florida", "Palm Beach County"
+  state text,
+  source_name text not null,
+  source_url text,
+  last_verified_date date not null,
+  notes text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists price_references_category_idx on public.price_references(category);
+create index if not exists price_references_state_idx on public.price_references(state);
+create index if not exists price_references_is_active_idx on public.price_references(is_active);
+
+drop trigger if exists set_updated_at on public.price_references;
+create trigger set_updated_at before update on public.price_references
+  for each row execute function public.set_updated_at();
+
+alter table public.price_references enable row level security;
+
+-- Read-only reference data for any signed-in user. Only admins write —
+-- same pattern as items.
+create policy "price_references_select_authenticated" on public.price_references
+  for select using (auth.role() = 'authenticated' or public.is_admin());
+
+create policy "price_references_insert_admin" on public.price_references
+  for insert with check (public.is_admin());
+
+create policy "price_references_update_admin" on public.price_references
+  for update using (public.is_admin());
+
+create policy "price_references_delete_admin" on public.price_references
+  for delete using (public.is_admin());
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

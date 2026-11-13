@@ -16,6 +16,7 @@ import Cart from "./pages/Cart.jsx";
 import Account from "./pages/Account.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Vault from "./pages/Vault.jsx";
+import PriceReferences from "./pages/PriceReferences.jsx";
 import Claims from "./pages/Claims.jsx";
 import NewClaim from "./pages/NewClaim.jsx";
 import ClaimDetail from "./pages/ClaimDetail.jsx";
@@ -80,6 +81,14 @@ export default function App() {
           element={
             <RequireSubscription>
               <Vault />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/pricing-reference"
+          element={
+            <RequireSubscription>
+              <PriceReferences />
             </RequireSubscription>
           }
         />

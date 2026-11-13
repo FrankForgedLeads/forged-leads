@@ -8,6 +8,7 @@ const APP_LINKS = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/vault", label: "Vault" },
   { to: "/claims", label: "Reviews" },
+  { to: "/pricing-reference", label: "Pricing Reference" },
 ];
 
 export default function AppLayout() {
