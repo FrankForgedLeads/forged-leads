@@ -277,18 +277,22 @@ export default function ClaimDetail() {
 
         {/* Running total */}
         <div className="sticky bottom-0 z-20 mt-8 -mx-5 border-t border-navy-700/60 bg-navy-900/95 px-5 py-5 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-white/50">
                 Running total
               </p>
               <p className="text-3xl font-extrabold text-gold-500">{formatCurrency(total)}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            {/* Full-width, stacked below sm so both buttons stay large,
+                easy-to-hit tap targets instead of two medium buttons
+                crammed onto one line; unchanged inline row at sm+. */}
+            <div className="grid grid-cols-1 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
               <Button
                 as="button"
                 type="button"
                 variant="secondary"
+                className="w-full sm:w-auto"
                 onClick={handleExportSummary}
                 disabled={exportingSummary}
               >
@@ -297,7 +301,7 @@ export default function ClaimDetail() {
               <Button
                 to={`/claims/${id}/letter`}
                 variant={rows.length === 0 ? "ghost" : "primary"}
-                className={rows.length === 0 ? "pointer-events-none opacity-40" : ""}
+                className={`w-full sm:w-auto ${rows.length === 0 ? "pointer-events-none opacity-40" : ""}`}
                 aria-disabled={rows.length === 0}
               >
                 Generate letter
@@ -876,9 +880,18 @@ function VoiceNotesSection({ claimId }) {
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Tap Record and start talking — what you say will show up here."
           />
-          <div className="mt-3 flex flex-wrap gap-2">
+          {/* The Record button especially is the one most likely to get
+              tapped one-handed, on-site, possibly with gloves — full-width
+              and large below sm; the compact inline row (unchanged) takes
+              over at sm and up. */}
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
             {!listening ? (
-              <Button as="button" type="button" onClick={startListening} className="px-4 py-2 text-sm">
+              <Button
+                as="button"
+                type="button"
+                onClick={startListening}
+                className="w-full py-3 text-base sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
+              >
                 {draft ? "Resume recording" : "Record"}
               </Button>
             ) : (
@@ -887,7 +900,7 @@ function VoiceNotesSection({ claimId }) {
                 type="button"
                 variant="secondary"
                 onClick={stopListening}
-                className="px-4 py-2 text-sm"
+                className="w-full py-3 text-base sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
               >
                 Stop
               </Button>
@@ -897,7 +910,7 @@ function VoiceNotesSection({ claimId }) {
               type="button"
               onClick={handleSave}
               disabled={!draft.trim() || saving}
-              className="px-4 py-2 text-sm"
+              className="w-full py-3 text-base sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
             >
               {saving ? "Cleaning up…" : "Save note"}
             </Button>
@@ -907,7 +920,7 @@ function VoiceNotesSection({ claimId }) {
                 type="button"
                 variant="ghost"
                 onClick={discardDraft}
-                className="px-4 py-2 text-sm"
+                className="w-full py-3 text-base sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
               >
                 Discard
               </Button>
@@ -1098,7 +1111,7 @@ function FindingsSection({ claimId, claim, onItemAdded, filesVersion }) {
 
   return (
     <div className="mt-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-extrabold text-white">Vault Review</h2>
           <p className="mt-1 text-sm text-white/50">
@@ -1110,7 +1123,7 @@ function FindingsSection({ claimId, claim, onItemAdded, filesVersion }) {
           type="button"
           onClick={handleRun}
           disabled={running || !hasEstimate || checkingFiles}
-          className="px-5 py-2.5 text-sm"
+          className="w-full py-3 text-base sm:w-auto sm:px-5 sm:py-2.5 sm:text-sm"
         >
           {running ? "Reviewing…" : findings.length > 0 ? "Run Vault Review again" : "Run Vault Review"}
         </Button>
@@ -1127,7 +1140,7 @@ function FindingsSection({ claimId, claim, onItemAdded, filesVersion }) {
             as="button"
             type="button"
             variant="secondary"
-            className="mt-3 px-4 py-2 text-sm"
+            className="mt-3 w-full py-3 text-base sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
             onClick={handleRun}
           >
             Try again
@@ -1251,7 +1264,7 @@ function FindingCard({ finding, acting, onAction }) {
         </div>
       )}
 
-      <dl className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+      <dl className="mt-3 grid grid-cols-1 gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
         {(finding.xactimate_code || item?.xactimate_code) && (
           <div>
             <dt className="font-bold uppercase tracking-wide text-white/40">Xactimate</dt>
@@ -1292,11 +1305,15 @@ function FindingCard({ finding, acting, onAction }) {
         Verify before submission — this is not a determination that anything is owed.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      {/* Stacked, full-width, larger tap targets below sm — these are the
+          core "contractor decides" buttons, tapped constantly while
+          standing in the field; the compact inline row (unchanged) takes
+          back over at sm and up. */}
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
         <Button
           as="button"
           type="button"
-          className="px-4 py-2 text-sm"
+          className="w-full py-3 text-base sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
           disabled={acting || !finding.item_id}
           onClick={() => onAction("added")}
           title={!finding.item_id ? "Not linked to a specific Vault item" : undefined}
@@ -1307,7 +1324,7 @@ function FindingCard({ finding, acting, onAction }) {
           as="button"
           type="button"
           variant="secondary"
-          className="px-4 py-2 text-sm"
+          className="w-full py-3 text-base sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
           disabled={acting}
           onClick={() => onAction("dismissed")}
         >
@@ -1317,7 +1334,7 @@ function FindingCard({ finding, acting, onAction }) {
           as="button"
           type="button"
           variant="ghost"
-          className="px-4 py-2 text-sm"
+          className="w-full py-3 text-base sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
           disabled={acting}
           onClick={() => onAction("needs_info")}
         >
