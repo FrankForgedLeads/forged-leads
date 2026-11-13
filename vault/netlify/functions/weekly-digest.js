@@ -28,8 +28,19 @@ export function buildDigestHtml(stats) {
   `.trim();
 }
 
+// Short plain-text version for a carrier's email-to-SMS gateway (see
+// ADMIN_SMS_EMAIL below) — a long HTML email renders as raw tags there.
+export function buildDigestText(stats) {
+  const { newSignups, pastDueCount, mrr, activeCount, trialingCount } = stats;
+  return (
+    `Beeyond Vault weekly: ${newSignups} new signups, ${activeCount} active, ` +
+    `${trialingCount} trialing, ${pastDueCount} past due, $${mrr.toFixed(2)} MRR.`
+  );
+}
+
 export default async (_req) => {
-  const { STRIPE_SECRET_KEY, SUPABASE_URL, SUPABASE_SERVICE_KEY, RESEND_API_KEY, ADMIN_EMAIL } = process.env;
+  const { STRIPE_SECRET_KEY, SUPABASE_URL, SUPABASE_SERVICE_KEY, RESEND_API_KEY, ADMIN_EMAIL, ADMIN_SMS_EMAIL } =
+    process.env;
   if (!STRIPE_SECRET_KEY) return jsonResponse(500, { error: "STRIPE_SECRET_KEY is not configured" });
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return jsonResponse(500, { error: "Supabase service-role env vars not configured" });
@@ -96,6 +107,23 @@ export default async (_req) => {
     });
   } catch (e) {
     return jsonResponse(502, { error: e.message });
+  }
+
+  // Best-effort, same reasoning as the payment-failed text alert: the real
+  // digest email above has already sent successfully by this point.
+  if (ADMIN_SMS_EMAIL) {
+    try {
+      await sendEmail({
+        apiKey: RESEND_API_KEY,
+        from: FROM_ADDRESS,
+        to: ADMIN_SMS_EMAIL,
+        subject: "Weekly digest",
+        text: buildDigestText(stats),
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[weekly-digest] Failed to send text alert:", e.message);
+    }
   }
 
   return jsonResponse(200, { sent: true, stats });

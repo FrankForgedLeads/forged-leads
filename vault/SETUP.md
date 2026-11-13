@@ -302,6 +302,7 @@ of these (values from Steps 1, 2, 3):
 | `ANTHROPIC_API_KEY` | Step 3B |
 | `ADMIN_EMAIL` | Your email (same one from Step 1.4) |
 | `LEADS_EMAIL` | `leads@beeyondestimators.com` (or wherever you want leads sent) |
+| `ADMIN_SMS_EMAIL` | Optional. Your phone's carrier email-to-SMS gateway address (e.g. `3055551234@vtext.com` for Verizon, `3055551234@txt.att.net` for AT&T, `3055551234@tmomail.net` for T-Mobile), if you want the payment-failed alert and weekly digest texted to you too, free, alongside the email. Leave unset to get email only. |
 
 Note the chicken-and-egg with `STRIPE_WEBHOOK_SECRET`: you need a live
 Netlify URL to create the Stripe webhook (Step 2.3), but the webhook

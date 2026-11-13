@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildDigestHtml } from "../weekly-digest.js";
+import { buildDigestHtml, buildDigestText } from "../weekly-digest.js";
 
 describe("buildDigestHtml", () => {
   it("includes every stat in the output", () => {
@@ -30,5 +30,24 @@ describe("buildDigestHtml", () => {
     });
 
     expect(html).not.toContain("worth a check-in");
+  });
+});
+
+describe("buildDigestText", () => {
+  it("fits every stat into one short plain-text line", () => {
+    const text = buildDigestText({
+      newSignups: 3,
+      pastDueCount: 1,
+      mrr: 249.5,
+      activeCount: 12,
+      trialingCount: 4,
+    });
+
+    expect(text).toContain("3 new signups");
+    expect(text).toContain("12 active");
+    expect(text).toContain("4 trialing");
+    expect(text).toContain("1 past due");
+    expect(text).toContain("$249.50 MRR");
+    expect(text).not.toMatch(/<[^>]+>/); // no HTML tags — carrier SMS gateways render them raw
   });
 });

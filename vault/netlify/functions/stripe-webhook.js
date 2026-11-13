@@ -41,6 +41,7 @@ export default async (req) => {
     SUPABASE_SERVICE_KEY,
     RESEND_API_KEY,
     ADMIN_EMAIL,
+    ADMIN_SMS_EMAIL,
   } = process.env;
   if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
     return jsonResponse(500, { error: "Stripe env vars not configured" });
@@ -74,7 +75,7 @@ export default async (req) => {
         await handleSubscriptionDeleted(supabaseAdmin, event.data.object);
         break;
       case "invoice.payment_failed":
-        await handlePaymentFailed(supabaseAdmin, event.data.object, { RESEND_API_KEY, ADMIN_EMAIL });
+        await handlePaymentFailed(supabaseAdmin, event.data.object, { RESEND_API_KEY, ADMIN_EMAIL, ADMIN_SMS_EMAIL });
         break;
       default:
         // Not one of the four events we're asked to handle — ignore.
@@ -229,7 +230,7 @@ async function handleSubscriptionDeleted(supabaseAdmin, subscription) {
   logEvent(supabaseAdmin, "subscription_canceled", existingProfile?.id);
 }
 
-async function handlePaymentFailed(supabaseAdmin, invoice, { RESEND_API_KEY, ADMIN_EMAIL } = {}) {
+async function handlePaymentFailed(supabaseAdmin, invoice, { RESEND_API_KEY, ADMIN_EMAIL, ADMIN_SMS_EMAIL } = {}) {
   if (!invoice.customer) return;
 
   // Fetch first (not just update) so the alert email below can name who
@@ -269,6 +270,21 @@ async function handlePaymentFailed(supabaseAdmin, invoice, { RESEND_API_KEY, ADM
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[stripe-webhook] Failed to send payment-failed alert email:", e.message);
+    }
+
+    if (ADMIN_SMS_EMAIL) {
+      try {
+        await sendEmail({
+          apiKey: RESEND_API_KEY,
+          from: ALERT_FROM_ADDRESS,
+          to: ADMIN_SMS_EMAIL,
+          subject: "Payment failed",
+          text: `Beeyond Vault: payment failed - ${who} (${amount}). Check email for details.`,
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("[stripe-webhook] Failed to send payment-failed text alert:", e.message);
+      }
     }
   }
 }
