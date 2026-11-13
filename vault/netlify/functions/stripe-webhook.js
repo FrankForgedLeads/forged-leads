@@ -1,6 +1,9 @@
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { jsonResponse } from "./_lib/http.js";
+import { sendEmail } from "./_lib/resend.js";
+
+const ALERT_FROM_ADDRESS = "Beeyond Vault Alerts <alerts@beeyondestimators.com>";
 
 // Built from entries() + filter rather than an object literal with computed
 // keys: if a STRIPE_PRICE_* env var is unset (misconfiguration) its key
@@ -31,7 +34,14 @@ function toIso(unixSeconds) {
 export default async (req) => {
   if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
 
-  const { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
+  const {
+    STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET,
+    SUPABASE_URL,
+    SUPABASE_SERVICE_KEY,
+    RESEND_API_KEY,
+    ADMIN_EMAIL,
+  } = process.env;
   if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
     return jsonResponse(500, { error: "Stripe env vars not configured" });
   }
@@ -64,7 +74,7 @@ export default async (req) => {
         await handleSubscriptionDeleted(supabaseAdmin, event.data.object);
         break;
       case "invoice.payment_failed":
-        await handlePaymentFailed(supabaseAdmin, event.data.object);
+        await handlePaymentFailed(supabaseAdmin, event.data.object, { RESEND_API_KEY, ADMIN_EMAIL });
         break;
       default:
         // Not one of the four events we're asked to handle — ignore.
@@ -219,11 +229,52 @@ async function handleSubscriptionDeleted(supabaseAdmin, subscription) {
   logEvent(supabaseAdmin, "subscription_canceled", existingProfile?.id);
 }
 
-async function handlePaymentFailed(supabaseAdmin, invoice) {
+async function handlePaymentFailed(supabaseAdmin, invoice, { RESEND_API_KEY, ADMIN_EMAIL } = {}) {
   if (!invoice.customer) return;
+
+  // Fetch first (not just update) so the alert email below can name who
+  // it was and isn't just a bare Stripe customer ID.
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("id, email, full_name, company")
+    .eq("stripe_customer_id", invoice.customer)
+    .maybeSingle();
+
   const { error } = await supabaseAdmin
     .from("profiles")
     .update({ subscription_status: "past_due" })
     .eq("stripe_customer_id", invoice.customer);
   if (error) throw error;
+
+  // Best-effort only: a failed alert email must never fail (or retry) the
+  // webhook itself — the subscription_status update above is the part
+  // that actually matters and has already succeeded by this point.
+  if (RESEND_API_KEY && ADMIN_EMAIL) {
+    const amount = invoice.amount_due != null ? `$${(invoice.amount_due / 100).toFixed(2)}` : "an unknown amount";
+    const who = profile?.full_name || profile?.company || profile?.email || invoice.customer_email || invoice.customer;
+    try {
+      await sendEmail({
+        apiKey: RESEND_API_KEY,
+        from: ALERT_FROM_ADDRESS,
+        to: ADMIN_EMAIL,
+        subject: `Payment failed: ${who}`,
+        html: `
+          <h2>A customer's payment just failed</h2>
+          <p><strong>Customer:</strong> ${escapeHtml(who)}</p>
+          <p><strong>Email:</strong> ${escapeHtml(profile?.email || invoice.customer_email || "—")}</p>
+          <p><strong>Amount due:</strong> ${amount}</p>
+          <p>Their account is now marked past_due. Worth a quick check-in before they churn.</p>
+        `.trim(),
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[stripe-webhook] Failed to send payment-failed alert email:", e.message);
+    }
+  }
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
 }
