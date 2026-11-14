@@ -1486,6 +1486,274 @@ create policy "price_references_delete_admin" on public.price_references
   for delete using (public.is_admin());
 
 -- ============================================================================
+-- REMODEL ESTIMATOR
+--
+-- A from-scratch estimate builder for non-insurance remodel/GC work — the
+-- room-by-room, "type a quantity and it totals itself" workflow a lot of
+-- remodelers currently do by hand in Excel. Deliberately separate from
+-- `items`/`claims` (insurance-estimate review) and from `price_references`
+-- (a browse-only lookup page): this is a real working document a user
+-- builds up over time, with its own rooms and line items.
+--
+-- remodel_items is the catalog (shared, admin-maintained, same sourcing
+-- discipline as price_references — every row cites a real source).
+-- remodel_estimates/_rooms/_room_items are a specific user's in-progress
+-- job. Room items snapshot description/unit/price at the time they're
+-- added (remodel_item_id is just a reference back to where the price came
+-- from) — so editing the catalog later never silently changes a job a
+-- customer already priced and sent out.
+-- ============================================================================
+
+create table if not exists public.remodel_items (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (
+    category in ('general', 'kitchen', 'bathroom', 'roofing')
+  ),
+  description text not null,
+  unit text not null, -- e.g. SF, LF, SQ, EA, job
+  price_low numeric(10, 2),
+  price_high numeric(10, 2),
+  source_name text not null,
+  source_url text,
+  last_verified_date date not null,
+  notes text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists remodel_items_category_idx on public.remodel_items(category);
+create index if not exists remodel_items_is_active_idx on public.remodel_items(is_active);
+
+drop trigger if exists set_updated_at on public.remodel_items;
+create trigger set_updated_at before update on public.remodel_items
+  for each row execute function public.set_updated_at();
+
+alter table public.remodel_items enable row level security;
+
+create policy "remodel_items_select_authenticated" on public.remodel_items
+  for select using (auth.role() = 'authenticated' or public.is_admin());
+
+create policy "remodel_items_insert_admin" on public.remodel_items
+  for insert with check (public.is_admin());
+
+create policy "remodel_items_update_admin" on public.remodel_items
+  for update using (public.is_admin());
+
+create policy "remodel_items_delete_admin" on public.remodel_items
+  for delete using (public.is_admin());
+
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.remodel_estimates (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  team_id uuid references public.teams(id) on delete set null,
+  title text not null default 'Untitled estimate',
+  client_name text,
+  property_address text,
+  -- Job-level markups, same shape as the hand-built Excel template this
+  -- replaces (10% overhead, 10% contractor fee, sales tax on materials).
+  overhead_pct numeric(5, 2) not null default 10,
+  profit_pct numeric(5, 2) not null default 10,
+  tax_pct numeric(5, 2) not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists remodel_estimates_user_id_idx on public.remodel_estimates(user_id);
+create index if not exists remodel_estimates_team_id_idx on public.remodel_estimates(team_id);
+
+drop trigger if exists set_updated_at on public.remodel_estimates;
+create trigger set_updated_at before update on public.remodel_estimates
+  for each row execute function public.set_updated_at();
+
+alter table public.remodel_estimates enable row level security;
+
+-- Owner or teammate (shared team_id) can read/write; admins see everything —
+-- identical pattern to claims.
+create policy "remodel_estimates_select" on public.remodel_estimates
+  for select using (
+    user_id = auth.uid()
+    or (team_id is not null and team_id = public.my_team_id())
+    or public.is_admin()
+  );
+
+create policy "remodel_estimates_insert" on public.remodel_estimates
+  for insert with check (
+    user_id = auth.uid()
+    and (team_id is null or team_id = public.my_team_id())
+  );
+
+create policy "remodel_estimates_update" on public.remodel_estimates
+  for update using (
+    user_id = auth.uid()
+    or (team_id is not null and team_id = public.my_team_id())
+    or public.is_admin()
+  );
+
+create policy "remodel_estimates_delete" on public.remodel_estimates
+  for delete using (
+    user_id = auth.uid()
+    or public.is_admin()
+  );
+
+revoke update on public.remodel_estimates from authenticated;
+grant update (
+  title, client_name, property_address, overhead_pct, profit_pct, tax_pct
+) on public.remodel_estimates to authenticated;
+
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.remodel_rooms (
+  id uuid primary key default gen_random_uuid(),
+  estimate_id uuid not null references public.remodel_estimates(id) on delete cascade,
+  name text not null default 'Untitled room',
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_rooms_estimate_id_idx on public.remodel_rooms(estimate_id);
+
+alter table public.remodel_rooms enable row level security;
+
+-- Access follows the parent estimate — identical pattern to claim_items.
+create policy "remodel_rooms_select" on public.remodel_rooms
+  for select using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_rooms_insert" on public.remodel_rooms
+  for insert with check (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_rooms_update" on public.remodel_rooms
+  for update using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_rooms_delete" on public.remodel_rooms
+  for delete using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+revoke update on public.remodel_rooms from authenticated;
+grant update (name, sort_order) on public.remodel_rooms to authenticated;
+
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.remodel_room_items (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.remodel_rooms(id) on delete cascade,
+  -- Nullable: a user can add a fully custom line item with no catalog
+  -- match. Where it does reference the catalog, this is just provenance —
+  -- description/unit/unit_price below are an independent snapshot, so a
+  -- later catalog price update never retroactively changes a sent estimate.
+  remodel_item_id uuid references public.remodel_items(id) on delete set null,
+  description text not null,
+  unit text not null,
+  quantity numeric(10, 2) not null default 1,
+  unit_price numeric(10, 2) not null,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_room_items_room_id_idx on public.remodel_room_items(room_id);
+create index if not exists remodel_room_items_remodel_item_id_idx on public.remodel_room_items(remodel_item_id);
+
+alter table public.remodel_room_items enable row level security;
+
+create policy "remodel_room_items_select" on public.remodel_room_items
+  for select using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_room_items_insert" on public.remodel_room_items
+  for insert with check (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_room_items_update" on public.remodel_room_items
+  for update using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_room_items_delete" on public.remodel_room_items
+  for delete using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+revoke update on public.remodel_room_items from authenticated;
+grant update (description, unit, quantity, unit_price, note) on public.remodel_room_items to authenticated;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
