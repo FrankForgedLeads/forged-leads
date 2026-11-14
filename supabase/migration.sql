@@ -1754,6 +1754,61 @@ revoke update on public.remodel_room_items from authenticated;
 grant update (description, unit, quantity, unit_price, note) on public.remodel_room_items to authenticated;
 
 -- ============================================================================
+-- COMPANY LOGO — profiles.logo_path + private 'company-logos' bucket
+--
+-- Lets a user put their own company logo on an exported PDF (Remodel
+-- estimates first; the letter builder can pick it up later the same way).
+-- One logo per user, at a fixed path (${auth.uid()}/logo.<ext>) so a
+-- re-upload overwrites instead of accumulating files — storage.objects has
+-- no "update," so the client upserts (upload with upsert: true), which
+-- needs both an insert and an update policy on the same path.
+-- ============================================================================
+
+alter table public.profiles add column if not exists logo_path text;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'company-logos',
+  'company-logos',
+  false,
+  2097152, -- 2 MB
+  array['image/jpeg', 'image/png', 'image/webp']
+)
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "company_logos_storage_select" on storage.objects
+  for select using (
+    bucket_id = 'company-logos'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+create policy "company_logos_storage_insert" on storage.objects
+  for insert with check (
+    bucket_id = 'company-logos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "company_logos_storage_update" on storage.objects
+  for update using (
+    bucket_id = 'company-logos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "company_logos_storage_delete" on storage.objects
+  for delete using (
+    bucket_id = 'company-logos'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

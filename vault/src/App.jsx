@@ -17,6 +17,9 @@ import Account from "./pages/Account.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Vault from "./pages/Vault.jsx";
 import PriceReferences from "./pages/PriceReferences.jsx";
+import RemodelEstimates from "./pages/RemodelEstimates.jsx";
+import NewRemodelEstimate from "./pages/NewRemodelEstimate.jsx";
+import RemodelEstimateDetail from "./pages/RemodelEstimateDetail.jsx";
 import Claims from "./pages/Claims.jsx";
 import NewClaim from "./pages/NewClaim.jsx";
 import ClaimDetail from "./pages/ClaimDetail.jsx";
@@ -89,6 +92,30 @@ export default function App() {
           element={
             <RequireSubscription>
               <PriceReferences />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/remodel"
+          element={
+            <RequireSubscription>
+              <RemodelEstimates />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/remodel/new"
+          element={
+            <RequireSubscription>
+              <NewRemodelEstimate />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/remodel/:id"
+          element={
+            <RequireSubscription>
+              <RemodelEstimateDetail />
             </RequireSubscription>
           }
         />

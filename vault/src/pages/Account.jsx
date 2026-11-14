@@ -5,7 +5,7 @@ import Button from "../components/ui/Button.jsx";
 import { Field, Input, Select } from "../components/ui/Field.jsx";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { createPortalSession, deleteAccount } from "../lib/api/billing.js";
-import { updateProfile } from "../lib/api/profile.js";
+import { updateProfile, uploadLogo, removeLogo, getLogoSignedUrl } from "../lib/api/profile.js";
 import { fetchMyTeam, inviteTeammate, revokeInvite } from "../lib/api/team.js";
 import { subscriptionStatusLabel } from "../lib/subscription.js";
 
@@ -300,6 +300,104 @@ function ProfileCard({ profile, userId, onSaved }) {
   );
 }
 
+function LogoCard({ profile, userId, onSaved }) {
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingPreview(true);
+    getLogoSignedUrl(profile?.logo_path)
+      .then((url) => {
+        if (!cancelled) setPreviewUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setPreviewUrl(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPreview(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.logo_path]);
+
+  async function handleUpload(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    setError("");
+    try {
+      await uploadLogo({ userId, file });
+      await onSaved();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleRemove() {
+    setBusy(true);
+    setError("");
+    try {
+      await removeLogo(userId, profile?.logo_path);
+      await onSaved();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card>
+      <h2 className="font-bold text-white">Company logo</h2>
+      <p className="mt-2 text-sm text-white/60">
+        Shown on your exported Remodel estimate PDFs. JPG, PNG, or WEBP, up to 2 MB.
+      </p>
+
+      <div className="mt-4 flex items-center gap-4">
+        {!loadingPreview && previewUrl && (
+          <img
+            src={previewUrl}
+            alt="Your company logo"
+            className="h-16 w-auto max-w-[160px] rounded border border-navy-500 bg-white/5 object-contain p-1"
+          />
+        )}
+        {!loadingPreview && !previewUrl && (
+          <div className="flex h-16 w-28 items-center justify-center rounded border border-dashed border-navy-500 text-xs text-white/40">
+            No logo
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2">
+          <label>
+            <span className="sr-only">Upload logo</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleUpload}
+              disabled={busy}
+              className="block text-sm text-white/70 file:mr-3 file:rounded file:border-0 file:bg-gold-500 file:px-3 file:py-2 file:text-sm file:font-bold file:text-navy-900 hover:file:bg-gold-400"
+            />
+          </label>
+          {previewUrl && (
+            <Button variant="secondary" onClick={handleRemove} disabled={busy} className="w-fit text-xs">
+              Remove logo
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {error && <p className="mt-3 text-sm font-semibold text-red-400">{error}</p>}
+    </Card>
+  );
+}
+
 function DangerZoneCard({ signOut }) {
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
@@ -378,6 +476,7 @@ export default function Account() {
         <BillingCard profile={profile} />
         <TeamCard profile={profile} userId={user?.id} />
         <ProfileCard profile={profile} userId={user?.id} onSaved={refreshProfile} />
+        <LogoCard profile={profile} userId={user?.id} onSaved={refreshProfile} />
 
         <Card>
           <h2 className="font-bold text-white">Log out</h2>
