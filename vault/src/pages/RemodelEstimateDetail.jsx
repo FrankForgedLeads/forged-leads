@@ -28,6 +28,29 @@ const CATEGORY_LABEL = {
   roofing: "Roofing",
 };
 
+// Just autocomplete suggestions for the room-name box below — typing
+// anything else is fine, this isn't a fixed list the room is limited to.
+const ROOM_NAME_SUGGESTIONS = [
+  "Kitchen",
+  "Bathroom",
+  "Living Room",
+  "Family Room",
+  "Dining Room",
+  "Master Bedroom",
+  "Bedroom",
+  "Den",
+  "Foyer / Entryway",
+  "Hallway",
+  "Stairs",
+  "Closet",
+  "Pantry",
+  "Laundry Room",
+  "Garage",
+  "Office",
+  "Exterior",
+  "Roof",
+];
+
 export default function RemodelEstimateDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -234,13 +257,24 @@ function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
   return (
     <Card>
       <div className="flex items-center justify-between gap-3">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={handleNameBlur}
-          placeholder="Untitled room"
-          className="flex-1 bg-transparent text-lg font-bold text-white placeholder:text-white/30 focus:outline-none"
-        />
+        <div className="flex-1">
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-white/40">
+            Room name — type anything
+          </label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={handleNameBlur}
+            placeholder="e.g. Living Room, Stairs, Pantry…"
+            list={`room-name-suggestions-${room.id}`}
+            className="w-full rounded-lg border border-navy-500 bg-navy-900/60 px-3 py-2 text-lg font-bold text-white placeholder:text-sm placeholder:font-normal placeholder:text-white/30 focus:border-gold-500 focus:outline-none"
+          />
+          <datalist id={`room-name-suggestions-${room.id}`}>
+            {ROOM_NAME_SUGGESTIONS.map((suggestion) => (
+              <option key={suggestion} value={suggestion} />
+            ))}
+          </datalist>
+        </div>
         <button
           type="button"
           onClick={handleDeleteRoom}
