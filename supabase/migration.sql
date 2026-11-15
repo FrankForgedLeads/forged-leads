@@ -1510,7 +1510,8 @@ create table if not exists public.remodel_items (
     category in (
       'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
       'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
-      'water_mitigation'
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures'
     )
   ),
   description text not null,
@@ -1829,6 +1830,27 @@ alter table public.remodel_items add constraint remodel_items_category_check
       'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
       'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
       'water_mitigation'
+    )
+  );
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — expand remodel_items categories, second round
+--
+-- Adds framing_structural, demolition, masonry, and appliances_fixtures,
+-- identified as gaps by reviewing several real third-party insurance
+-- estimates Frank sent as samples of real-world line-item coverage (no
+-- prices or wording from those documents were used anywhere in this
+-- catalog — see seed_remodel_items.sql for the sourcing discipline).
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures'
     )
   );
 

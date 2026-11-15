@@ -578,5 +578,390 @@ values
   'Weaker source — a single non-marketplace contents-restoration cost-guide site with somewhat inconsistent figures across its own pages; used its most-repeated flat monthly band.');
 
 -- ============================================================================
+-- Third pass — gaps found by reviewing 9 real third-party insurance
+-- estimates and a non-Xactimate "contents manipulation" price list Frank
+-- sent as samples of real-world coverage. As always: no prices or wording
+-- from any of those documents were used anywhere below — every row here is
+-- independently sourced and independently worded. Adds four new categories
+-- (framing_structural, demolition, masonry, appliances_fixtures) plus more
+-- depth in general/bathroom/plumbing/roofing/exterior/electrical/
+-- doors_windows/hvac/water_mitigation.
+--
+-- The Nick pricing docx (per-object contents-manipulation pricing — pianos,
+-- fish tanks, etc.) was reviewed but intentionally NOT seeded here: it's a
+-- different kind of catalog (individual household objects for an
+-- insurance-contents workflow) that doesn't fit this construction/remodel
+-- line-item model.
+-- ============================================================================
+
+insert into public.remodel_items
+  (category, description, unit, price_low, price_high, source_name, source_url, last_verified_date, notes)
+values
+
+-- ---------------------------------------------------------------------------
+-- GENERAL (additions)
+-- ---------------------------------------------------------------------------
+
+('general', 'Floor leveling / self-leveling compound application', 'SF', 2.00, 5.00,
+  'HomeGuide', 'https://homeguide.com/costs/concrete-leveling-cost', '2026-11-15',
+  'Light subfloor-prep leveling before new flooring, not structural/foundation leveling. Corroborated by a similar Angi materials-only figure.'),
+
+('general', 'Hardwood floor sanding and refinishing (existing floor)', 'SF', 3.00, 8.00,
+  'Angi', 'https://match.angi.com/cost/flooring/refinish-wood-flooring', '2026-11-15',
+  'Oak/cherry run the low end, maple/mahogany the high end. Distinct from new hardwood installation already in this catalog.'),
+
+('general', 'Popcorn/texture ceiling removal, non-asbestos', 'SF', 1.00, 6.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/walls-and-ceilings/remove-popcorn-ceiling', '2026-11-15',
+  'Assumes no asbestos present. If the texture is pre-1980s, test for asbestos first — abatement runs far higher ($5-20/SF) and is a separate job.'),
+
+('general', 'Tile grout removal and regrouting', 'SF', 5.00, 25.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/cabinets-and-countertops/regrout-tile', '2026-11-15',
+  'Shower tile runs toward the high end, wall tile toward the low end.'),
+
+('general', 'Tile grout sealing (sealant only, no regrouting)', 'SF', 0.50, 1.50,
+  'HomeGuide', 'https://homeguide.com/costs/cost-to-regrout-tile', '2026-11-15',
+  'Materials-focused figure. Generally needed for cement-based grout but not epoxy grout. Distinct job and price point from full regrouting above.'),
+
+('general', 'Wainscoting or beadboard installation', 'SF', 5.00, 20.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/walls-and-ceilings/install-wainscoting-or-beadboard', '2026-11-15',
+  'MDF/PVC panels toward the low end, solid wood/custom toward the high end.'),
+
+('general', 'Chair rail installation', 'LF', 1.00, 6.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/siding/install-trim/', '2026-11-15',
+  'Weaker sourcing — this HomeAdvisor figure reads as materials-focused; blended with a Thumbtack contractor quote (~$4.50/LF installed) to approximate a real job cost.'),
+
+('general', 'Cabinet/furniture hardware installation (knobs, pulls)', 'EA', 5.00, 30.00,
+  'Angi', 'https://angi.com/articles/how-much-does-it-cost-install-cabinet-hardware.htm', '2026-11-15',
+  'Labor only — hardware itself is a separate material cost or customer-supplied.'),
+
+('general', 'Spray foam insulation', 'SF', 1.00, 5.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/insulation/install-spray-foam-insulation', '2026-11-15',
+  'Covers both open-cell (lower) and closed-cell (higher) product types. Distinct from the batt insulation already in this catalog.'),
+
+('general', 'Blown-in insulation, attic', 'SF', 1.00, 4.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/heating-and-cooling/attic-insulation', '2026-11-15',
+  'Loose-fill cellulose or fiberglass, installed. Cellulose runs toward the high end.'),
+
+('general', 'Deadbolt lock installation or replacement', 'EA', 70.00, 300.00,
+  'Angi', 'https://angi.com/articles/how-much-does-it-cost-install-deadbolt-locks.htm', '2026-11-15',
+  'Smart/high-security deadbolts run above this range.'),
+
+('general', 'Interior door knob/lever handle replacement', 'EA', 100.00, 250.00,
+  'HomeGuide', 'https://homeguide.com/costs/door-knob-replacement-cost', '2026-11-15',
+  'Hardware swap only, distinct from a full door replacement already in this catalog.'),
+
+('general', 'Door peephole installation', 'EA', 85.00, 225.00,
+  'CountBricks', 'https://www.countbricks.com/post/peephole-installation-cost', '2026-11-15',
+  'Weaker source — a non-marketplace cost-guide site; no Angi/HomeAdvisor/HomeGuide page with a dedicated price for this item was found. DIY parts alone run $8-30.'),
+
+('general', 'Window blinds installation, per window', 'EA', 109.00, 198.00,
+  'Fixr', 'https://fixr.com/costs/window-blinds', '2026-11-15',
+  'Includes removal of old blinds if present.'),
+
+('general', 'Curtain rod and bracket installation, per window', 'EA', 45.00, 250.00,
+  'HomeGuide', 'https://homeguide.com/costs/window-treatment-cost', '2026-11-15',
+  'Installation labor only — rod/bracket hardware itself is a separate cost, roughly $3-40+ per rod.'),
+
+('general', 'Skim coat drywall finish', 'SF', 1.10, 1.35,
+  'Angi', 'https://angi.com/articles/cost-to-skim-coat-drywall.htm', '2026-11-15',
+  'Smooth hand-applied finish coat, distinct from texture removal/application. Labor only.'),
+
+('general', 'Flooring underlayment / vapor barrier installation', 'SF', 0.50, 5.40,
+  'Angi', 'https://angi.com/articles/how-much-does-new-flooring-cost.htm', '2026-11-15',
+  'Under laminate, hardwood, or vinyl flooring, prior to the finish floor.'),
+
+('general', 'Door threshold installation or replacement', 'EA', 60.00, 290.00,
+  'Handoff (construction cost data aggregator)', 'https://handoff.ai/construction-costs/install-a-threshold', '2026-11-15',
+  'Weaker source — no dedicated page found from a major marketplace despite multiple searches. Treat as directional and verify locally.'),
+
+('general', 'Wood stain and finish application (trim, doors, baseboard, handrail)', 'LF', 1.00, 4.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/siding/install-trim/', '2026-11-15',
+  'Natural clear or tinted stain finish, distinct from opaque painting already in this catalog.'),
+
+('general', 'Attic access panel or pull-down folding attic ladder installation', 'EA', 340.00, 1240.00,
+  'Angi', 'https://angi.com/articles/attic-ladder-installation-cost.htm', '2026-11-15',
+  'Cost rises sharply if the opening must be enlarged or insulated/boxed.'),
+
+('general', 'Laminate flooring installation', 'SF', 3.00, 14.00,
+  'Angi / HomeAdvisor', 'https://angi.com/articles/how-much-does-laminate-flooring-cost.htm', '2026-11-15',
+  'Distinct material and installation method from the luxury vinyl plank already in this catalog.'),
+
+('general', 'Shoe molding or quarter-round trim installation', 'LF', 2.00, 6.00,
+  'Angi', 'https://www.angi.com/articles/cost-to-install-shoe-molding.htm', '2026-11-15',
+  'Small trim profile at the base of baseboard against the floor, distinct from the baseboard itself.'),
+
+('general', 'Door or window casing trim installation', 'LF', 4.00, 20.00,
+  'HomeAdvisor / Angi', 'https://homeadvisor.com/cost/doors-and-windows/install-door-window-trim', '2026-11-15',
+  'Installing (not just painting) the decorative trim around a door or window opening. Window casing runs toward the high end.'),
+
+('general', 'Content manipulation / furniture-moving labor during a renovation', 'hour', 90.00, 125.00,
+  'Thumbtack', 'https://thumbtack.com/p/moving-companies-prices', '2026-11-15',
+  'Moving furniture/contents out of a work area and back. 2-hour minimums are typical.'),
+
+('general', 'Portable toilet rental for a jobsite', 'month', 100.00, 500.00,
+  'Fixr', 'https://www.fixr.com/costs/portable-toilets', '2026-11-15',
+  'Monthly rate; costs less per-period than weekly/daily rental.'),
+
+('general', 'Job-site storage container (conex box) rental', 'month', 100.00, 350.00,
+  'ConexWest', 'https://www.conexwest.com/blog/how-much-office-container-complete-cost-guide-construction-projects', '2026-11-15',
+  'Weaker source — a named container-rental vendor rather than a consumer marketplace (no Angi/HomeAdvisor page exists for this). Distinct from a debris dumpster rental. Varies a lot by vendor/lease length.'),
+
+-- ---------------------------------------------------------------------------
+-- BATHROOM (additions)
+-- ---------------------------------------------------------------------------
+
+('bathroom', 'Medicine cabinet installation', 'EA', 55.00, 300.00,
+  'Angi', 'https://www.angi.com/articles/how-install-medicine-cabinet.htm', '2026-11-15',
+  'Standard surface-mount or recessed, non-lit unit. Lit/smart LED cabinets run $400-800 and may need an electrician.'),
+
+('bathroom', 'Towel bar or towel ring installation', 'EA', 55.00, 160.00,
+  'Homewyse', 'https://www.homewyse.com/services/cost_to_install_towel_bar.html', '2026-11-15',
+  'Weaker source — dated data, no dedicated marketplace page found despite searching.'),
+
+('bathroom', 'Toilet paper holder installation', 'EA', 75.00, 200.00,
+  'LatestCost', 'https://latestcost.com/cost-install-toilet-paper-holder/', '2026-11-15',
+  'Weaker source — a non-marketplace cost-guide site. Recessed holders (requiring wall cutting) run notably higher, $150-400+.'),
+
+('bathroom', 'Vanity countertop/top replacement only', 'EA', 400.00, 1500.00,
+  'HomeGuide / Angi', 'https://homeguide.com/costs/cost-to-replace-a-bathroom-countertop', '2026-11-15',
+  'Replacing just the top (and integrated/drop-in sink), not the full cabinet already in this catalog. Laminate/cultured marble toward the low end, quartz/granite/stone toward the high end (up to ~$4,300 for premium stone).'),
+
+('bathroom', 'Robe hook installation', 'EA', 55.00, 118.00,
+  'Homewyse', 'https://www.homewyse.com/services/cost_to_install_towel_bar.html', '2026-11-15',
+  'Weaker source and a proxy — no robe-hook-specific pricing found; used the towel-bar figure since the install is mechanically identical. Add $150-400 if the wall lacks backing/blocking.'),
+
+('bathroom', 'Bathroom heat lamp fixture installation', 'EA', 150.00, 400.00,
+  'HomeAdvisor (bath fan replacement, used as proxy)', 'https://homeadvisor.com/cost/bathrooms/repair-a-bath-fan', '2026-11-15',
+  'Weakest-confidence item in this batch — no marketplace publishes a heat-lamp-specific guide; this is a proxy built from bath-fan replacement pricing. Distinct from a ventilation exhaust fan already in this catalog.'),
+
+-- ---------------------------------------------------------------------------
+-- PLUMBING (additions)
+-- ---------------------------------------------------------------------------
+
+('plumbing', 'P-trap assembly replacement', 'EA', 200.00, 325.00,
+  'Angi', 'https://www.angi.com/articles/plumbing-pipe-repair-costs.htm', '2026-11-15',
+  'Includes parts and labor. Corroborated across two separate Angi pages.'),
+
+('plumbing', 'Angle stop / fixture shutoff valve replacement, any fixture', 'EA', 150.00, 300.00,
+  'Angi', 'https://angi.com/articles/how-much-does-water-main-repair-cost.htm', '2026-11-15',
+  'Moderate confidence — for a single fixture valve, distinct from a whole-house main shutoff valve replacement (a bigger, separate job).'),
+
+('plumbing', 'Utility or laundry tub installation', 'EA', 200.00, 500.00,
+  'Angi', 'https://angi.com/articles/sink-installation-cost.htm', '2026-11-15',
+  'Assumes plumbing connections already present. Distinct from a regular sink installation already in this catalog. Running new lines can push cost up to $3,000.'),
+
+-- ---------------------------------------------------------------------------
+-- ROOFING (additions)
+-- ---------------------------------------------------------------------------
+
+('roofing', 'Ridge cap shingle installation', 'LF', 6.00, 10.00,
+  'Angi', 'https://www.angi.com/articles/how-much-roof-ridge-repair-cost.htm', '2026-11-15',
+  'Cap shingles along the roof ridge line — distinct from the ridge VENT (a ventilation component) already in this catalog. Vented ridge cap runs higher, $10-14/LF.'),
+
+('roofing', 'Self-adhered waterproof underlayment membrane', 'SF', 4.00, 5.50,
+  'Angi', 'https://angi.com/articles/what-is-an-ice-and-water-shield.htm', '2026-11-15',
+  'Sometimes called "ice and water shield" — peel-and-stick membrane at eaves/valleys. Took three research attempts to find a real source for this one.'),
+
+('roofing', 'Step flashing and sidewall flashing installation', 'LF', 5.50, 9.00,
+  'Litespeed Construction (named roofing contractor)', 'https://litespeedconstruction.com/how-much-does-it-cost-to-replace-wall-flashings/', '2026-11-15',
+  'Weaker source — a single named contractor rather than a marketplace average. Specific flashing shapes where a roof meets a vertical wall, distinct from the chimney/valley flashing repair already in this catalog.'),
+
+-- ---------------------------------------------------------------------------
+-- EXTERIOR (additions)
+-- ---------------------------------------------------------------------------
+
+('exterior', 'Swimming pool pump replacement', 'EA', 700.00, 1500.00,
+  'HomeAdvisor', 'https://homeadvisor.com/cost/swimming-pools-hot-tubs-and-saunas/install-replace-pool-pump', '2026-11-15',
+  'Standard single-speed pump. Variable-speed/premium pumps run notably higher, up to $4,000.'),
+
+('exterior', 'Fence gate installation (wood or vinyl)', 'EA', 300.00, 600.00,
+  'HomeGuide', 'https://homeguide.com/costs/security-gate-installation-cost', '2026-11-15',
+  'Standard single pedestrian/walk-through gate. Distinct line item since fence itself is priced by linear foot. Automated gates run much higher, excluded here.'),
+
+('exterior', 'Chain-link fence installation', 'LF', 10.00, 20.00,
+  'Angi', 'https://www.homeadvisor.com/cost/fencing/install-a-chain-link-fence', '2026-11-15',
+  'Standard residential 4-6 ft height, galvanized. Full range widens to $8-40/LF with height/gauge/vinyl coating.'),
+
+-- ---------------------------------------------------------------------------
+-- ELECTRICAL (additions)
+-- ---------------------------------------------------------------------------
+
+('electrical', 'Occupancy/motion sensor light switch installation', 'EA', 100.00, 200.00,
+  'AJ Long Electric (named electrical contractor)', 'https://ajlongelectric.com/services/motion-sensor-lighting/ashburn', '2026-11-15',
+  'Swap of an existing switch, no new wiring required. Corroborated by Angi''s general light-switch-install figure.'),
+
+('electrical', 'Intercom station installation or replacement', 'EA', 100.00, 800.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/safety-and-security/install-intercom-system', '2026-11-15',
+  'Wide range covers basic wired substations through video stations. A narrower $200-600 figure applies specifically to additional wired substations.'),
+
+('electrical', 'Security system keypad/control panel installation', 'EA', 250.00, 700.00,
+  'Thumbtack (labor) / ThePricer (device pricing)', 'https://www.thumbtack.com/p/home-security-system-cost', '2026-11-15',
+  'Weaker sourcing — a composite of labor-only marketplace data and secondary device-pricing context, not a single marketplace line item.'),
+
+-- ---------------------------------------------------------------------------
+-- DOORS & WINDOWS (additions)
+-- ---------------------------------------------------------------------------
+
+('doors_windows', 'Pocket door installation', 'EA', 800.00, 2500.00,
+  'Fixr', 'https://fixr.com/costs/pocket-door-installation', '2026-11-15',
+  'New frame/track set into the wall cavity — structurally distinct from the bifold/sliding closet door already in this catalog. Retrofitting into an existing finished wall runs toward the top of this range or higher.'),
+
+-- ---------------------------------------------------------------------------
+-- HVAC (additions)
+-- ---------------------------------------------------------------------------
+
+('hvac', 'Air handler / A-coil replacement', 'EA', 1500.00, 3400.00,
+  'Angi', 'https://match.angi.com/cost/heating-and-cooling/replace-air-handler-fan-coil-unit', '2026-11-15',
+  'The indoor component of a split HVAC system, distinct from the outdoor condenser (central AC replacement) already in this catalog. Coil-only replacement (not the full air handler) runs lower, $600-2,000.'),
+
+-- ---------------------------------------------------------------------------
+-- WATER MITIGATION / MOLD (additions)
+-- ---------------------------------------------------------------------------
+
+('water_mitigation', 'Smoke and soot residue cleaning from walls, ceilings, and floors', 'SF', 4.00, 7.00,
+  'Angi', 'https://www.angi.com/articles/how-much-does-fire-damage-restoration-cost.htm', '2026-11-15',
+  'Fire/smoke-specific cleaning (dry/wet sponging, HEPA vacuuming, wipe-down) — distinct from the water-damage items already in this category.'),
+
+('water_mitigation', 'Mold-inhibiting primer or sealant application on framing/drywall', 'SF', 2.00, 4.00,
+  'Acculevel (named contractor)', 'https://acculevel.com', '2026-11-15',
+  'Weaker source — only one named contractor with a clean per-SF figure was found despite several search attempts (this item and "antimicrobial treatment" were both previously dropped before a usable source turned up). A post-cleaning coating step to inhibit regrowth, distinct from mold remediation (removal) itself.'),
+
+-- ---------------------------------------------------------------------------
+-- FRAMING & STRUCTURAL (new category)
+-- ---------------------------------------------------------------------------
+
+('framing_structural', 'Interior wall framing, new (non-load-bearing partition)', 'LF', 20.00, 30.00,
+  'Angi', 'https://www.angi.com/articles/how-much-does-it-cost-install-wall.htm', '2026-11-15',
+  'Complete partition: framing + drywall + basic electrical rough-in, not bare framing labor alone. Real city-to-city variance, $13.80-40/LF.'),
+
+('framing_structural', 'Load-bearing wall removal, incl. temporary support and beam/header', 'job', 1400.00, 15000.00,
+  'Angi', 'https://www.angi.com/articles/how-much-does-it-cost-remove-load-bearing-wall.htm', '2026-11-15',
+  'Deliberately broad range — scope varies hugely (span, beam material, whether the ceiling/floor above must be opened). A structural engineer and permits are typically required on top of this.'),
+
+('framing_structural', 'Door/window opening framing, incl. header installation', 'EA', 200.00, 650.00,
+  'Angi', 'https://www.angi.com/articles/how-to-frame-door.htm', '2026-11-15',
+  'Whole-opening price (header + jack/king studs + sill as applicable) as part of a wall modification, not an isolated header.'),
+
+('framing_structural', 'Subfloor replacement (plywood/OSB)', 'SF', 3.00, 8.00,
+  'Fixr', 'https://www.fixr.com/costs/replace-subfloor', '2026-11-15',
+  'Costs rise sharply, $8-15/SF, if underlying joists also need repair — see floor joist repair below.'),
+
+('framing_structural', 'Floor joist repair or sistering', 'EA', 100.00, 1000.00,
+  'HomeGuide', 'https://homeguide.com/costs/floor-joist-repair-cost', '2026-11-15',
+  'Per joist. Minor/accessible repairs run toward the low end, major structural work toward the high end. Whole-job totals (multiple joists, opening up floor/ceiling) run $1,000-10,000+.'),
+
+('framing_structural', 'Ceiling joist / structural rafter repair', 'job', 150.00, 700.00,
+  'Fixr', 'https://www.fixr.com/costs/ceiling-repair', '2026-11-15',
+  'Weaker sourcing and a unit deviation — no named source prices this per linear foot as originally hoped; this is a real per-job figure instead. Treat as a rough placeholder.'),
+
+('framing_structural', 'Structural engineer consultation/inspection visit', 'visit', 250.00, 1000.00,
+  'HomeGuide', 'https://homeguide.com/costs/structural-engineer-cost', '2026-11-15',
+  'Relevant whenever a load-bearing wall is involved. Full drawings/stamped plans push the total to $3,000+.'),
+
+('framing_structural', 'Room addition framing, shell only', 'SF', 6.00, 20.00,
+  'Angi', 'https://www.angi.com/articles/how-much-does-it-cost-add-room.htm', '2026-11-15',
+  'Structural frame only, no finishes/electrical/HVAC — those run far higher ($100-600+/SF) as a whole addition. Don''t confuse the two.'),
+
+('framing_structural', 'Exterior wall sheathing installation (OSB/plywood)', 'SF', 2.00, 8.00,
+  'Angi', 'https://www.angi.com/articles/cost-to-frame-house.htm', '2026-11-15',
+  'From a general house-framing guide, not a sheathing-specific page — no dedicated source was found to cross-check.'),
+
+-- ---------------------------------------------------------------------------
+-- DEMOLITION (new category)
+-- ---------------------------------------------------------------------------
+
+('demolition', 'Interior non-structural wall demolition (drywall partition)', 'SF', 0.30, 0.45,
+  'Fixr', 'https://www.fixr.com/costs/remove-wall', '2026-11-15',
+  'Per SF of wall surface, not floor area. Block or brick walls cost more — see masonry category if relevant.'),
+
+('demolition', 'Full room/house interior demolition, strip to studs', 'SF', 2.00, 8.00,
+  'HomeAdvisor', 'https://homeadvisor.com/cost/additions-and-remodels/gut-a-house', '2026-11-15',
+  'Per SF of floor area. Kitchens and bathrooms run higher per SF than other rooms.'),
+
+('demolition', 'Dumpster rental for demo debris', 'job', 294.00, 479.00,
+  'Angi', 'https://angi.com/articles/cost-dumpster-rental.htm', '2026-11-15',
+  'Standard container, one-week rental. Heavy debris (concrete, tile) hits weight limits faster and may need a smaller container or extra hauls.'),
+
+('demolition', 'Selective demolition labor, general', 'hour', 50.00, 100.00,
+  'Angi', 'https://angi.com/articles/demolition-cost-calculator.htm', '2026-11-15',
+  'Blended contractor rate for smaller-scope work not priced per-SF. Heavy equipment (excavator/bulldozer with operator) runs much higher, $100-250/hour.'),
+
+('demolition', 'Cabinet removal/demolition', 'LF', 15.00, 35.00,
+  'Angi', 'https://angi.com/articles/cabinet-removal-cost.htm', '2026-11-15',
+  null),
+
+('demolition', 'Flooring demolition/removal, tile', 'SF', 2.00, 7.00,
+  'Angi', 'https://angi.com/articles/whats-average-cost-remove-ceramic-tile.htm', '2026-11-15',
+  'Dust-free removal adds $3.50-7/SF. Asbestos-containing tile removal is far higher ($5-20/SF) and not covered by this item.'),
+
+-- ---------------------------------------------------------------------------
+-- MASONRY (new category)
+-- ---------------------------------------------------------------------------
+
+('masonry', 'Concrete block (CMU) wall construction, new', 'SF', 15.00, 30.00,
+  'HomeAdvisor', 'https://homeadvisor.com/cost/walls-and-ceilings/cinder-block-wall', '2026-11-15',
+  'Blended materials+labor rate. Interior block walls run lower, retaining walls higher.'),
+
+('masonry', 'Concrete block (CMU) wall repair/patch', 'SF', 10.00, 30.00,
+  'HomeGuide', 'https://homeguide.com/costs/repair-brick-masonry-work-cost', '2026-11-15',
+  'Weaker source — no block-specific repair page could be found; this is HomeGuide''s general/brick masonry-repair figure used as a reasonable proxy.'),
+
+('masonry', 'Brick veneer installation', 'SF', 12.00, 18.00,
+  'Fixr', 'https://www.fixr.com/costs/brick-or-stone-siding-installation', '2026-11-15',
+  'Standard brick veneer tier. Thin veneer runs cheaper, full-thickness solid brick runs higher.'),
+
+('masonry', 'Tuckpointing / mortar joint repair', 'SF', 5.00, 25.00,
+  'Angi', 'https://match.angi.com/cost/heating-and-cooling/repoint-or-tuckpoint', '2026-11-15',
+  'Work above 8 ft (needing scaffolding) runs higher, $8-30/SF.'),
+
+('masonry', 'Foundation crack repair (sealant/injection)', 'LF', 1.25, 4.00,
+  'Angi', 'https://angi.com/articles/how-much-does-foundation-repair-cost.htm', '2026-11-15',
+  'Basic sealant application. Epoxy injection for wider/structural cracks costs more, $8-12/SF (different unit/method).'),
+
+('masonry', 'Paver installation (patio or walkway)', 'SF', 8.00, 25.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/patios-and-walkways/interlocking-pavers', '2026-11-15',
+  'Interlocking pavers — a distinct material and technique from the poured-concrete driveway/patio already in the exterior category.'),
+
+-- ---------------------------------------------------------------------------
+-- APPLIANCES & FIXTURES (new category)
+-- ---------------------------------------------------------------------------
+
+('appliances_fixtures', 'Refrigerator installation/hookup, labor only', 'EA', 100.00, 300.00,
+  'HomeGuide', 'https://homeguide.com/costs/appliance-installation-costs', '2026-11-15',
+  'Standard hookup to existing water/power. If a new ice-maker water line must be run, add $75-200.'),
+
+('appliances_fixtures', 'Washer/dryer installation and hookup, labor only', 'job', 100.00, 300.00,
+  'HomeGuide', 'https://homeguide.com/costs/washer-and-dryer-installation-cost', '2026-11-15',
+  'Per pair, with existing hookups (water, drain, electrical, dryer vent already present). Jumps to $650-2,000 if new hookups must be run.'),
+
+('appliances_fixtures', 'Over-the-range microwave installation, labor only', 'EA', 100.00, 300.00,
+  'Angi', 'https://www.angi.com/articles/how-much-does-microwave-installation-cost.htm', '2026-11-15',
+  'Straightforward swap. Rises to $200-600+ if new ducting/venting is needed.'),
+
+('appliances_fixtures', 'Smoke detector / CO detector installation, hardwired', 'EA', 110.00, 400.00,
+  'Angi', 'https://www.angi.com/articles/smoke-detector-installation-cost.htm', '2026-11-15',
+  'CO detectors run a similar range.'),
+
+('appliances_fixtures', 'Garage door opener installation', 'EA', 218.00, 540.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/garages/install-a-garage-door-opener', '2026-11-15',
+  'Smart/jackshaft models run higher, up to ~$1,100.'),
+
+('appliances_fixtures', 'Skylight installation', 'EA', 1000.00, 3000.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/doors-and-windows/install-a-skylight', '2026-11-15',
+  'Fixed units sit mid-range; vented units trend toward the top.'),
+
+('appliances_fixtures', 'Water filtration faucet / under-sink filter installation', 'EA', 100.00, 580.00,
+  'Angi', 'https://www.angi.com/articles/cost-to-install-under-sink-water-filter.htm', '2026-11-15',
+  'Single-faucet point-of-use filter, distinct from the whole-house water softener/filtration system already in the plumbing category.'),
+
+('appliances_fixtures', 'Bidet attachment installation', 'EA', 100.00, 300.00,
+  'Fixr', 'https://www.fixr.com/costs/bidet-installation', '2026-11-15',
+  'Spray/attachment-style bidet fitted under an existing toilet seat, connected via a T-valve — no new drain/venting work.'),
+
+('appliances_fixtures', 'Doorbell / video doorbell installation', 'EA', 150.00, 650.00,
+  'Angi', 'https://www.angi.com/articles/doorbell-installation-cost.htm', '2026-11-15',
+  'Wired video/smart doorbells needing major rewiring can exceed $1,100.');
+
+-- ============================================================================
 -- End of seed file.
 -- ============================================================================

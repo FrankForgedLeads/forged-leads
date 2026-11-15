@@ -34,6 +34,10 @@ const CATEGORY_LABEL = {
   hvac: "HVAC",
   exterior: "Exterior",
   water_mitigation: "Water Mitigation / Mold",
+  framing_structural: "Framing & Structural",
+  demolition: "Demolition",
+  masonry: "Masonry",
+  appliances_fixtures: "Appliances & Fixtures",
 };
 
 // Just autocomplete suggestions for the room-name box below — typing
