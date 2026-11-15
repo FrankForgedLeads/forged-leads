@@ -26,6 +26,14 @@ const CATEGORY_LABEL = {
   kitchen: "Kitchen",
   bathroom: "Bathroom",
   roofing: "Roofing",
+  electrical: "Electrical",
+  plumbing: "Plumbing",
+  doors_windows: "Doors & Windows",
+  stairs_railings: "Stairs & Railings",
+  closets_storage: "Closets & Storage",
+  hvac: "HVAC",
+  exterior: "Exterior",
+  water_mitigation: "Water Mitigation / Mold",
 };
 
 // Just autocomplete suggestions for the room-name box below — typing

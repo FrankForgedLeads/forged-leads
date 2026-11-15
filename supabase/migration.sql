@@ -1507,7 +1507,11 @@ create policy "price_references_delete_admin" on public.price_references
 create table if not exists public.remodel_items (
   id uuid primary key default gen_random_uuid(),
   category text not null check (
-    category in ('general', 'kitchen', 'bathroom', 'roofing')
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation'
+    )
   ),
   description text not null,
   unit text not null, -- e.g. SF, LF, SQ, EA, job
@@ -1805,6 +1809,26 @@ create policy "company_logos_storage_delete" on storage.objects
     and (
       (storage.foldername(name))[1] = auth.uid()::text
       or public.is_admin()
+    )
+  );
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — expand remodel_items categories
+--
+-- Widens the category list beyond the original general/kitchen/bathroom/
+-- roofing set, per Frank's ask for a more complete catalog (electrical,
+-- plumbing, doors/windows, stairs/railings, closets, HVAC, exterior, and
+-- water mitigation/mold — the last one covers his restoration/water-
+-- mitigation business line too, not just remodel work).
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation'
     )
   );
 
