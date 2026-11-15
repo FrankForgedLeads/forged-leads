@@ -235,9 +235,9 @@ values
   'Angi / Baker Roofing', 'https://angi.com/articles/how-much-should-it-cost-replace-roof-vent-boots.htm', '2026-11-14',
   'A named contractor (Baker Roofing) quotes a flat $250/each; Angi''s state-level figures (FL-CA) run higher, $410-580 — range covers both.'),
 
-('roofing', 'Roof decking replacement', 'sheet (4x8)', 75.00, 160.00,
+('roofing', 'Roof decking replacement (CDX plywood or OSB)', 'sheet (4x8)', 75.00, 160.00,
   'HomeGuide', 'https://homeguide.com/costs/cost-to-replace-roof-decking', '2026-11-14',
-  'Per sheet, materials + labor.'),
+  'Per sheet, materials + labor. CDX plywood is the grade typically used here, though OSB is a cheaper common alternative.'),
 
 ('roofing', 'Gutter replacement, seamless aluminum', 'LF', 9.00, 13.00,
   'Angi', 'https://www.angi.com/articles/aluminum-gutter-cost.htm', '2026-11-14',
@@ -842,7 +842,7 @@ values
   'Angi', 'https://www.angi.com/articles/how-to-frame-door.htm', '2026-11-15',
   'Whole-opening price (header + jack/king studs + sill as applicable) as part of a wall modification, not an isolated header.'),
 
-('framing_structural', 'Subfloor replacement (plywood/OSB)', 'SF', 3.00, 8.00,
+('framing_structural', 'Subfloor replacement (CDX plywood or OSB)', 'SF', 3.00, 8.00,
   'Fixr', 'https://www.fixr.com/costs/replace-subfloor', '2026-11-15',
   'Costs rise sharply, $8-15/SF, if underlying joists also need repair — see floor joist repair below.'),
 
@@ -862,7 +862,7 @@ values
   'Angi', 'https://www.angi.com/articles/how-much-does-it-cost-add-room.htm', '2026-11-15',
   'Structural frame only, no finishes/electrical/HVAC — those run far higher ($100-600+/SF) as a whole addition. Don''t confuse the two.'),
 
-('framing_structural', 'Exterior wall sheathing installation (OSB/plywood)', 'SF', 2.00, 8.00,
+('framing_structural', 'Exterior wall sheathing installation (CDX plywood or OSB)', 'SF', 2.00, 8.00,
   'Angi', 'https://www.angi.com/articles/cost-to-frame-house.htm', '2026-11-15',
   'From a general house-framing guide, not a sheathing-specific page — no dedicated source was found to cross-check.'),
 
