@@ -963,5 +963,71 @@ values
   'Wired video/smart doorbells needing major rewiring can exceed $1,100.');
 
 -- ============================================================================
+-- Fourth pass — lighting fixture depth and small electrical accessories.
+-- Frank pointed out real estimates break "light fixture" into many distinct,
+-- differently-priced types (chandelier, pendant, flush-mount, track, sconce,
+-- vanity bar, outdoor, under-cabinet) plus fan/light combos, dimmer and
+-- 3-way switches, and cover plates — this catalog only had one generic
+-- fixture item before. Same discipline as always: independently sourced
+-- and worded, no Xactimate data.
+-- ============================================================================
+
+insert into public.remodel_items
+  (category, description, unit, price_low, price_high, source_name, source_url, last_verified_date, notes)
+values
+
+('electrical', 'Chandelier installation, existing ceiling box', 'EA', 350.00, 1250.00,
+  'Angi', 'https://angi.com/articles/chandelier-installation-cost.htm', '2026-11-15',
+  'Use low end for a simple swap onto an existing box, high end for heavier fixtures needing a reinforced box. Cost can run much wider ($100-4,000+) with new wiring or high ceilings.'),
+
+('electrical', 'Pendant light installation, single fixture', 'EA', 100.00, 300.00,
+  'Angi', 'https://www.angi.com/articles/how-much-does-it-cost-install-lighting-fixture.htm', '2026-11-15',
+  'Existing wiring/box, single pendant. Multi-light pendant clusters or high ceilings run considerably more.'),
+
+('electrical', 'Flush-mount or semi-flush ceiling light installation', 'EA', 70.00, 250.00,
+  'TaskRabbit', 'https://www.taskrabbit.com/cost-guides/light-installation', '2026-11-15',
+  'Like-for-like swap, no new wiring. Corroborated by a HomeGuide-sourced secondary citation in the same range.'),
+
+('electrical', 'Track lighting installation, per fixture head', 'EA', 80.00, 300.00,
+  'Angi', 'https://www.angi.com/articles/track-lighting-types.htm', '2026-11-15',
+  'Combines fixed-track and adjustable-track figures. Most sources price track lighting per fixture head rather than per linear foot.'),
+
+('electrical', 'Wall sconce installation', 'EA', 90.00, 450.00,
+  'Angi', 'https://angi.com/articles/how-much-does-it-cost-to-install-sconces.htm', '2026-11-15',
+  'Existing wiring/box. Average around $220/sconce.'),
+
+('electrical', 'Vanity/bathroom light bar installation', 'EA', 125.00, 450.00,
+  'CountBricks', 'https://www.countbricks.com/post/cost-to-install-bathroom-light-fixture', '2026-11-15',
+  'Weaker source — no major marketplace prices this specific fixture type separately; multi-bulb bar fixture over a mirror, existing wiring.'),
+
+('electrical', 'Outdoor/exterior light fixture installation', 'EA', 65.00, 250.00,
+  'Angi', 'https://www.angi.com/articles/outdoor-lighting-installation-cost.htm', '2026-11-15',
+  'Wall-mount porch/entry fixture, existing wiring. Cost rises substantially if new exterior wiring or conduit is needed.'),
+
+('electrical', 'Under-cabinet lighting installation', 'LF', 20.00, 100.00,
+  'Angi', 'https://angi.com/articles/under-cabinet-lighting-cost.htm', '2026-11-15',
+  'LED strip or puck lighting. Labor is 40-60% of total cost.'),
+
+('electrical', 'Ceiling fan with integrated light kit installation', 'EA', 195.00, 435.00,
+  'Angi', 'https://www.angi.com/articles/how-much-does-ceiling-fan-installation-cost/in/indianapolis', '2026-11-15',
+  'Fan-rated box, includes light-circuit wiring — distinct from the bare ceiling fan already in this catalog.'),
+
+('electrical', 'Dimmer switch installation', 'EA', 80.00, 200.00,
+  'Angi', 'https://angi.com/articles/how-much-does-it-cost-replace-light-switch.htm', '2026-11-15',
+  'Replacing an existing single-pole switch with a standard (non-smart) dimmer. Smart/specialty dimmers can run meaningfully higher.'),
+
+('electrical', '3-way or 4-way switch installation', 'EA', 75.00, 175.00,
+  'HomeAdvisor', 'https://homeadvisor.com/cost/electrical/install-a-switch', '2026-11-15',
+  'Multi-location circuit switch, existing wiring — distinct complexity from a basic single-pole switch replacement.'),
+
+('electrical', 'Outlet cover plate replacement', 'EA', 5.50, 30.00,
+  'HomeGuide', 'https://homeguide.com/costs/cost-to-replace-outlet-covers', '2026-11-15',
+  'A single-plate swap billed on its own (vs. bundled with other work) may run at the high end or above due to a typical trip-fee minimum.'),
+
+('electrical', 'Switch cover plate replacement', 'EA', 19.35, 50.51,
+  'Homewyse', 'https://www.homewyse.com/services/cost_to_replace_switch_plates.html', '2026-11-15',
+  'Weaker source — no major marketplace prices switch plates separately from outlet plates. Figure includes a labor-minimum assumption that likely runs high versus a plate swapped as part of a larger job.');
+
+-- ============================================================================
 -- End of seed file.
 -- ============================================================================
