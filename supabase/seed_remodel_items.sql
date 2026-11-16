@@ -245,7 +245,8 @@ values
 
 ('RFG-014', 'roofing', 'Roofing permit', 'job', 250.00, 500.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/architects-and-engineers/get-a-building-permit', '2026-11-14',
-  'Varies heavily by jurisdiction — local examples found range from $80 to $690. Treat this as a rough placeholder and confirm with the local permitting office.');
+  'Varies heavily by jurisdiction — local examples found range from $80 to $690. Treat this as a rough placeholder and confirm with the local permitting office.')
+on conflict (category, description) do nothing;
 
 -- ============================================================================
 -- Second pass — electrical, plumbing, doors_windows, stairs_railings,
@@ -575,7 +576,8 @@ values
 
 ('WTR-012', 'water_mitigation', 'Content pack-out and storage, per month', 'month', 150.00, 500.00,
   'Swivl', 'https://swivl.tech/cost-guide/packout-contents-restoration', '2026-11-15',
-  'Weaker source — a single non-marketplace contents-restoration cost-guide site with somewhat inconsistent figures across its own pages; used its most-repeated flat monthly band.');
+  'Weaker source — a single non-marketplace contents-restoration cost-guide site with somewhat inconsistent figures across its own pages; used its most-repeated flat monthly band.')
+on conflict (category, description) do nothing;
 
 -- ============================================================================
 -- Third pass — gaps found by reviewing 9 real third-party insurance
@@ -960,7 +962,8 @@ values
 
 ('APP-009', 'appliances_fixtures', 'Doorbell / video doorbell installation', 'EA', 150.00, 650.00,
   'Angi', 'https://www.angi.com/articles/doorbell-installation-cost.htm', '2026-11-15',
-  'Wired video/smart doorbells needing major rewiring can exceed $1,100.');
+  'Wired video/smart doorbells needing major rewiring can exceed $1,100.')
+on conflict (category, description) do nothing;
 
 -- ============================================================================
 -- Fourth pass — lighting fixture depth and small electrical accessories.
@@ -1026,7 +1029,8 @@ values
 
 ('ELE-025', 'electrical', 'Switch cover plate replacement', 'EA', 19.35, 50.51,
   'Homewyse', 'https://www.homewyse.com/services/cost_to_replace_switch_plates.html', '2026-11-15',
-  'Weaker source — no major marketplace prices switch plates separately from outlet plates. Figure includes a labor-minimum assumption that likely runs high versus a plate swapped as part of a larger job.');
+  'Weaker source — no major marketplace prices switch plates separately from outlet plates. Figure includes a labor-minimum assumption that likely runs high versus a plate swapped as part of a larger job.')
+on conflict (category, description) do nothing;
 
 -- ============================================================================
 -- Fifth pass — kitchen and bathroom depth. Frank pointed out both categories
@@ -1151,7 +1155,8 @@ values
 
 ('BTH-031', 'bathroom', 'Recessed shower niche/shelf installation', 'EA', 250.00, 950.00,
   'Angi', 'https://www.angi.com/articles/how-much-do-shower-accessories-cost.htm', '2026-11-15',
-  'Tiled-in storage niche built into the shower wall during framing/tiling. Upper bound drawn from a secondary corroborating source since Angi''s own figure is open-ended.');
+  'Tiled-in storage niche built into the shower wall during framing/tiling. Upper bound drawn from a secondary corroborating source since Angi''s own figure is open-ended.')
+on conflict (category, description) do nothing;
 
 -- ============================================================================
 -- Sixth pass — paint-detail gap fill, floor/wall protection & post-construction
@@ -1224,7 +1229,8 @@ values
 
 ('RFG-018', 'roofing', 'Starter course shingle installation (first row of shingles along the roof eave, priced as a distinct roofing step)', 'LF', 0.50, 2.00,
   'RoofCalc.org', 'https://www.roofcalc.org/roof-replacement-cost/', '2026-11-16',
-  'WEAK SOURCE — this is a materials-cost calculator figure, not an Angi/HomeAdvisor-grade contractor guide. Multiple roofing-industry sources state starter-strip labor is normally bundled into the overall roofing installation price and never broken out on its own; retail starter-shingle bundle pricing (GAF, CertainTeed) corroborates the low-to-mid end of this range.');
+  'WEAK SOURCE — this is a materials-cost calculator figure, not an Angi/HomeAdvisor-grade contractor guide. Multiple roofing-industry sources state starter-strip labor is normally bundled into the overall roofing installation price and never broken out on its own; retail starter-shingle bundle pricing (GAF, CertainTeed) corroborates the low-to-mid end of this range.')
+on conflict (category, description) do nothing;
 
 -- ============================================================================
 -- Seventh pass — paint category expanded to cover specific paintable objects
@@ -1451,7 +1457,8 @@ values
 
 ('FSR-007', 'fire_smoke_restoration', 'Ozone generator or thermal fogging deodorization treatment for smoke odor, charged as a flat service per room/floor', 'flat (per room/floor)', 200.00, 800.00,
   'Angi', 'https://www.angi.com/articles/how-much-does-ozone-smoke-odor-removal-cost.htm', '2026-11-16',
-  'Angi''s typical ozone range is $400-$800/treatment (as low as $200 for one room, up to $3,000 whole-home); HomeAdvisor/Angi separately price thermal fogging at $200-$600. This range blends both methods since the catalog item covers either — the two are priced somewhat differently and sometimes used in sequence.');
+  'Angi''s typical ozone range is $400-$800/treatment (as low as $200 for one room, up to $3,000 whole-home); HomeAdvisor/Angi separately price thermal fogging at $200-$600. This range blends both methods since the catalog item covers either — the two are priced somewhat differently and sometimes used in sequence.')
+on conflict (category, description) do nothing;
 
 -- ============================================================================
 -- End of seed file.
