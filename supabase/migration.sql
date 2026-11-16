@@ -1855,6 +1855,27 @@ alter table public.remodel_items add constraint remodel_items_category_check
   );
 
 -- ============================================================================
+-- REMODEL ESTIMATOR — dedupe + guard against accidental double-inserts
+--
+-- With many similar SQL Editor tabs open, Frank ran the same insert block
+-- twice by accident (confirmed by duplicate rows: same category+description
+-- appearing 2-4x). remodel_items had no unique constraint, so Postgres
+-- happily inserted exact duplicates. This removes any existing duplicates
+-- (keeping the oldest copy of each) and adds a constraint so re-running an
+-- insert by accident fails loudly instead of silently duplicating data.
+-- ============================================================================
+
+delete from public.remodel_items a
+using public.remodel_items b
+where a.category = b.category
+  and a.description = b.description
+  and a.created_at > b.created_at;
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_description_key;
+alter table public.remodel_items add constraint remodel_items_category_description_key
+  unique (category, description);
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
