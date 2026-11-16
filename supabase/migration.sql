@@ -1506,6 +1506,7 @@ create policy "price_references_delete_admin" on public.price_references
 
 create table if not exists public.remodel_items (
   id uuid primary key default gen_random_uuid(),
+  code text,
   category text not null check (
     category in (
       'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
@@ -1934,6 +1935,79 @@ update public.remodel_items set category = 'hardware_accessories' where category
 update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Curtain rod and bracket installation, per window';
 update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Door threshold installation or replacement';
 update public.remodel_items set category = 'doors_windows' where category = 'general' and description = 'Interior door replacement, incl. hardware';
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — reference codes + fire/smoke restoration category
+-- ----------------------------------------------------------------------------
+-- Adds a short, independently-invented reference code to every catalog item
+-- (e.g. "PNT-004") purely so the Remodel item picker can show a code next to
+-- the description for faster browsing. This is NOT modeled on any
+-- third-party estimating software's coding scheme — it's just our own
+-- category abbreviation (see CATEGORY_LABEL in RemodelEstimateDetail.jsx)
+-- plus a running number, assigned here by each row's creation order within
+-- its category so it stays stable without hand-listing every row.
+--
+-- Also adds "fire_smoke_restoration" as its own category — a real gap found
+-- by re-reading a fire-damage insurance estimate: cleaning/deodorizing a
+-- fixture after smoke damage (without replacing it) is a distinct service
+-- with its own pricing, and didn't fit any existing category.
+-- ============================================================================
+
+alter table public.remodel_items add column if not exists code text;
+
+with ranked as (
+  select id, category,
+         row_number() over (partition by category order by created_at) as rn
+  from public.remodel_items
+  where code is null
+)
+update public.remodel_items r
+set code = (
+  case ranked.category
+    when 'paint' then 'PNT'
+    when 'drywall_texture' then 'DRY'
+    when 'flooring' then 'FLR'
+    when 'trim_molding' then 'TRM'
+    when 'kitchen' then 'KIT'
+    when 'bathroom' then 'BTH'
+    when 'doors_windows' then 'DOR'
+    when 'hardware_accessories' then 'HRD'
+    when 'electrical' then 'ELE'
+    when 'plumbing' then 'PLM'
+    when 'insulation' then 'INS'
+    when 'stairs_railings' then 'STR'
+    when 'closets_storage' then 'CLS'
+    when 'hvac' then 'HVC'
+    when 'roofing' then 'RFG'
+    when 'exterior' then 'EXT'
+    when 'framing_structural' then 'FRM'
+    when 'demolition' then 'DMO'
+    when 'masonry' then 'MAS'
+    when 'appliances_fixtures' then 'APP'
+    when 'water_mitigation' then 'WTR'
+    when 'general' then 'GEN'
+    when 'fire_smoke_restoration' then 'FSR'
+    else upper(left(ranked.category, 3))
+  end
+) || '-' || lpad(ranked.rn::text, 3, '0')
+from ranked
+where ranked.id = r.id;
+
+alter table public.remodel_items drop constraint if exists remodel_items_code_key;
+alter table public.remodel_items add constraint remodel_items_code_key unique (code);
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories',
+      'fire_smoke_restoration'
+    )
+  );
 
 -- ============================================================================
 -- End of migration.

@@ -43,6 +43,7 @@ const CATEGORY_LABEL = {
   masonry: "Masonry",
   appliances_fixtures: "Appliances & Fixtures",
   water_mitigation: "Water Mitigation / Mold",
+  fire_smoke_restoration: "Fire & Smoke Restoration",
   general: "Protection, Cleaning & Content Manipulation",
 };
 
@@ -500,6 +501,7 @@ function AddItemForm({ roomId, catalog, onAdded }) {
                   <option value="">Select…</option>
                   {itemsInCategory.map((it) => (
                     <option key={it.id} value={it.id}>
+                      {it.code ? `${it.code} — ` : ""}
                       {it.description} ({it.unit})
                     </option>
                   ))}
