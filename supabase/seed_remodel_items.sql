@@ -1154,5 +1154,78 @@ values
   'Tiled-in storage niche built into the shower wall during framing/tiling. Upper bound drawn from a secondary corroborating source since Angi''s own figure is open-ended.');
 
 -- ============================================================================
+-- Sixth pass — paint-detail gap fill, floor/wall protection & post-construction
+-- cleaning, and a handful of exterior/doors/roofing items found while cross-
+-- referencing real estimates against the catalog. Routed into the new trade
+-- categories added in the "general" category split rather than into
+-- "general" itself, except the protection/cleaning items, which are genuine
+-- prep & logistics work.
+-- ============================================================================
+
+insert into public.remodel_items
+  (category, description, unit, price_low, price_high, source_name, source_url, last_verified_date, notes)
+values
+
+('paint', 'Paint door slab only, 2 coats, per side (door panel only — excludes frame, jamb, and casing; distinct from the bundled door + casing item)', 'side (EA)', 112.00, 205.00,
+  'Fixr', 'https://www.fixr.com/costs/paint-exterior-doors', '2026-11-16',
+  'Snippet-derived. Fixr''s published one-side/both-sides table is for an exterior door (80"x36"); no source isolates one-side pricing for an interior door specifically, so treat this as an upper-bound/exterior-grade benchmark — a full both-sides-plus-casing interior door job runs roughly $70-$300 total per Fixr/HomeGuide, which implies a lower per-side figure for interior-only work.'),
+
+('paint', 'Paint existing door/window casing or trim only, 2 coats (painting existing trim — distinct from installing new casing or the bundled door+casing item)', 'LF', 1.00, 6.00,
+  'Angi', 'https://www.angi.com/articles/paint-trim-cost.htm', '2026-11-16',
+  'Snippet-derived. Corroborated by HomeAdvisor ($1-$4/LF). Angi''s figure is for trim generally (casing, crown, fascia combined) — no source isolates casing as its own rate, so this is a reasonable but not casing-exclusive number. Interior trim trends toward the low end, hard-to-reach exterior trim toward the high end.'),
+
+('paint', 'Paint baseboard only, 2 coats (standalone baseboard painting, not bundled into a per-door price)', 'LF', 1.00, 5.00,
+  'Angi', 'https://www.angi.com/articles/baseboard-painting-cost.htm', '2026-11-16',
+  'Snippet-derived. Corroborated by HomeAdvisor ($1-$4/LF); a Thumbtack Q&A noted some markets price as low as $0.50/LF for labor-only work, below this range.'),
+
+('paint', 'Primer/sealer application on walls or ceiling, standalone prep coat (prep step performed before the paint coats, priced separately from the full 2-coat job)', 'SF', 0.10, 0.50,
+  'Zarla (citing HomeAdvisor)', 'https://www.zarla.com/guides/drywall-pricing', '2026-11-16',
+  'WEAK SOURCE — secondhand citation; HomeAdvisor''s own painting guides bundle primer into their all-in per-sqft price rather than pricing it standalone, and no independent fetch confirmed the number directly. Informal corroboration only (not a cited source) clusters in the $0.25-$0.70/SF range. Consider this a placeholder until a stronger source turns up.'),
+
+('paint', 'Popcorn/texture ceiling, new spray application (applying new texture — distinct from the existing popcorn ceiling removal item)', 'SF', 1.00, 1.60,
+  'HomeGuide', 'https://homeguide.com/costs/cost-to-texture-drywall', '2026-11-16',
+  'Snippet-derived, two corroborating sources (HomeGuide and a HomeAdvisor subsection on spray-texture application). Includes prep and the spray application itself.'),
+
+('paint', 'Wood wall paneling — seal and paint, 2 coats (existing interior paneling, e.g. garage or den)', 'SF', 1.95, 4.02,
+  'Homewyse', 'https://www.homewyse.com/services/cost_to_paint_wood_paneling.html', '2026-11-16',
+  'Snippet-derived national average. Includes prep, caulking, one primer coat, and two paint coats.'),
+
+('paint', 'Crown molding painting, 2 coats (paint only, distinct from installing new crown molding)', 'LF', 2.10, 4.45,
+  'Homewyse', 'https://www.homewyse.com/services/cost_to_paint_crown_molding.html', '2026-11-16',
+  'Snippet-derived national average. Corroborated by Angi ($1-$3.50/LF on a crown-molding-specific guide, $1-$5/LF on a general trim guide).'),
+
+('general', 'Floor protective covering — plastic sheeting taped down over finished flooring to shield it while other trades work in the room', 'SF', 0.10, 0.50,
+  'DG Floors', 'https://dgfloors.com/temporary-floor-protection/', '2026-11-16',
+  'Snippet-derived, and the only source found with a dedicated floor-protection pricing breakdown; it is a flooring contractor''s materials guide (disposable sheeting $0.02-$0.05/SF up to heavier Ram Board/reusable corrugated plastic $0.25-$0.60/SF), not an itemized installed-labor rate. No source prices floor masking as a standalone labor+material line separate from the overall job.'),
+
+('general', 'Post-construction floor cleaning — detailed sweep, mop, and debris removal after renovation work, beyond routine housecleaning', 'SF', 0.15, 0.60,
+  'HomeGuide', 'https://homeguide.com/costs/post-construction-cleaning-rates', '2026-11-16',
+  'Snippet-derived; combines HomeGuide''s rough-clean ($0.15-$0.40/SF) and final-clean ($0.20-$0.60/SF) figures. Corroborated by Fixr (same range) and in the same ballpark as Angi (~$0.25/SF avg) and HomeAdvisor ($0.10-$0.50/SF).'),
+
+('general', 'Post-construction wall cleaning — removal of construction dust, drywall residue, and handprints from walls after renovation work', 'SF', 0.50, 0.60,
+  'Angi', 'https://angi.com/articles/how-much-does-it-cost-clean-walls-and-ceilings.htm', '2026-11-16',
+  'Snippet-derived. Corroborated by HomeAdvisor (same range) and Fixr (~$0.50/SF). This is Angi''s general professional wall-cleaning guide, not one labeled "post-construction" specifically, but it''s the closest real per-sqft figure available.'),
+
+('general', 'Post-construction ceiling cleaning — removal of construction dust and debris from ceiling surfaces after renovation work', 'SF', 0.50, 0.60,
+  'Angi / HomeAdvisor', 'https://homeadvisor.com/cost/cleaning-services/clean-walls-and-ceilings', '2026-11-16',
+  'Snippet-derived. This source bundles ceiling cleaning into the same wall-cleaning rate rather than pricing it as a distinct line (it separately mentions a $25-$100/room ceiling add-on as an alternative framing); no source prices ceilings fully standalone, so the bundled rate is used here.'),
+
+('exterior', 'Fascia board replacement (trim board along the roofline edge), materials and labor', 'LF', 7.00, 22.00,
+  'Angi', 'https://www.angi.com/articles/fascia-cost.htm', '2026-11-16',
+  'Snippet-derived, average cited around $14.60/LF. Corroborated by an older HomeAdvisor archive page ($6-$20/LF). Material drives the price: wood $1-$3, PVC $3-$7, vinyl $5-$9, aluminum $8-$20 per LF.'),
+
+('exterior', 'Gutter guard installation (mesh/screen guards added to existing gutters, distinct from gutter replacement)', 'LF', 6.00, 13.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/gutters/gutter-guards', '2026-11-16',
+  'Snippet-derived, average cited around $9/LF installed. This Old House''s 2025 homeowner survey found a higher average (~$16/LF), and branded systems (e.g. LeafFilter) run higher still — this range reflects standard professional installation, not premium branded systems.'),
+
+('doors_windows', 'Garage door track replacement (one track, including realignment/reinstallation)', 'EA', 232.00, 420.00,
+  'Homewyse', 'https://www.homewyse.com/maintenance_costs/cost_to_repair_garage_door_track.html', '2026-11-16',
+  'Snippet-derived, localized by zip code on the actual calculator so local figures will vary. Other sources gave notably lower figures (Angi ~$120-$200), likely reflecting a bare replacement part vs. a full track repair with labor — flagging the spread honestly.'),
+
+('roofing', 'Starter course shingle installation (first row of shingles along the roof eave, priced as a distinct roofing step)', 'LF', 0.50, 2.00,
+  'RoofCalc.org', 'https://www.roofcalc.org/roof-replacement-cost/', '2026-11-16',
+  'WEAK SOURCE — this is a materials-cost calculator figure, not an Angi/HomeAdvisor-grade contractor guide. Multiple roofing-industry sources state starter-strip labor is normally bundled into the overall roofing installation price and never broken out on its own; retail starter-shingle bundle pricing (GAF, CertainTeed) corroborates the low-to-mid end of this range.');
+
+-- ============================================================================
 -- End of seed file.
 -- ============================================================================
