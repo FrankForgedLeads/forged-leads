@@ -1227,5 +1227,68 @@ values
   'WEAK SOURCE — this is a materials-cost calculator figure, not an Angi/HomeAdvisor-grade contractor guide. Multiple roofing-industry sources state starter-strip labor is normally bundled into the overall roofing installation price and never broken out on its own; retail starter-shingle bundle pricing (GAF, CertainTeed) corroborates the low-to-mid end of this range.');
 
 -- ============================================================================
+-- Seventh pass — paint category expanded to cover specific paintable objects
+-- (garage doors, French doors, exterior doors, shutters, window frames,
+-- soffit/fascia, fences, decks, railings, siding, stucco, cabinet
+-- refinishing, garage walls), not just generic wall/ceiling SF rates.
+-- ============================================================================
+
+insert into public.remodel_items
+  (category, description, unit, price_low, price_high, source_name, source_url, last_verified_date, notes)
+values
+
+('paint', 'Sectional overhead garage door painting, exterior, per door (standard 1- or 2-car size)', 'EA', 200.00, 500.00,
+  'Angi', 'https://www.angi.com/articles/cost-paint-garage-door.htm', '2026-11-16',
+  'Snippet-derived. Corroborated by HomeAdvisor (same range, ~$350 avg) and Homewyse''s per-SF rate ($2.05-$4.06/SF, lands in this range for a typical door). A 3-car/double door runs $300-$750 per Angi — treat as a size upcharge, not a separate line.'),
+
+('paint', 'French door / multi-pane glass door painting, including masking and protecting glass panes and muntins, per door', 'EA', 200.00, 400.00,
+  'HomeGuide', 'https://homeguide.com/costs/cost-to-paint-a-door', '2026-11-16',
+  'Snippet-derived. Corroborated by Fixr ($200-$300). A weaker secondary source suggests heavily-divided-pane doors with prior peeling can run $450-$700, and prices masking/glass protection separately at $30-$120/door as an add-on — not used as the primary figure.'),
+
+('paint', 'Solid exterior entry door painting, both sides, including minor prep, per door', 'EA', 125.00, 225.00,
+  'HomeGuide', 'https://homeguide.com/costs/cost-to-paint-a-door', '2026-11-16',
+  'Snippet-derived. HomeGuide''s standard front-door figure (back/side door runs lower, $100-$175; double front doors $250-$400). Corroborated by Fixr (avg $156, $112-$205) and Homewyse ($177-$362/door). Distinct from the existing generic interior "paint door slab only per side" item.'),
+
+('paint', 'Exterior shutter painting, pair (both shutters for one window opening), including light prep', 'pair', 200.00, 500.00,
+  'Angi', 'https://www.angi.com/articles/cost-to-paint-shutters.htm', '2026-11-16',
+  'Snippet-derived, avg ~$350/pair. Real cross-source disagreement: HomeGuide gives a lower $100-$200/set, Homeyou $139-$249/pair, Fixr prices per single shutter ($35-$95, implying ~$70-$190/pair). Local quotes vary by material (wood vs. vinyl), size, and second-story access.'),
+
+('paint', 'Window frame and sash painting, interior or exterior, per window (both sashes/frame, excludes glazing/repair)', 'EA', 45.00, 150.00,
+  'HomeGuide', 'https://homeguide.com/costs/cost-to-paint-trim-baseboards', '2026-11-16',
+  'Snippet-derived exterior window frame figure. Weaker secondhand corroboration suggests interior-only runs lower (~$50-$175) and full exterior+interior combined can run $125-$400. Rot repair or sash rebuild is a separate, higher-cost scope and not included here.'),
+
+('paint', 'Soffit and fascia painting, per linear foot of board (exterior trim)', 'LF', 2.00, 7.00,
+  'HomeGuide', 'https://homeguide.com/costs/cost-to-paint-soffit-and-fascia', '2026-11-16',
+  'Snippet-derived. HomeGuide gives $2-$7/LF painted separately, $4-$14/LF when soffit and fascia are painted together in the same job. Corroborated by Angi ($3-$6/LF).'),
+
+('paint', 'Exterior wood fence painting or staining, per linear foot (picket to privacy-height fencing)', 'LF', 2.00, 10.00,
+  'Angi', 'https://www.angi.com/articles/stain-paint-fence-cost.htm', '2026-11-16',
+  'Snippet-derived: $2-$5/LF picket fence, up to $10/LF privacy fence. Corroborated closely by HomeGuide. Height is the main cost driver.'),
+
+('paint', 'Deck painting or staining, including pressure-washing prep, per square foot', 'SF', 2.00, 6.00,
+  'Fixr', 'https://www.fixr.com/costs/paint-deck', '2026-11-16',
+  'Snippet-derived, $3-$6/SF for painting specifically; staining alone runs slightly lower per Homewyse ($2.31-$4.47/SF) and Inch Calculator ($2-$5/SF combined). Pressure washing and sanding are commonly billed as separate prep items, not included here.'),
+
+('paint', 'Metal / wrought-iron railing painting, including rust spot-treatment, per linear foot', 'LF', 5.00, 12.00,
+  'HomeAdvisor', 'https://www.homeadvisor.com/cost/painting/paint-stain-fence', '2026-11-16',
+  'Snippet-derived, corroborated by Angi (same range). Both note wrought iron costs more than wood due to prep (scraping/rust removal). Heavy rust removal is billed separately at $7-$10/LF per the same sources and shouldn''t be double-counted with this line.'),
+
+('paint', 'Exterior siding painting — wood, vinyl, or fiber cement, per square foot (primer where needed)', 'SF', 1.00, 3.50,
+  'Inch Calculator', 'https://inchcalculator.com/exterior-siding-painting-cost-guide', '2026-11-16',
+  'Snippet-derived. Inch Calculator and Angi cluster wood/vinyl at ~$1-$3/SF and fiber cement at ~$1.20-$3.20/SF. Vinyl siding typically needs a bonding primer first, which may warrant its own line if frequently needed.'),
+
+('paint', 'Stucco exterior painting, typical acrylic/elastomeric coating, per square foot', 'SF', 1.80, 3.60,
+  'Angi', 'https://www.angi.com/articles/cost-to-paint-stucco-house.htm', '2026-11-16',
+  'Snippet-derived "typical" band. Angi also breaks out by product: acrylic $1-$5.50/SF, fog coat $1.30-$6/SF, masonry paint $1.25-$7/SF, premium color-coat finish $1.50-$8/SF. Corroborated by HomeGuide ($1.00-$5.50/SF overall). A premium finish could run well above this range.'),
+
+('paint', 'Kitchen cabinet refinishing/repainting — existing cabinets, door-and-drawer-front prep, sand, prime, spray or hand finish, per door', 'EA', 70.00, 175.00,
+  'Angi', 'https://www.angi.com/articles/how-much-does-it-cost-paint-kitchen-cabinets.htm', '2026-11-16',
+  'Snippet-derived. Corroborated by Improovy, a named cabinet-painting contractor (~$165-$175/door, ~$95-$100/drawer face). Often quoted per linear foot instead: Angi $30-$60/LF, Fixr $30-$70/LF — use that unit if preferred. Distinct from any new-cabinet-installation line. Cross-source spread by region/prep level runs as low as $40 and as high as $250/door.'),
+
+('paint', 'Garage interior wall painting on unfinished drywall or exposed CMU/cinder block (requires block-filler or extra-coat prep beyond a standard finished-drywall wall), per square foot', 'SF', 1.50, 4.50,
+  'CountBricks', 'https://www.countbricks.com/post/cost-to-paint-a-garage', '2026-11-16',
+  'WEAK SOURCE — single promotional source, could not be independently corroborated for the painting-specific figure (splits as $1.50-$3.50/SF drywall, $2.20-$4.50/SF CMU block, combined here). If you''re not comfortable with single-source pricing, drop this and use the generic "paint walls" SF item for garage walls instead.');
+
+-- ============================================================================
 -- End of seed file.
 -- ============================================================================
