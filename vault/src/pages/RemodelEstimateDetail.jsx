@@ -43,7 +43,7 @@ const CATEGORY_LABEL = {
   masonry: "Masonry",
   appliances_fixtures: "Appliances & Fixtures",
   water_mitigation: "Water Mitigation / Mold",
-  general: "General / Prep & Logistics",
+  general: "Protection, Cleaning & Content Manipulation",
 };
 
 // Just autocomplete suggestions for the room-name box below — typing
