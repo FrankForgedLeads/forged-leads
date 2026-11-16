@@ -1876,6 +1876,66 @@ alter table public.remodel_items add constraint remodel_items_category_descripti
   unique (category, description);
 
 -- ============================================================================
+-- REMODEL ESTIMATOR — split the "general" catch-all into real sub-categories
+--
+-- "general" had grown into ~40 unrelated items (paint, drywall, flooring,
+-- trim, insulation, hardware, window treatments) — unusable as a single
+-- dropdown bucket. Splits it into paint, drywall_texture, flooring,
+-- trim_molding, insulation, hardware_accessories, with one item moved into
+-- the existing doors_windows category. "general" stays as a small
+-- prep/logistics bucket (masking, cleaning, content moving, rentals).
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories'
+    )
+  );
+
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Paint walls, 2 coats';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Paint ceiling, 2 coats';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Wall texture, knockdown or orange peel';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Interior door/trim painting, 2 coats';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Popcorn/texture ceiling removal, non-asbestos';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Wood stain and finish application (trim, doors, baseboard, handrail)';
+update public.remodel_items set category = 'drywall_texture' where category = 'general' and description = 'Drywall installation, new';
+update public.remodel_items set category = 'drywall_texture' where category = 'general' and description = 'Drywall repair/patch';
+update public.remodel_items set category = 'drywall_texture' where category = 'general' and description = 'Skim coat drywall finish';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring, luxury vinyl plank';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring, ceramic/porcelain tile';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring, engineered hardwood';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring, carpet';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Floor leveling / self-leveling compound application';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Hardwood floor sanding and refinishing (existing floor)';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring underlayment / vapor barrier installation';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Laminate flooring installation';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Tile grout removal and regrouting';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Tile grout sealing (sealant only, no regrouting)';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Baseboard/trim installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Crown molding installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Wainscoting or beadboard installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Chair rail installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Shoe molding or quarter-round trim installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Door or window casing trim installation';
+update public.remodel_items set category = 'insulation' where category = 'general' and description = 'Insulation, batt (R-13 to R-30)';
+update public.remodel_items set category = 'insulation' where category = 'general' and description = 'Spray foam insulation';
+update public.remodel_items set category = 'insulation' where category = 'general' and description = 'Blown-in insulation, attic';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Cabinet/furniture hardware installation (knobs, pulls)';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Deadbolt lock installation or replacement';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Interior door knob/lever handle replacement';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Door peephole installation';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Window blinds installation, per window';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Curtain rod and bracket installation, per window';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Door threshold installation or replacement';
+update public.remodel_items set category = 'doors_windows' where category = 'general' and description = 'Interior door replacement, incl. hardware';
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

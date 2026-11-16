@@ -35,59 +35,59 @@ values
 -- GENERAL (applies to any room)
 -- ---------------------------------------------------------------------------
 
-('general', 'Paint walls, 2 coats', 'SF', 2.00, 6.00,
+('paint', 'Paint walls, 2 coats', 'SF', 2.00, 6.00,
   'Angi', 'https://www.angi.com/articles/how-much-does-it-cost-paint-room.htm', '2026-11-14',
   'Materials + labor, 2 coats.'),
 
-('general', 'Paint ceiling, 2 coats', 'SF', 0.50, 5.00,
+('paint', 'Paint ceiling, 2 coats', 'SF', 0.50, 5.00,
   'Angi', 'https://www.angi.com/articles/paint-ceiling-cost.htm', '2026-11-14',
   null),
 
-('general', 'Drywall installation, new', 'SF', 1.50, 3.00,
+('drywall_texture', 'Drywall installation, new', 'SF', 1.50, 3.00,
   'Angi', 'https://www.angi.com/articles/what-cost-install-drywall.htm', '2026-11-14',
   'Same figure already used on Vault''s Pricing Reference page.'),
 
-('general', 'Drywall repair/patch', 'job', 295.00, 924.00,
+('drywall_texture', 'Drywall repair/patch', 'job', 295.00, 924.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/walls-and-ceilings/repair-drywall', '2026-11-14',
   'Typical single repair job, not per-SF — small jobs often carry a $125-200 minimum trip fee on top.'),
 
-('general', 'Wall texture, knockdown or orange peel', 'SF', 1.25, 2.50,
+('paint', 'Wall texture, knockdown or orange peel', 'SF', 1.25, 2.50,
   'Angi', 'https://www.angi.com/articles/orange-peel-vs-knockdown-paint-textures.htm', '2026-11-14',
   null),
 
-('general', 'Baseboard/trim installation', 'LF', 6.00, 9.00,
+('trim_molding', 'Baseboard/trim installation', 'LF', 6.00, 9.00,
   'Angi', 'https://angi.com/articles/how-much-does-installing-trim-cost.htm', '2026-11-14',
   null),
 
-('general', 'Crown molding installation', 'LF', 14.00, 22.00,
+('trim_molding', 'Crown molding installation', 'LF', 14.00, 22.00,
   'HomeWyse', 'https://www.homewyse.com/services/cost_to_install_crown_molding.html', '2026-11-14',
   'No current dated Angi/HomeAdvisor page found — best available estimate, not a marketplace-confirmed figure.'),
 
-('general', 'Interior door replacement, incl. hardware', 'EA', 150.00, 2550.00,
+('doors_windows', 'Interior door replacement, incl. hardware', 'EA', 150.00, 2550.00,
   'Angi', 'https://angi.com/articles/how-much-does-it-cost-install-interior-door.htm', '2026-11-14',
   'National average around $791; wide range reflects hollow-core vs. solid-wood/French doors.'),
 
-('general', 'Flooring, luxury vinyl plank', 'SF', 3.00, 10.00,
+('flooring', 'Flooring, luxury vinyl plank', 'SF', 3.00, 10.00,
   'Angi', 'https://angi.com/articles/how-much-does-installing-vinyl-or-linoleum-flooring-cost.htm', '2026-11-14',
   'Sourced from a 2024-dated Angi page — re-verify against a current page before relying on this heavily.'),
 
-('general', 'Flooring, ceramic/porcelain tile', 'SF', 5.00, 17.00,
+('flooring', 'Flooring, ceramic/porcelain tile', 'SF', 5.00, 17.00,
   'Angi', 'https://match.angi.com/cost/flooring/install-ceramic-or-porcelain-tile', '2026-11-14',
   null),
 
-('general', 'Flooring, engineered hardwood', 'SF', 7.00, 20.00,
+('flooring', 'Flooring, engineered hardwood', 'SF', 7.00, 20.00,
   'BuildDirect (citing Angi)', 'https://www.builddirect.com/blogs/expert-advice-on-flooring/how-much-does-new-flooring-cost', '2026-11-14',
   'Secondhand citation of Angi data, not independently confirmed on Angi''s own page.'),
 
-('general', 'Flooring, carpet', 'SF', 3.50, 11.00,
+('flooring', 'Flooring, carpet', 'SF', 3.50, 11.00,
   'Angi', 'https://match.angi.com/cost/flooring/install-carpeting', '2026-11-14',
   null),
 
-('general', 'Interior door/trim painting, 2 coats', 'EA', 100.00, 350.00,
+('paint', 'Interior door/trim painting, 2 coats', 'EA', 100.00, 350.00,
   'Angi', 'https://www.angi.com/articles/paint-trim-cost.htm', '2026-11-14',
   'Per door, including frame/casing. Trim-only (no door) runs roughly $1-4/LF instead.'),
 
-('general', 'Insulation, batt (R-13 to R-30)', 'SF', 0.60, 1.40,
+('insulation', 'Insulation, batt (R-13 to R-30)', 'SF', 0.60, 1.40,
   'HomeAdvisor', 'https://homeadvisor.com/cost/insulation/install-insulation', '2026-11-14',
   'R-13/R-15 walls run toward the low end, R-30 attic toward the high end. No current Angi page found to cross-check.'),
 
@@ -602,79 +602,79 @@ values
 -- GENERAL (additions)
 -- ---------------------------------------------------------------------------
 
-('general', 'Floor leveling / self-leveling compound application', 'SF', 2.00, 5.00,
+('flooring', 'Floor leveling / self-leveling compound application', 'SF', 2.00, 5.00,
   'HomeGuide', 'https://homeguide.com/costs/concrete-leveling-cost', '2026-11-15',
   'Light subfloor-prep leveling before new flooring, not structural/foundation leveling. Corroborated by a similar Angi materials-only figure.'),
 
-('general', 'Hardwood floor sanding and refinishing (existing floor)', 'SF', 3.00, 8.00,
+('flooring', 'Hardwood floor sanding and refinishing (existing floor)', 'SF', 3.00, 8.00,
   'Angi', 'https://match.angi.com/cost/flooring/refinish-wood-flooring', '2026-11-15',
   'Oak/cherry run the low end, maple/mahogany the high end. Distinct from new hardwood installation already in this catalog.'),
 
-('general', 'Popcorn/texture ceiling removal, non-asbestos', 'SF', 1.00, 6.00,
+('paint', 'Popcorn/texture ceiling removal, non-asbestos', 'SF', 1.00, 6.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/walls-and-ceilings/remove-popcorn-ceiling', '2026-11-15',
   'Assumes no asbestos present. If the texture is pre-1980s, test for asbestos first — abatement runs far higher ($5-20/SF) and is a separate job.'),
 
-('general', 'Tile grout removal and regrouting', 'SF', 5.00, 25.00,
+('flooring', 'Tile grout removal and regrouting', 'SF', 5.00, 25.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/cabinets-and-countertops/regrout-tile', '2026-11-15',
   'Shower tile runs toward the high end, wall tile toward the low end.'),
 
-('general', 'Tile grout sealing (sealant only, no regrouting)', 'SF', 0.50, 1.50,
+('flooring', 'Tile grout sealing (sealant only, no regrouting)', 'SF', 0.50, 1.50,
   'HomeGuide', 'https://homeguide.com/costs/cost-to-regrout-tile', '2026-11-15',
   'Materials-focused figure. Generally needed for cement-based grout but not epoxy grout. Distinct job and price point from full regrouting above.'),
 
-('general', 'Wainscoting or beadboard installation', 'SF', 5.00, 20.00,
+('trim_molding', 'Wainscoting or beadboard installation', 'SF', 5.00, 20.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/walls-and-ceilings/install-wainscoting-or-beadboard', '2026-11-15',
   'MDF/PVC panels toward the low end, solid wood/custom toward the high end.'),
 
-('general', 'Chair rail installation', 'LF', 1.00, 6.00,
+('trim_molding', 'Chair rail installation', 'LF', 1.00, 6.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/siding/install-trim/', '2026-11-15',
   'Weaker sourcing — this HomeAdvisor figure reads as materials-focused; blended with a Thumbtack contractor quote (~$4.50/LF installed) to approximate a real job cost.'),
 
-('general', 'Cabinet/furniture hardware installation (knobs, pulls)', 'EA', 5.00, 30.00,
+('hardware_accessories', 'Cabinet/furniture hardware installation (knobs, pulls)', 'EA', 5.00, 30.00,
   'Angi', 'https://angi.com/articles/how-much-does-it-cost-install-cabinet-hardware.htm', '2026-11-15',
   'Labor only — hardware itself is a separate material cost or customer-supplied.'),
 
-('general', 'Spray foam insulation', 'SF', 1.00, 5.00,
+('insulation', 'Spray foam insulation', 'SF', 1.00, 5.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/insulation/install-spray-foam-insulation', '2026-11-15',
   'Covers both open-cell (lower) and closed-cell (higher) product types. Distinct from the batt insulation already in this catalog.'),
 
-('general', 'Blown-in insulation, attic', 'SF', 1.00, 4.00,
+('insulation', 'Blown-in insulation, attic', 'SF', 1.00, 4.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/heating-and-cooling/attic-insulation', '2026-11-15',
   'Loose-fill cellulose or fiberglass, installed. Cellulose runs toward the high end.'),
 
-('general', 'Deadbolt lock installation or replacement', 'EA', 70.00, 300.00,
+('hardware_accessories', 'Deadbolt lock installation or replacement', 'EA', 70.00, 300.00,
   'Angi', 'https://angi.com/articles/how-much-does-it-cost-install-deadbolt-locks.htm', '2026-11-15',
   'Smart/high-security deadbolts run above this range.'),
 
-('general', 'Interior door knob/lever handle replacement', 'EA', 100.00, 250.00,
+('hardware_accessories', 'Interior door knob/lever handle replacement', 'EA', 100.00, 250.00,
   'HomeGuide', 'https://homeguide.com/costs/door-knob-replacement-cost', '2026-11-15',
   'Hardware swap only, distinct from a full door replacement already in this catalog.'),
 
-('general', 'Door peephole installation', 'EA', 85.00, 225.00,
+('hardware_accessories', 'Door peephole installation', 'EA', 85.00, 225.00,
   'CountBricks', 'https://www.countbricks.com/post/peephole-installation-cost', '2026-11-15',
   'Weaker source — a non-marketplace cost-guide site; no Angi/HomeAdvisor/HomeGuide page with a dedicated price for this item was found. DIY parts alone run $8-30.'),
 
-('general', 'Window blinds installation, per window', 'EA', 109.00, 198.00,
+('hardware_accessories', 'Window blinds installation, per window', 'EA', 109.00, 198.00,
   'Fixr', 'https://fixr.com/costs/window-blinds', '2026-11-15',
   'Includes removal of old blinds if present.'),
 
-('general', 'Curtain rod and bracket installation, per window', 'EA', 45.00, 250.00,
+('hardware_accessories', 'Curtain rod and bracket installation, per window', 'EA', 45.00, 250.00,
   'HomeGuide', 'https://homeguide.com/costs/window-treatment-cost', '2026-11-15',
   'Installation labor only — rod/bracket hardware itself is a separate cost, roughly $3-40+ per rod.'),
 
-('general', 'Skim coat drywall finish', 'SF', 1.10, 1.35,
+('drywall_texture', 'Skim coat drywall finish', 'SF', 1.10, 1.35,
   'Angi', 'https://angi.com/articles/cost-to-skim-coat-drywall.htm', '2026-11-15',
   'Smooth hand-applied finish coat, distinct from texture removal/application. Labor only.'),
 
-('general', 'Flooring underlayment / vapor barrier installation', 'SF', 0.50, 5.40,
+('flooring', 'Flooring underlayment / vapor barrier installation', 'SF', 0.50, 5.40,
   'Angi', 'https://angi.com/articles/how-much-does-new-flooring-cost.htm', '2026-11-15',
   'Under laminate, hardwood, or vinyl flooring, prior to the finish floor.'),
 
-('general', 'Door threshold installation or replacement', 'EA', 60.00, 290.00,
+('hardware_accessories', 'Door threshold installation or replacement', 'EA', 60.00, 290.00,
   'Handoff (construction cost data aggregator)', 'https://handoff.ai/construction-costs/install-a-threshold', '2026-11-15',
   'Weaker source — no dedicated page found from a major marketplace despite multiple searches. Treat as directional and verify locally.'),
 
-('general', 'Wood stain and finish application (trim, doors, baseboard, handrail)', 'LF', 1.00, 4.00,
+('paint', 'Wood stain and finish application (trim, doors, baseboard, handrail)', 'LF', 1.00, 4.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/siding/install-trim/', '2026-11-15',
   'Natural clear or tinted stain finish, distinct from opaque painting already in this catalog.'),
 
@@ -682,15 +682,15 @@ values
   'Angi', 'https://angi.com/articles/attic-ladder-installation-cost.htm', '2026-11-15',
   'Cost rises sharply if the opening must be enlarged or insulated/boxed.'),
 
-('general', 'Laminate flooring installation', 'SF', 3.00, 14.00,
+('flooring', 'Laminate flooring installation', 'SF', 3.00, 14.00,
   'Angi / HomeAdvisor', 'https://angi.com/articles/how-much-does-laminate-flooring-cost.htm', '2026-11-15',
   'Distinct material and installation method from the luxury vinyl plank already in this catalog.'),
 
-('general', 'Shoe molding or quarter-round trim installation', 'LF', 2.00, 6.00,
+('trim_molding', 'Shoe molding or quarter-round trim installation', 'LF', 2.00, 6.00,
   'Angi', 'https://www.angi.com/articles/cost-to-install-shoe-molding.htm', '2026-11-15',
   'Small trim profile at the base of baseboard against the floor, distinct from the baseboard itself.'),
 
-('general', 'Door or window casing trim installation', 'LF', 4.00, 20.00,
+('trim_molding', 'Door or window casing trim installation', 'LF', 4.00, 20.00,
   'HomeAdvisor / Angi', 'https://homeadvisor.com/cost/doors-and-windows/install-door-window-trim', '2026-11-15',
   'Installing (not just painting) the decorative trim around a door or window opening. Window casing runs toward the high end.'),
 

@@ -22,22 +22,28 @@ import { Field, Input, Select } from "../components/ui/Field.jsx";
 import { formatCurrency, midpoint } from "../lib/format.js";
 
 const CATEGORY_LABEL = {
-  general: "General",
+  paint: "Paint",
+  drywall_texture: "Drywall & Texture",
+  flooring: "Flooring",
+  trim_molding: "Trim & Molding",
   kitchen: "Kitchen",
   bathroom: "Bathroom",
-  roofing: "Roofing",
+  doors_windows: "Doors & Windows",
+  hardware_accessories: "Hardware & Accessories",
   electrical: "Electrical",
   plumbing: "Plumbing",
-  doors_windows: "Doors & Windows",
+  insulation: "Insulation",
   stairs_railings: "Stairs & Railings",
   closets_storage: "Closets & Storage",
   hvac: "HVAC",
+  roofing: "Roofing",
   exterior: "Exterior",
-  water_mitigation: "Water Mitigation / Mold",
   framing_structural: "Framing & Structural",
   demolition: "Demolition",
   masonry: "Masonry",
   appliances_fixtures: "Appliances & Fixtures",
+  water_mitigation: "Water Mitigation / Mold",
+  general: "General / Prep & Logistics",
 };
 
 // Just autocomplete suggestions for the room-name box below — typing
