@@ -20,6 +20,7 @@ import PriceReferences from "./pages/PriceReferences.jsx";
 import RemodelEstimates from "./pages/RemodelEstimates.jsx";
 import NewRemodelEstimate from "./pages/NewRemodelEstimate.jsx";
 import RemodelEstimateDetail from "./pages/RemodelEstimateDetail.jsx";
+import RemodelRoomSketch from "./pages/RemodelRoomSketch.jsx";
 import Claims from "./pages/Claims.jsx";
 import NewClaim from "./pages/NewClaim.jsx";
 import ClaimDetail from "./pages/ClaimDetail.jsx";
@@ -116,6 +117,14 @@ export default function App() {
           element={
             <RequireSubscription>
               <RemodelEstimateDetail />
+            </RequireSubscription>
+          }
+        />
+        <Route
+          path="/remodel/:estimateId/sketch/:roomId"
+          element={
+            <RequireSubscription>
+              <RemodelRoomSketch />
             </RequireSubscription>
           }
         />

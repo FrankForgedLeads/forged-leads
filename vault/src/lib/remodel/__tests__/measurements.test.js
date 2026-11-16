@@ -57,3 +57,27 @@ describe("wallAreaSF", () => {
     expect(wallAreaSF(room)).toBe(0);
   });
 });
+
+describe("sketch-derived measurements take priority over length/width", () => {
+  const sketched = {
+    length_ft: 10,
+    width_ft: 12,
+    sketch_perimeter_lf: 50,
+    sketch_floor_area_sf: 140,
+    sketch_ceiling_area_sf: 140,
+    sketch_wall_area_sf: 350,
+  };
+
+  it("uses the sketch numbers instead of recomputing from length/width", () => {
+    expect(hasMeasurements(sketched)).toBe(true);
+    expect(floorAreaSF(sketched)).toBe(140);
+    expect(ceilingAreaSF(sketched)).toBe(140);
+    expect(perimeterLF(sketched)).toBe(50);
+    expect(wallAreaSF(sketched)).toBe(350);
+  });
+
+  it("falls back to length/width when there's no sketch", () => {
+    const room = { length_ft: 10, width_ft: 12 };
+    expect(floorAreaSF(room)).toBe(120);
+  });
+});

@@ -75,6 +75,17 @@ export async function fetchRemodelRooms(estimateId) {
   return data;
 }
 
+export async function fetchRemodelRoom(id) {
+  const { data, error } = await supabase
+    .from("remodel_rooms")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function addRemodelRoom({ estimateId, name, sortOrder = 0 }) {
   const { data, error } = await supabase
     .from("remodel_rooms")

@@ -2265,6 +2265,25 @@ left join existing_max em on em.category = ta.category
 where ta.id = r.id;
 
 -- ============================================================================
+-- REMODEL ESTIMATOR — room sketch tool
+-- ----------------------------------------------------------------------------
+-- A room can now be measured by sketching its shape (click to place wall
+-- corners, type each wall's real length) instead of just length x width.
+-- sketch_data stores the raw drawing (points, typed lengths, which walls
+-- have a door/window) so it can be reopened and edited; the four
+-- sketch_*_sf/lf columns store the computed result, which
+-- lib/remodel/measurements.js prefers over length_ft/width_ft whenever
+-- present (see that file for why — a sketched room isn't always a plain
+-- rectangle). A room with no sketch works exactly as before.
+-- ============================================================================
+
+alter table public.remodel_rooms add column if not exists sketch_data jsonb;
+alter table public.remodel_rooms add column if not exists sketch_floor_area_sf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_ceiling_area_sf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_wall_area_sf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_perimeter_lf numeric(10, 2);
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

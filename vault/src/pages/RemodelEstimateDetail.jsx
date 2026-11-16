@@ -17,6 +17,7 @@ import { generateRemodelEstimatePdf } from "../lib/remodel/pdf.js";
 import { roomTotal, computeEstimateTotals } from "../lib/remodel/totals.js";
 import {
   hasMeasurements,
+  hasSketch,
   floorAreaSF,
   ceilingAreaSF,
   perimeterLF,
@@ -252,6 +253,7 @@ function EstimateHeader({ estimate, onSaved }) {
 }
 
 function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
+  const navigate = useNavigate();
   const [name, setName] = useState(room.name || "");
   const [measurements, setMeasurements] = useState({
     length_ft: room.length_ft ?? "",
@@ -345,7 +347,28 @@ function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
         </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg border border-navy-500 bg-navy-900/40 p-3 sm:grid-cols-5">
+      <div className="mt-4 rounded-lg border border-navy-500 bg-navy-900/40 p-3">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
+            {hasSketch(room) ? "Measured by sketch" : "Measurements (optional)"}
+          </span>
+          <Button
+            as="button"
+            type="button"
+            variant="secondary"
+            onClick={() => navigate(`/remodel/${room.estimate_id}/sketch/${room.id}`)}
+            className="px-3 py-1.5 text-xs"
+          >
+            📐 {hasSketch(room) ? "Re-sketch this room" : "Sketch this room"}
+          </Button>
+        </div>
+        {hasSketch(room) && (
+          <p className="mb-2 text-xs text-white/40">
+            This room was measured with the sketch tool — the Length/Width fields below are
+            ignored while a sketch exists. Re-sketch to update, or clear it from the sketch page.
+          </p>
+        )}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         <Field label="Length (ft)">
           <Input
             type="number"
@@ -402,6 +425,7 @@ function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
             <span>Perimeter: {perimeterLF(roomWithMeasurements).toFixed(1)} LF</span>
           </div>
         )}
+      </div>
       </div>
 
       <div className="mt-4 space-y-2">
