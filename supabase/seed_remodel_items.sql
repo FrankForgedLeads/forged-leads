@@ -95,47 +95,47 @@ values
 -- KITCHEN
 -- ---------------------------------------------------------------------------
 
-('KIT-001', 'kitchen', 'Base cabinets, installed', 'LF', 100.00, 1200.00,
+('CAB-001', 'cabinetry_countertops', 'Base cabinets, installed', 'LF', 100.00, 1200.00,
   'HomeLight', 'https://homelight.com/blog/cost-of-kitchen-cabinets-installed/', '2026-11-14',
   'Wide range reflects stock ($100-300/LF) through semi-custom ($150-900/LF) to full custom ($500-1,200+/LF) — pick the tier that matches the job before quoting.'),
 
-('KIT-002', 'kitchen', 'Cabinet refacing', 'LF', 150.00, 450.00,
+('CAB-002', 'cabinetry_countertops', 'Cabinet refacing', 'LF', 150.00, 450.00,
   'Angi', 'https://www.angi.com/articles/how-much-does-cabinet-refacing-cost.htm', '2026-11-14',
   'National average project cost around $7,229 ($4,233-10,224). Material drives price: thermofoil $80-125/LF, wood veneer $100-250/LF, solid wood $200-500/LF.'),
 
-('KIT-003', 'kitchen', 'Countertop, granite, installed', 'SF', 40.00, 100.00,
+('CAB-003', 'cabinetry_countertops', 'Countertop, granite, installed', 'SF', 40.00, 100.00,
   'Fixr', 'https://fixr.com/costs/install-granite-countertop', '2026-11-14',
   'Modular granite runs cheaper, $25-40/SF.'),
 
-('KIT-004', 'kitchen', 'Countertop, quartz, installed', 'SF', 50.00, 150.00,
+('CAB-004', 'cabinetry_countertops', 'Countertop, quartz, installed', 'SF', 50.00, 150.00,
   'Fixr', 'https://fixr.com/costs/install-quartz-countertop', '2026-11-14',
   null),
 
-('KIT-005', 'kitchen', 'Countertop, laminate, installed', 'SF', 15.00, 60.00,
+('CAB-005', 'cabinetry_countertops', 'Countertop, laminate, installed', 'SF', 15.00, 60.00,
   'Fixr', 'https://www.fixr.com/costs/install-laminate-countertop', '2026-11-14',
   'A separate HomeWyse figure runs higher, $42-64/SF — worth a couple of real quotes before relying on either.'),
 
-('KIT-006', 'kitchen', 'Tile backsplash, installed', 'SF', 15.00, 40.00,
+('TIL-001', 'tile_stone', 'Tile backsplash, installed', 'SF', 15.00, 40.00,
   'Angi', 'https://www.angi.com/articles/how-much-does-kitchen-backsplash-cost.htm', '2026-11-14',
   'Varies sharply by material — porcelain toward the low end, natural stone/marble toward the high end or above.'),
 
-('KIT-007', 'kitchen', 'Dishwasher installation, labor only', 'EA', 150.00, 300.00,
+('APP-013', 'appliances_fixtures', 'Dishwasher installation, labor only', 'EA', 150.00, 300.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/kitchens/install-dishwasher', '2026-11-14',
   'Labor only — appliance is typically owner-supplied.'),
 
-('KIT-008', 'kitchen', 'Range/cooktop installation, labor only', 'EA', 70.00, 155.00,
+('APP-014', 'appliances_fixtures', 'Range/cooktop installation, labor only', 'EA', 70.00, 155.00,
   'HomeAdvisor', 'https://homeadvisor.com/cost/kitchens/install-an-appliance', '2026-11-14',
   'Labor only — appliance is typically owner-supplied.'),
 
-('KIT-009', 'kitchen', 'Range hood/vent installation', 'EA', 650.00, 2500.00,
+('APP-015', 'appliances_fixtures', 'Range hood/vent installation', 'EA', 650.00, 2500.00,
   'Angi', 'https://www.angi.com/articles/how-much-should-it-cost-install-range-hood-my-kitchen-running-air-ducts.htm', '2026-11-14',
   'An older HomeAdvisor page cites a lower $400-1,550 range — Angi''s newer figure used here.'),
 
-('KIT-010', 'kitchen', 'Garbage disposal installation, incl. hookup', 'EA', 200.00, 625.00,
+('PLM-014', 'plumbing', 'Garbage disposal installation, incl. hookup', 'EA', 200.00, 625.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/kitchens/install-a-garbage-disposal', '2026-11-14',
   'An older Angi figure cites a lower $150-950 range — HomeAdvisor''s newer figure used here.'),
 
-('KIT-011', 'kitchen', 'Kitchen island, per project', 'job', 4800.00, 10000.00,
+('CAB-006', 'cabinetry_countertops', 'Kitchen island, per project', 'job', 4800.00, 10000.00,
   'Angi (via NerdWallet)', 'https://www.nerdwallet.com/home-ownership/home-improvement/learn/kitchen-island-costs-and-ways-to-save', '2026-11-14',
   'Average around $4,800; custom builds run $10,000+. Secondhand citation of Angi data.'),
 
@@ -143,47 +143,47 @@ values
 -- BATHROOM
 -- ---------------------------------------------------------------------------
 
-('BTH-001', 'bathroom', 'Vanity installation, incl. sink', 'EA', 200.00, 1000.00,
+('CAB-007', 'cabinetry_countertops', 'Vanity installation, incl. sink', 'EA', 200.00, 1000.00,
   'Angi', 'https://angi.com/articles/how-much-should-bathroom-vanity-install-labor-cost.htm', '2026-11-14',
   'This is labor only — total installed cost including the vanity unit itself averages closer to $1,500.'),
 
-('BTH-002', 'bathroom', 'Toilet installation/replacement', 'EA', 250.00, 800.00,
+('PLM-015', 'plumbing', 'Toilet installation/replacement', 'EA', 250.00, 800.00,
   'Fixr', 'https://www.fixr.com/costs/toilet-installation', '2026-11-14',
   'Average around $450. Labor-only (customer-supplied toilet) runs $150-440.'),
 
-('BTH-003', 'bathroom', 'Tub replacement, standard alcove', 'EA', 1500.00, 5000.00,
+('PLM-016', 'plumbing', 'Tub replacement, standard alcove', 'EA', 1500.00, 5000.00,
   'Inch Calculator', 'https://www.inchcalculator.com/cost-to-install-bathtub/', '2026-11-14',
   'No Angi/HomeAdvisor marketplace figure found — this is a non-marketplace source, treat as a rough placeholder and get real quotes.'),
 
-('BTH-004', 'bathroom', 'Walk-in shower conversion (tub-to-shower)', 'job', 3500.00, 12000.00,
+('PLM-017', 'plumbing', 'Walk-in shower conversion (tub-to-shower)', 'job', 3500.00, 12000.00,
   'This Old House', 'https://www.thisoldhouse.com/bathrooms/tub-to-shower-conversion-cost', '2026-11-14',
   'Typical mid-range project around $6,500.'),
 
-('BTH-005', 'bathroom', 'Shower pan replacement', 'EA', 900.00, 2300.00,
+('PLM-018', 'plumbing', 'Shower pan replacement', 'EA', 900.00, 2300.00,
   'Angi', 'https://angi.com/articles/shower-pan-replacement-cost.htm', '2026-11-14',
   'Average around $1,620; ranges from a small basic pan ($530) to a large custom one ($4,600).'),
 
-('BTH-006', 'bathroom', 'Bathroom floor tile, installed', 'SF', 5.00, 15.00,
+('TIL-002', 'tile_stone', 'Bathroom floor tile, installed', 'SF', 5.00, 15.00,
   'Angi', 'https://angi.com/articles/tile-installation-cost.htm', '2026-11-14',
   'General tile-installation figure — premium stone runs $15-30/SF instead.'),
 
-('BTH-007', 'bathroom', 'Shower wall tile (surround), installed', 'SF', 10.00, 30.00,
+('TIL-003', 'tile_stone', 'Shower wall tile (surround), installed', 'SF', 10.00, 30.00,
   'Angi / This Old House', 'https://angi.com/articles/cost-to-tile-a-shower.htm', '2026-11-14',
   'Average around $17.30/SF. A full shower-tile project typically runs $1,800-5,000 total.'),
 
-('BTH-008', 'bathroom', 'Exhaust fan installation', 'EA', 183.00, 444.00,
+('ELE-027', 'electrical', 'Exhaust fan installation', 'EA', 183.00, 444.00,
   'Thumbtack', 'https://www.thumbtack.com/p/bathroom-fan-installation-cost', '2026-11-14',
   'Simple like-for-like replacement. No HomeAdvisor/Angi figure found to cross-check.'),
 
-('BTH-009', 'bathroom', 'Mirror installation', 'EA', 150.00, 500.00,
+('HRD-008', 'hardware_accessories', 'Mirror installation', 'EA', 150.00, 500.00,
   'Angi', 'https://www.angi.com/articles/mirror-installation-cost.htm', '2026-11-14',
   null),
 
-('BTH-010', 'bathroom', 'Window replacement, standard size', 'EA', 500.00, 800.00,
+('DOR-011', 'doors_windows', 'Window replacement, standard size', 'EA', 500.00, 800.00,
   'Angi / Fixr', 'https://www.angi.com/articles/what-affects-cost-replacement-windows.htm', '2026-11-14',
   'Angi''s national average is around $750/window; a separate Fixr survey puts it lower, around $517/window.'),
 
-('BTH-011', 'bathroom', 'Exterior door replacement, incl. hardware', 'EA', 500.00, 2000.00,
+('DOR-012', 'doors_windows', 'Exterior door replacement, incl. hardware', 'EA', 500.00, 2000.00,
   'NerdWallet', 'https://www.nerdwallet.com/article/mortgages/door-replacement-cost', '2026-11-14',
   'No reliable current marketplace (Angi/HomeAdvisor) page found for full replacement — a weaker, non-marketplace source. Treat as a rough placeholder.'),
 
@@ -712,27 +712,27 @@ values
 -- BATHROOM (additions)
 -- ---------------------------------------------------------------------------
 
-('BTH-012', 'bathroom', 'Medicine cabinet installation', 'EA', 55.00, 300.00,
+('CAB-008', 'cabinetry_countertops', 'Medicine cabinet installation', 'EA', 55.00, 300.00,
   'Angi', 'https://www.angi.com/articles/how-install-medicine-cabinet.htm', '2026-11-15',
   'Standard surface-mount or recessed, non-lit unit. Lit/smart LED cabinets run $400-800 and may need an electrician.'),
 
-('BTH-013', 'bathroom', 'Towel bar or towel ring installation', 'EA', 55.00, 160.00,
+('HRD-009', 'hardware_accessories', 'Towel bar or towel ring installation', 'EA', 55.00, 160.00,
   'Homewyse', 'https://www.homewyse.com/services/cost_to_install_towel_bar.html', '2026-11-15',
   'Weaker source — dated data, no dedicated marketplace page found despite searching.'),
 
-('BTH-014', 'bathroom', 'Toilet paper holder installation', 'EA', 75.00, 200.00,
+('HRD-010', 'hardware_accessories', 'Toilet paper holder installation', 'EA', 75.00, 200.00,
   'LatestCost', 'https://latestcost.com/cost-install-toilet-paper-holder/', '2026-11-15',
   'Weaker source — a non-marketplace cost-guide site. Recessed holders (requiring wall cutting) run notably higher, $150-400+.'),
 
-('BTH-015', 'bathroom', 'Vanity countertop/top replacement only', 'EA', 400.00, 1500.00,
+('CAB-009', 'cabinetry_countertops', 'Vanity countertop/top replacement only', 'EA', 400.00, 1500.00,
   'HomeGuide / Angi', 'https://homeguide.com/costs/cost-to-replace-a-bathroom-countertop', '2026-11-15',
   'Replacing just the top (and integrated/drop-in sink), not the full cabinet already in this catalog. Laminate/cultured marble toward the low end, quartz/granite/stone toward the high end (up to ~$4,300 for premium stone).'),
 
-('BTH-016', 'bathroom', 'Robe hook installation', 'EA', 55.00, 118.00,
+('HRD-011', 'hardware_accessories', 'Robe hook installation', 'EA', 55.00, 118.00,
   'Homewyse', 'https://www.homewyse.com/services/cost_to_install_towel_bar.html', '2026-11-15',
   'Weaker source and a proxy — no robe-hook-specific pricing found; used the towel-bar figure since the install is mechanically identical. Add $150-400 if the wall lacks backing/blocking.'),
 
-('BTH-017', 'bathroom', 'Bathroom heat lamp fixture installation', 'EA', 150.00, 400.00,
+('ELE-028', 'electrical', 'Bathroom heat lamp fixture installation', 'EA', 150.00, 400.00,
   'HomeAdvisor (bath fan replacement, used as proxy)', 'https://homeadvisor.com/cost/bathrooms/repair-a-bath-fan', '2026-11-15',
   'Weakest-confidence item in this batch — no marketplace publishes a heat-lamp-specific guide; this is a proxy built from bath-fan replacement pricing. Distinct from a ventilation exhaust fan already in this catalog.'),
 
@@ -1053,47 +1053,47 @@ values
 -- KITCHEN (additions)
 -- ---------------------------------------------------------------------------
 
-('KIT-012', 'kitchen', 'Upper/wall cabinet installation', 'LF', 100.00, 500.00,
+('CAB-010', 'cabinetry_countertops', 'Upper/wall cabinet installation', 'LF', 100.00, 500.00,
   'TaskRabbit', 'https://www.taskrabbit.com/cost-guides/cabinet-installation', '2026-11-15',
   'More labor-intensive than base cabinets (precise measurement, anchoring into wall studs, often needs two installers). Corroborated by Thumbtack pricing wall cabinets as a distinct, higher line than base cabinets.'),
 
-('KIT-013', 'kitchen', 'Lazy Susan corner cabinet organizer', 'EA', 300.00, 1000.00,
+('CAB-011', 'cabinetry_countertops', 'Lazy Susan corner cabinet organizer', 'EA', 300.00, 1000.00,
   'Bob Vila', 'https://www.bobvila.com/articles/how-to-install-a-pullout-organizer', '2026-11-15',
   'Weaker source — no major marketplace prices a lazy Susan specifically (this source covers the broader "corner pull-out organizer" category). Supply and professional installation.'),
 
-('KIT-014', 'kitchen', 'Farmhouse/apron-front sink installation', 'EA', 300.00, 1500.00,
+('PLM-019', 'plumbing', 'Farmhouse/apron-front sink installation', 'EA', 300.00, 1500.00,
   'HomeGuide', 'https://homeguide.com/costs/farmhouse-sink-cost', '2026-11-15',
   'Labor only, including cabinet and plumbing modification. Costs more than a standard drop-in sink install due to the extra support and cabinet work required.'),
 
-('KIT-015', 'kitchen', 'Pull-down/pull-out kitchen faucet installation', 'EA', 200.00, 650.00,
+('PLM-020', 'plumbing', 'Pull-down/pull-out kitchen faucet installation', 'EA', 200.00, 650.00,
   'Angi', 'https://www.angi.com/articles/what-does-it-cost-install-kitchen-faucet.htm', '2026-11-15',
   'Higher complexity/cost than a standard single-handle faucet, already priced generically in the plumbing category.'),
 
-('KIT-016', 'kitchen', 'Cabinet end panel installation', 'EA', 75.00, 250.00,
+('CAB-012', 'cabinetry_countertops', 'Cabinet end panel installation', 'EA', 75.00, 250.00,
   'DG Floors', 'https://dgfloors.com/kitchen-cabinet-end-panels/', '2026-11-15',
   'Weaker source — no major marketplace publishes a standalone price for this. Decorative finished panel on an exposed cabinet end.'),
 
-('KIT-017', 'kitchen', 'Built-in/under-counter microwave installation', 'EA', 140.00, 445.00,
+('APP-016', 'appliances_fixtures', 'Built-in/under-counter microwave installation', 'EA', 140.00, 445.00,
   'Fixr', 'https://www.fixr.com/costs/microwave-installation', '2026-11-15',
   'Below-counter/drawer-style models, distinct from the over-the-range microwave already in this catalog. A full custom-column build with new electrical/venting runs much higher, $500-2,500+.'),
 
-('KIT-018', 'kitchen', 'Countertop, butcher block/wood, installed', 'SF', 40.00, 125.00,
+('CAB-013', 'cabinetry_countertops', 'Countertop, butcher block/wood, installed', 'SF', 40.00, 125.00,
   'Angi', 'https://match.angi.com/cost/cabinets-and-countertops/butcher-block', '2026-11-15',
   'Standard species (maple/beech). Exotic woods (walnut, teak, zebrawood) can exceed $300/SF.'),
 
-('KIT-019', 'kitchen', 'Countertop, solid surface (Corian-type), installed', 'SF', 45.00, 150.00,
+('CAB-014', 'cabinetry_countertops', 'Countertop, solid surface (Corian-type), installed', 'SF', 45.00, 150.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/article.show.Corian-Countertops.14653.html', '2026-11-15',
   'Corroborated by Angi''s Corian cost article.'),
 
-('KIT-020', 'kitchen', 'Countertop, marble, installed', 'SF', 50.00, 200.00,
+('CAB-015', 'cabinetry_countertops', 'Countertop, marble, installed', 'SF', 50.00, 200.00,
   'Fixr', 'https://www.fixr.com/costs/marble-countertops', '2026-11-15',
   'Covers standard-to-premium marble. Ultra-luxury slabs (Calacatta, etc.) in high-cost metros can exceed $250/SF.'),
 
-('KIT-021', 'kitchen', 'Countertop, concrete, installed', 'SF', 50.00, 150.00,
+('CAB-016', 'cabinetry_countertops', 'Countertop, concrete, installed', 'SF', 50.00, 150.00,
   'Angi', 'https://www.angi.com/articles/how-much-do-concrete-countertops-cost.htm', '2026-11-15',
   'Basic finish toward the low end, polished concrete toward the high end. Materials are cheap — nearly all cost is labor/formwork/finishing.'),
 
-('KIT-022', 'kitchen', 'Open/floating shelving installation', 'LF', 50.00, 150.00,
+('CAB-017', 'cabinetry_countertops', 'Open/floating shelving installation', 'LF', 50.00, 150.00,
   'LatestCost', 'https://latestcost.com/labor-cost-install-floating-shelves/', '2026-11-15',
   'Weaker source — no major marketplace publishes a dedicated floating-shelf price. Distinct from closed upper cabinets already in this catalog. Premium hardwood/glass materials run well above this range.'),
 
@@ -1101,59 +1101,59 @@ values
 -- BATHROOM (additions)
 -- ---------------------------------------------------------------------------
 
-('BTH-018', 'bathroom', 'Pedestal sink installation', 'EA', 400.00, 1200.00,
+('PLM-021', 'plumbing', 'Pedestal sink installation', 'EA', 400.00, 1200.00,
   'Fixr', 'https://www.fixr.com/costs/bathroom-sink-installation', '2026-11-15',
   'Includes fixture mounting and supply/drain hookup.'),
 
-('BTH-019', 'bathroom', 'Vessel sink installation', 'EA', 200.00, 1500.00,
+('PLM-022', 'plumbing', 'Vessel sink installation', 'EA', 200.00, 1500.00,
   'Fixr', 'https://www.fixr.com/costs/bathroom-sink-installation', '2026-11-15',
   'Above-counter sink mounted to a pre-cut countertop opening, distinct plumbing/mounting from an undermount sink.'),
 
-('BTH-020', 'bathroom', 'Undermount sink installation', 'EA', 250.00, 1600.00,
+('PLM-023', 'plumbing', 'Undermount sink installation', 'EA', 250.00, 1600.00,
   'Fixr', 'https://www.fixr.com/costs/bathroom-sink-installation', '2026-11-15',
   'Secured beneath a finished countertop — costs more than a drop-in sink due to the counter support work required.'),
 
-('BTH-021', 'bathroom', 'Mosaic tile installation', 'SF', 13.00, 28.00,
+('TIL-004', 'tile_stone', 'Mosaic tile installation', 'SF', 13.00, 28.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/bathrooms/types-of-tiles', '2026-11-15',
   'Small-format, sheet-mounted tile. Takes longer to set than standard tile, raising labor cost per SF.'),
 
-('BTH-022', 'bathroom', 'Natural stone or marble tile installation', 'SF', 10.00, 24.00,
+('TIL-005', 'tile_stone', 'Natural stone or marble tile installation', 'SF', 10.00, 24.00,
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/bathrooms/tile-bathroom-floor', '2026-11-15',
   'Covers standard-to-premium stone/marble, including wet-area sealing. Specialty cuts can run up to $50/SF, excluded here as an outlier.'),
 
-('BTH-023', 'bathroom', 'Freestanding/soaking tub installation', 'EA', 2000.00, 8000.00,
+('PLM-024', 'plumbing', 'Freestanding/soaking tub installation', 'EA', 2000.00, 8000.00,
   'Fixr', 'https://www.fixr.com/resources/all-about-soaking-tubs', '2026-11-15',
   'Distinct from the standard alcove tub already in this catalog. Typically requires a floor-mounted or ceiling-drop tub filler. Wide variance depending on drain relocation or floor reinforcement needs.'),
 
-('BTH-024', 'bathroom', 'Drop-in or corner tub installation', 'EA', 900.00, 5000.00,
+('PLM-025', 'plumbing', 'Drop-in or corner tub installation', 'EA', 900.00, 5000.00,
   'Fixr', 'https://www.fixr.com/costs/install-or-replace-bathtub', '2026-11-15',
   'Set into a framed, waterproofed deck or alcove. Corner installs add cost for deck framing.'),
 
-('BTH-025', 'bathroom', 'Clawfoot tub installation', 'EA', 2000.00, 6000.00,
+('PLM-026', 'plumbing', 'Clawfoot tub installation', 'EA', 2000.00, 6000.00,
   'Fixr', 'https://www.fixr.com/costs/clawfoot-tub-installation', '2026-11-15',
   'Weaker source — page dated around 2022. Set with leveling and claw-foot hardware, plumbed with exposed or wall-mount fixtures.'),
 
-('BTH-026', 'bathroom', 'Whirlpool/jetted tub installation', 'EA', 2500.00, 7500.00,
+('PLM-027', 'plumbing', 'Whirlpool/jetted tub installation', 'EA', 2500.00, 7500.00,
   'Angi', 'https://www.angi.com/articles/whirlpool-tub-installation-cost.htm', '2026-11-15',
   'Includes pump/motor wiring (often a dedicated circuit) and plumbing connections.'),
 
-('BTH-027', 'bathroom', 'Shower door installation, frameless glass', 'EA', 600.00, 1900.00,
+('DOR-013', 'doors_windows', 'Shower door installation, frameless glass', 'EA', 600.00, 1900.00,
   'HomeGuide', 'https://homeguide.com/costs/glass-shower-door-cost', '2026-11-15',
   'Heavy-duty hinges and hardware. A real gap — this catalog had no shower door item before.'),
 
-('BTH-028', 'bathroom', 'Shower door installation, framed or sliding', 'EA', 400.00, 1100.00,
+('DOR-014', 'doors_windows', 'Shower door installation, framed or sliding', 'EA', 400.00, 1100.00,
   'HomeGuide', 'https://homeguide.com/costs/glass-shower-door-cost', '2026-11-15',
   'Lower-cost alternative to a frameless enclosure.'),
 
-('BTH-029', 'bathroom', 'Recessed tile-in toilet paper holder installation', 'EA', 100.00, 400.00,
+('TIL-006', 'tile_stone', 'Recessed tile-in toilet paper holder installation', 'EA', 100.00, 400.00,
   'LatestCost', 'https://latestcost.com/cost-install-toilet-paper-holder/', '2026-11-15',
   'Weaker source — a ceramic/metal holder recessed into the tile wall during tiling, distinct from the surface-mounted holder already in this catalog.'),
 
-('BTH-030', 'bathroom', 'Recessed tile-in soap dish installation', 'EA', 100.00, 150.00,
+('TIL-007', 'tile_stone', 'Recessed tile-in soap dish installation', 'EA', 100.00, 150.00,
   'Angi', 'https://www.angi.com/articles/how-much-do-shower-accessories-cost.htm', '2026-11-15',
   'Ceramic/porcelain dish recessed into the shower tile during tiling. This figure likely reflects new tile work — retrofitting into existing finished tile can run notably higher.'),
 
-('BTH-031', 'bathroom', 'Recessed shower niche/shelf installation', 'EA', 250.00, 950.00,
+('TIL-008', 'tile_stone', 'Recessed shower niche/shelf installation', 'EA', 250.00, 950.00,
   'Angi', 'https://www.angi.com/articles/how-much-do-shower-accessories-cost.htm', '2026-11-15',
   'Tiled-in storage niche built into the shower wall during framing/tiling. Upper bound drawn from a secondary corroborating source since Angi''s own figure is open-ended.')
 on conflict (category, description) do nothing;

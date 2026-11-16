@@ -2025,6 +2025,144 @@ alter table public.remodel_rooms add column if not exists door_count int not nul
 alter table public.remodel_rooms add column if not exists window_count int not null default 0;
 
 -- ============================================================================
+-- REMODEL ESTIMATOR — remove "kitchen" and "bathroom" as trade categories
+-- ----------------------------------------------------------------------------
+-- The room name (typed at the top of each room card) already says "Kitchen"
+-- or "Bathroom" — having the same word show up again in the trade dropdown
+-- is a redundant room-echo, not a real trade. Splits those 53 items into
+-- real trades: cabinetry_countertops and tile_stone (new categories), with
+-- the rest routed into appliances_fixtures, plumbing, electrical,
+-- hardware_accessories, and doors_windows — wherever each item actually
+-- belongs as a trade.
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories',
+      'fire_smoke_restoration', 'cabinetry_countertops', 'tile_stone'
+    )
+  );
+
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Base cabinets, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Cabinet refacing';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, granite, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, quartz, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, laminate, installed';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'kitchen' and description = 'Tile backsplash, installed';
+update public.remodel_items set category = 'appliances_fixtures', code = null where category = 'kitchen' and description = 'Dishwasher installation, labor only';
+update public.remodel_items set category = 'appliances_fixtures', code = null where category = 'kitchen' and description = 'Range/cooktop installation, labor only';
+update public.remodel_items set category = 'appliances_fixtures', code = null where category = 'kitchen' and description = 'Range hood/vent installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'kitchen' and description = 'Garbage disposal installation, incl. hookup';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Kitchen island, per project';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Upper/wall cabinet installation';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Lazy Susan corner cabinet organizer';
+update public.remodel_items set category = 'plumbing', code = null where category = 'kitchen' and description = 'Farmhouse/apron-front sink installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'kitchen' and description = 'Pull-down/pull-out kitchen faucet installation';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Cabinet end panel installation';
+update public.remodel_items set category = 'appliances_fixtures', code = null where category = 'kitchen' and description = 'Built-in/under-counter microwave installation';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, butcher block/wood, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, solid surface (Corian-type), installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, marble, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, concrete, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Open/floating shelving installation';
+
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'bathroom' and description = 'Vanity installation, incl. sink';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Toilet installation/replacement';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Tub replacement, standard alcove';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Walk-in shower conversion (tub-to-shower)';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Shower pan replacement';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Bathroom floor tile, installed';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Shower wall tile (surround), installed';
+update public.remodel_items set category = 'electrical', code = null where category = 'bathroom' and description = 'Exhaust fan installation';
+update public.remodel_items set category = 'hardware_accessories', code = null where category = 'bathroom' and description = 'Mirror installation';
+update public.remodel_items set category = 'doors_windows', code = null where category = 'bathroom' and description = 'Window replacement, standard size';
+update public.remodel_items set category = 'doors_windows', code = null where category = 'bathroom' and description = 'Exterior door replacement, incl. hardware';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'bathroom' and description = 'Medicine cabinet installation';
+update public.remodel_items set category = 'hardware_accessories', code = null where category = 'bathroom' and description = 'Towel bar or towel ring installation';
+update public.remodel_items set category = 'hardware_accessories', code = null where category = 'bathroom' and description = 'Toilet paper holder installation';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'bathroom' and description = 'Vanity countertop/top replacement only';
+update public.remodel_items set category = 'hardware_accessories', code = null where category = 'bathroom' and description = 'Robe hook installation';
+update public.remodel_items set category = 'electrical', code = null where category = 'bathroom' and description = 'Bathroom heat lamp fixture installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Pedestal sink installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Vessel sink installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Undermount sink installation';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Mosaic tile installation';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Natural stone or marble tile installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Freestanding/soaking tub installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Drop-in or corner tub installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Clawfoot tub installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Whirlpool/jetted tub installation';
+update public.remodel_items set category = 'doors_windows', code = null where category = 'bathroom' and description = 'Shower door installation, frameless glass';
+update public.remodel_items set category = 'doors_windows', code = null where category = 'bathroom' and description = 'Shower door installation, framed or sliding';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Recessed tile-in toilet paper holder installation';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Recessed tile-in soap dish installation';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Recessed shower niche/shelf installation';
+
+with existing_max as (
+  select category, coalesce(max(substring(code from '\d+$')::int), 0) as max_num
+  from public.remodel_items
+  where code is not null
+  group by category
+),
+to_assign as (
+  select id, category,
+         row_number() over (partition by category order by created_at) as rn
+  from public.remodel_items
+  where code is null
+)
+update public.remodel_items r
+set code = (
+  case ta.category
+    when 'paint' then 'PNT'
+    when 'drywall_texture' then 'DRY'
+    when 'flooring' then 'FLR'
+    when 'trim_molding' then 'TRM'
+    when 'cabinetry_countertops' then 'CAB'
+    when 'tile_stone' then 'TIL'
+    when 'doors_windows' then 'DOR'
+    when 'hardware_accessories' then 'HRD'
+    when 'electrical' then 'ELE'
+    when 'plumbing' then 'PLM'
+    when 'insulation' then 'INS'
+    when 'stairs_railings' then 'STR'
+    when 'closets_storage' then 'CLS'
+    when 'hvac' then 'HVC'
+    when 'roofing' then 'RFG'
+    when 'exterior' then 'EXT'
+    when 'framing_structural' then 'FRM'
+    when 'demolition' then 'DMO'
+    when 'masonry' then 'MAS'
+    when 'appliances_fixtures' then 'APP'
+    when 'water_mitigation' then 'WTR'
+    when 'general' then 'GEN'
+    when 'fire_smoke_restoration' then 'FSR'
+    else upper(left(ta.category, 3))
+  end
+) || '-' || lpad((coalesce(em.max_num, 0) + ta.rn)::text, 3, '0')
+from to_assign ta
+left join existing_max em on em.category = ta.category
+where ta.id = r.id;
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories',
+      'fire_smoke_restoration', 'cabinetry_countertops', 'tile_stone'
+    )
+  );
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
