@@ -2163,6 +2163,108 @@ alter table public.remodel_items add constraint remodel_items_category_check
   );
 
 -- ============================================================================
+-- REMODEL ESTIMATOR — split light fixtures out of electrical, fixtures out
+-- of plumbing
+-- ----------------------------------------------------------------------------
+-- "electrical" had grown to 28 items mixing wiring/panels/switches with
+-- lighting fixtures; "plumbing" had 27 mixing pipes/valves/water heaters
+-- with sinks/tubs/toilets/faucets. Splits each into its own trade category
+-- so the dropdown isn't a wall of unrelated items.
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories',
+      'fire_smoke_restoration', 'cabinetry_countertops', 'tile_stone',
+      'light_fixtures', 'plumbing_fixtures'
+    )
+  );
+
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Light fixture installation, existing wiring/box';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Ceiling fan installation, existing fan-rated box';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Recessed/can lighting installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Chandelier installation, existing ceiling box';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Pendant light installation, single fixture';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Flush-mount or semi-flush ceiling light installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Track lighting installation, per fixture head';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Wall sconce installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Vanity/bathroom light bar installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Outdoor/exterior light fixture installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Under-cabinet lighting installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Ceiling fan with integrated light kit installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Bathroom heat lamp fixture installation';
+
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Sink installation, labor only';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Faucet installation, labor only';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Utility or laundry tub installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Farmhouse/apron-front sink installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Pull-down/pull-out kitchen faucet installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Toilet installation/replacement';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Tub replacement, standard alcove';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Walk-in shower conversion (tub-to-shower)';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Shower pan replacement';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Pedestal sink installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Vessel sink installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Undermount sink installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Freestanding/soaking tub installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Drop-in or corner tub installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Clawfoot tub installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Whirlpool/jetted tub installation';
+
+with existing_max as (
+  select category, coalesce(max(substring(code from '\d+$')::int), 0) as max_num
+  from public.remodel_items
+  where code is not null
+  group by category
+),
+to_assign as (
+  select id, category,
+         row_number() over (partition by category order by created_at) as rn
+  from public.remodel_items
+  where code is null
+)
+update public.remodel_items r
+set code = (
+  case ta.category
+    when 'paint' then 'PNT'
+    when 'drywall_texture' then 'DRY'
+    when 'flooring' then 'FLR'
+    when 'trim_molding' then 'TRM'
+    when 'cabinetry_countertops' then 'CAB'
+    when 'tile_stone' then 'TIL'
+    when 'light_fixtures' then 'LIT'
+    when 'plumbing_fixtures' then 'PLF'
+    when 'doors_windows' then 'DOR'
+    when 'hardware_accessories' then 'HRD'
+    when 'electrical' then 'ELE'
+    when 'plumbing' then 'PLM'
+    when 'insulation' then 'INS'
+    when 'stairs_railings' then 'STR'
+    when 'closets_storage' then 'CLS'
+    when 'hvac' then 'HVC'
+    when 'roofing' then 'RFG'
+    when 'exterior' then 'EXT'
+    when 'framing_structural' then 'FRM'
+    when 'demolition' then 'DMO'
+    when 'masonry' then 'MAS'
+    when 'appliances_fixtures' then 'APP'
+    when 'water_mitigation' then 'WTR'
+    when 'general' then 'GEN'
+    when 'fire_smoke_restoration' then 'FSR'
+    else upper(left(ta.category, 3))
+  end
+) || '-' || lpad((coalesce(em.max_num, 0) + ta.rn)::text, 3, '0')
+from to_assign ta
+left join existing_max em on em.category = ta.category
+where ta.id = r.id;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

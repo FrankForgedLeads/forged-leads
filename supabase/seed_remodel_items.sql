@@ -147,19 +147,19 @@ values
   'Angi', 'https://angi.com/articles/how-much-should-bathroom-vanity-install-labor-cost.htm', '2026-11-14',
   'This is labor only — total installed cost including the vanity unit itself averages closer to $1,500.'),
 
-('PLM-015', 'plumbing', 'Toilet installation/replacement', 'EA', 250.00, 800.00,
+('PLF-001', 'plumbing_fixtures', 'Toilet installation/replacement', 'EA', 250.00, 800.00,
   'Fixr', 'https://www.fixr.com/costs/toilet-installation', '2026-11-14',
   'Average around $450. Labor-only (customer-supplied toilet) runs $150-440.'),
 
-('PLM-016', 'plumbing', 'Tub replacement, standard alcove', 'EA', 1500.00, 5000.00,
+('PLF-002', 'plumbing_fixtures', 'Tub replacement, standard alcove', 'EA', 1500.00, 5000.00,
   'Inch Calculator', 'https://www.inchcalculator.com/cost-to-install-bathtub/', '2026-11-14',
   'No Angi/HomeAdvisor marketplace figure found — this is a non-marketplace source, treat as a rough placeholder and get real quotes.'),
 
-('PLM-017', 'plumbing', 'Walk-in shower conversion (tub-to-shower)', 'job', 3500.00, 12000.00,
+('PLF-003', 'plumbing_fixtures', 'Walk-in shower conversion (tub-to-shower)', 'job', 3500.00, 12000.00,
   'This Old House', 'https://www.thisoldhouse.com/bathrooms/tub-to-shower-conversion-cost', '2026-11-14',
   'Typical mid-range project around $6,500.'),
 
-('PLM-018', 'plumbing', 'Shower pan replacement', 'EA', 900.00, 2300.00,
+('PLF-004', 'plumbing_fixtures', 'Shower pan replacement', 'EA', 900.00, 2300.00,
   'Angi', 'https://angi.com/articles/shower-pan-replacement-cost.htm', '2026-11-14',
   'Average around $1,620; ranges from a small basic pan ($530) to a large custom one ($4,600).'),
 
@@ -290,15 +290,15 @@ values
   'Angi', 'https://angi.com/articles/how-much-should-it-cost-electrician-replace-combination-gfci-switch-and-receptacle.htm', '2026-11-15',
   'Average around $210. Outdoor/weatherproof installs needing new wiring run much higher, $150-1,400.'),
 
-('ELE-004', 'electrical', 'Light fixture installation, existing wiring/box', 'EA', 70.00, 250.00,
+('LIT-001', 'light_fixtures', 'Light fixture installation, existing wiring/box', 'EA', 70.00, 250.00,
   'Angi', 'https://www.angi.com/articles/how-much-does-it-cost-install-lighting-fixture.htm', '2026-11-15',
   'Labor-focused range assuming an existing fixture location. A new fixture location/wiring runs much higher, $158-1,021.'),
 
-('ELE-005', 'electrical', 'Ceiling fan installation, existing fan-rated box', 'EA', 146.00, 351.00,
+('LIT-002', 'light_fixtures', 'Ceiling fan installation, existing fan-rated box', 'EA', 146.00, 351.00,
   'Thumbtack', 'https://www.thumbtack.com/p/ceiling-fan-install-cost', '2026-11-15',
   'Could not find a current-dated Angi/HomeAdvisor page with this breakdown. If a new electrical box or wiring is needed, cost rises to $400-2,000.'),
 
-('ELE-006', 'electrical', 'Recessed/can lighting installation', 'EA', 125.00, 300.00,
+('LIT-003', 'light_fixtures', 'Recessed/can lighting installation', 'EA', 125.00, 300.00,
   'Fixr', 'https://fixr.com/costs/recessed-lighting-installation', '2026-11-15',
   'Page dated January 2025. Lower ($100-175/light) in new construction with open joists, higher ($250-450/light) for retrofit into a finished ceiling.'),
 
@@ -330,11 +330,11 @@ values
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/plumbing/repair-a-toilet', '2026-11-15',
   'HomeAdvisor''s own pages are slightly inconsistent on this figure — merged two of its cited ranges into one here.'),
 
-('PLM-004', 'plumbing', 'Sink installation, labor only', 'EA', 200.00, 650.00,
+('PLF-005', 'plumbing_fixtures', 'Sink installation, labor only', 'EA', 200.00, 650.00,
   'HomeGuide', 'https://www.homeguide.com/costs/sink-installation-cost', '2026-11-15',
   'If new supply/drain plumbing is also needed (not just a swap), expect $450-1,800 instead.'),
 
-('PLM-005', 'plumbing', 'Faucet installation, labor only', 'EA', 150.00, 400.00,
+('PLF-006', 'plumbing_fixtures', 'Faucet installation, labor only', 'EA', 150.00, 400.00,
   'Fixr', 'https://fixr.com/costs/kitchen-faucet-installation', '2026-11-15',
   'Page dated January 2025. Assumes existing plumbing hookup. Thumbtack cites a lower $115-250 for a simple swap — use the top of this range for complex/touchless faucets.'),
 
@@ -732,7 +732,7 @@ values
   'Homewyse', 'https://www.homewyse.com/services/cost_to_install_towel_bar.html', '2026-11-15',
   'Weaker source and a proxy — no robe-hook-specific pricing found; used the towel-bar figure since the install is mechanically identical. Add $150-400 if the wall lacks backing/blocking.'),
 
-('ELE-028', 'electrical', 'Bathroom heat lamp fixture installation', 'EA', 150.00, 400.00,
+('LIT-004', 'light_fixtures', 'Bathroom heat lamp fixture installation', 'EA', 150.00, 400.00,
   'HomeAdvisor (bath fan replacement, used as proxy)', 'https://homeadvisor.com/cost/bathrooms/repair-a-bath-fan', '2026-11-15',
   'Weakest-confidence item in this batch — no marketplace publishes a heat-lamp-specific guide; this is a proxy built from bath-fan replacement pricing. Distinct from a ventilation exhaust fan already in this catalog.'),
 
@@ -748,7 +748,7 @@ values
   'Angi', 'https://angi.com/articles/how-much-does-water-main-repair-cost.htm', '2026-11-15',
   'Moderate confidence — for a single fixture valve, distinct from a whole-house main shutoff valve replacement (a bigger, separate job).'),
 
-('PLM-011', 'plumbing', 'Utility or laundry tub installation', 'EA', 200.00, 500.00,
+('PLF-007', 'plumbing_fixtures', 'Utility or laundry tub installation', 'EA', 200.00, 500.00,
   'Angi', 'https://angi.com/articles/sink-installation-cost.htm', '2026-11-15',
   'Assumes plumbing connections already present. Distinct from a regular sink installation already in this catalog. Running new lines can push cost up to $3,000.'),
 
@@ -979,39 +979,39 @@ insert into public.remodel_items
   (code, category, description, unit, price_low, price_high, source_name, source_url, last_verified_date, notes)
 values
 
-('ELE-013', 'electrical', 'Chandelier installation, existing ceiling box', 'EA', 350.00, 1250.00,
+('LIT-005', 'light_fixtures', 'Chandelier installation, existing ceiling box', 'EA', 350.00, 1250.00,
   'Angi', 'https://angi.com/articles/chandelier-installation-cost.htm', '2026-11-15',
   'Use low end for a simple swap onto an existing box, high end for heavier fixtures needing a reinforced box. Cost can run much wider ($100-4,000+) with new wiring or high ceilings.'),
 
-('ELE-014', 'electrical', 'Pendant light installation, single fixture', 'EA', 100.00, 300.00,
+('LIT-006', 'light_fixtures', 'Pendant light installation, single fixture', 'EA', 100.00, 300.00,
   'Angi', 'https://www.angi.com/articles/how-much-does-it-cost-install-lighting-fixture.htm', '2026-11-15',
   'Existing wiring/box, single pendant. Multi-light pendant clusters or high ceilings run considerably more.'),
 
-('ELE-015', 'electrical', 'Flush-mount or semi-flush ceiling light installation', 'EA', 70.00, 250.00,
+('LIT-007', 'light_fixtures', 'Flush-mount or semi-flush ceiling light installation', 'EA', 70.00, 250.00,
   'TaskRabbit', 'https://www.taskrabbit.com/cost-guides/light-installation', '2026-11-15',
   'Like-for-like swap, no new wiring. Corroborated by a HomeGuide-sourced secondary citation in the same range.'),
 
-('ELE-016', 'electrical', 'Track lighting installation, per fixture head', 'EA', 80.00, 300.00,
+('LIT-008', 'light_fixtures', 'Track lighting installation, per fixture head', 'EA', 80.00, 300.00,
   'Angi', 'https://www.angi.com/articles/track-lighting-types.htm', '2026-11-15',
   'Combines fixed-track and adjustable-track figures. Most sources price track lighting per fixture head rather than per linear foot.'),
 
-('ELE-017', 'electrical', 'Wall sconce installation', 'EA', 90.00, 450.00,
+('LIT-009', 'light_fixtures', 'Wall sconce installation', 'EA', 90.00, 450.00,
   'Angi', 'https://angi.com/articles/how-much-does-it-cost-to-install-sconces.htm', '2026-11-15',
   'Existing wiring/box. Average around $220/sconce.'),
 
-('ELE-018', 'electrical', 'Vanity/bathroom light bar installation', 'EA', 125.00, 450.00,
+('LIT-010', 'light_fixtures', 'Vanity/bathroom light bar installation', 'EA', 125.00, 450.00,
   'CountBricks', 'https://www.countbricks.com/post/cost-to-install-bathroom-light-fixture', '2026-11-15',
   'Weaker source — no major marketplace prices this specific fixture type separately; multi-bulb bar fixture over a mirror, existing wiring.'),
 
-('ELE-019', 'electrical', 'Outdoor/exterior light fixture installation', 'EA', 65.00, 250.00,
+('LIT-011', 'light_fixtures', 'Outdoor/exterior light fixture installation', 'EA', 65.00, 250.00,
   'Angi', 'https://www.angi.com/articles/outdoor-lighting-installation-cost.htm', '2026-11-15',
   'Wall-mount porch/entry fixture, existing wiring. Cost rises substantially if new exterior wiring or conduit is needed.'),
 
-('ELE-020', 'electrical', 'Under-cabinet lighting installation', 'LF', 20.00, 100.00,
+('LIT-012', 'light_fixtures', 'Under-cabinet lighting installation', 'LF', 20.00, 100.00,
   'Angi', 'https://angi.com/articles/under-cabinet-lighting-cost.htm', '2026-11-15',
   'LED strip or puck lighting. Labor is 40-60% of total cost.'),
 
-('ELE-021', 'electrical', 'Ceiling fan with integrated light kit installation', 'EA', 195.00, 435.00,
+('LIT-013', 'light_fixtures', 'Ceiling fan with integrated light kit installation', 'EA', 195.00, 435.00,
   'Angi', 'https://www.angi.com/articles/how-much-does-ceiling-fan-installation-cost/in/indianapolis', '2026-11-15',
   'Fan-rated box, includes light-circuit wiring — distinct from the bare ceiling fan already in this catalog.'),
 
@@ -1061,11 +1061,11 @@ values
   'Bob Vila', 'https://www.bobvila.com/articles/how-to-install-a-pullout-organizer', '2026-11-15',
   'Weaker source — no major marketplace prices a lazy Susan specifically (this source covers the broader "corner pull-out organizer" category). Supply and professional installation.'),
 
-('PLM-019', 'plumbing', 'Farmhouse/apron-front sink installation', 'EA', 300.00, 1500.00,
+('PLF-008', 'plumbing_fixtures', 'Farmhouse/apron-front sink installation', 'EA', 300.00, 1500.00,
   'HomeGuide', 'https://homeguide.com/costs/farmhouse-sink-cost', '2026-11-15',
   'Labor only, including cabinet and plumbing modification. Costs more than a standard drop-in sink install due to the extra support and cabinet work required.'),
 
-('PLM-020', 'plumbing', 'Pull-down/pull-out kitchen faucet installation', 'EA', 200.00, 650.00,
+('PLF-009', 'plumbing_fixtures', 'Pull-down/pull-out kitchen faucet installation', 'EA', 200.00, 650.00,
   'Angi', 'https://www.angi.com/articles/what-does-it-cost-install-kitchen-faucet.htm', '2026-11-15',
   'Higher complexity/cost than a standard single-handle faucet, already priced generically in the plumbing category.'),
 
@@ -1101,15 +1101,15 @@ values
 -- BATHROOM (additions)
 -- ---------------------------------------------------------------------------
 
-('PLM-021', 'plumbing', 'Pedestal sink installation', 'EA', 400.00, 1200.00,
+('PLF-010', 'plumbing_fixtures', 'Pedestal sink installation', 'EA', 400.00, 1200.00,
   'Fixr', 'https://www.fixr.com/costs/bathroom-sink-installation', '2026-11-15',
   'Includes fixture mounting and supply/drain hookup.'),
 
-('PLM-022', 'plumbing', 'Vessel sink installation', 'EA', 200.00, 1500.00,
+('PLF-011', 'plumbing_fixtures', 'Vessel sink installation', 'EA', 200.00, 1500.00,
   'Fixr', 'https://www.fixr.com/costs/bathroom-sink-installation', '2026-11-15',
   'Above-counter sink mounted to a pre-cut countertop opening, distinct plumbing/mounting from an undermount sink.'),
 
-('PLM-023', 'plumbing', 'Undermount sink installation', 'EA', 250.00, 1600.00,
+('PLF-012', 'plumbing_fixtures', 'Undermount sink installation', 'EA', 250.00, 1600.00,
   'Fixr', 'https://www.fixr.com/costs/bathroom-sink-installation', '2026-11-15',
   'Secured beneath a finished countertop — costs more than a drop-in sink due to the counter support work required.'),
 
@@ -1121,19 +1121,19 @@ values
   'HomeAdvisor', 'https://www.homeadvisor.com/cost/bathrooms/tile-bathroom-floor', '2026-11-15',
   'Covers standard-to-premium stone/marble, including wet-area sealing. Specialty cuts can run up to $50/SF, excluded here as an outlier.'),
 
-('PLM-024', 'plumbing', 'Freestanding/soaking tub installation', 'EA', 2000.00, 8000.00,
+('PLF-013', 'plumbing_fixtures', 'Freestanding/soaking tub installation', 'EA', 2000.00, 8000.00,
   'Fixr', 'https://www.fixr.com/resources/all-about-soaking-tubs', '2026-11-15',
   'Distinct from the standard alcove tub already in this catalog. Typically requires a floor-mounted or ceiling-drop tub filler. Wide variance depending on drain relocation or floor reinforcement needs.'),
 
-('PLM-025', 'plumbing', 'Drop-in or corner tub installation', 'EA', 900.00, 5000.00,
+('PLF-014', 'plumbing_fixtures', 'Drop-in or corner tub installation', 'EA', 900.00, 5000.00,
   'Fixr', 'https://www.fixr.com/costs/install-or-replace-bathtub', '2026-11-15',
   'Set into a framed, waterproofed deck or alcove. Corner installs add cost for deck framing.'),
 
-('PLM-026', 'plumbing', 'Clawfoot tub installation', 'EA', 2000.00, 6000.00,
+('PLF-015', 'plumbing_fixtures', 'Clawfoot tub installation', 'EA', 2000.00, 6000.00,
   'Fixr', 'https://www.fixr.com/costs/clawfoot-tub-installation', '2026-11-15',
   'Weaker source — page dated around 2022. Set with leveling and claw-foot hardware, plumbed with exposed or wall-mount fixtures.'),
 
-('PLM-027', 'plumbing', 'Whirlpool/jetted tub installation', 'EA', 2500.00, 7500.00,
+('PLF-016', 'plumbing_fixtures', 'Whirlpool/jetted tub installation', 'EA', 2500.00, 7500.00,
   'Angi', 'https://www.angi.com/articles/whirlpool-tub-installation-cost.htm', '2026-11-15',
   'Includes pump/motor wiring (often a dedicated circuit) and plumbing connections.'),
 
