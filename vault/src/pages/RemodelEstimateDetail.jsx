@@ -277,7 +277,7 @@ function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1">
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-white/40">
-            Room name — type anything
+            Room name (type anything — not a fixed list)
           </label>
           <input
             value={name}
@@ -399,14 +399,16 @@ function RoomItemRow({ item, onChanged, onDeleted }) {
 
 function AddItemForm({ roomId, catalog, onAdded }) {
   const [mode, setMode] = useState("catalog"); // "catalog" | "custom"
-  const [category, setCategory] = useState("general");
+  const [category, setCategory] = useState("");
   const [catalogItemId, setCatalogItemId] = useState("");
   const [custom, setCustom] = useState({ description: "", unit: "EA", unitPrice: "" });
   const [quantity, setQuantity] = useState(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const itemsInCategory = catalog.filter((it) => it.category === category);
+  const itemsInCategory = (category ? catalog.filter((it) => it.category === category) : catalog)
+    .slice()
+    .sort((a, b) => a.description.localeCompare(b.description));
 
   async function handleAdd() {
     setBusy(true);
@@ -475,7 +477,7 @@ function AddItemForm({ roomId, catalog, onAdded }) {
         {mode === "catalog" ? (
           <>
             <div className="sm:col-span-3">
-              <Field label="Category">
+              <Field label="Trade (narrows the list — optional)">
                 <Select
                   value={category}
                   onChange={(e) => {
@@ -483,6 +485,7 @@ function AddItemForm({ roomId, catalog, onAdded }) {
                     setCatalogItemId("");
                   }}
                 >
+                  <option value="">All items</option>
                   {Object.entries(CATEGORY_LABEL).map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
