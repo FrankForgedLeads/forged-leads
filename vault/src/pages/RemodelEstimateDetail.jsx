@@ -15,6 +15,13 @@ import {
 } from "../lib/api/remodelEstimates.js";
 import { generateRemodelEstimatePdf } from "../lib/remodel/pdf.js";
 import { roomTotal, computeEstimateTotals } from "../lib/remodel/totals.js";
+import {
+  hasMeasurements,
+  floorAreaSF,
+  ceilingAreaSF,
+  perimeterLF,
+  wallAreaSF,
+} from "../lib/remodel/measurements.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
@@ -244,6 +251,13 @@ function EstimateHeader({ estimate, onSaved }) {
 
 function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
   const [name, setName] = useState(room.name || "");
+  const [measurements, setMeasurements] = useState({
+    length_ft: room.length_ft ?? "",
+    width_ft: room.width_ft ?? "",
+    ceiling_height_ft: room.ceiling_height_ft ?? "",
+    door_count: room.door_count ?? 0,
+    window_count: room.window_count ?? 0,
+  });
   const items = room.remodel_room_items || [];
 
   async function handleNameBlur() {
@@ -251,6 +265,32 @@ function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
     const updated = await updateRemodelRoom(room.id, { name: name || "Untitled room" });
     onRoomChanged({ ...updated, remodel_room_items: items });
   }
+
+  function setMeasurement(field) {
+    return (e) => setMeasurements((m) => ({ ...m, [field]: e.target.value }));
+  }
+
+  async function handleMeasurementsBlur() {
+    const cleaned = {
+      length_ft: measurements.length_ft === "" ? null : Number(measurements.length_ft),
+      width_ft: measurements.width_ft === "" ? null : Number(measurements.width_ft),
+      ceiling_height_ft:
+        measurements.ceiling_height_ft === "" ? null : Number(measurements.ceiling_height_ft),
+      door_count: Number(measurements.door_count) || 0,
+      window_count: Number(measurements.window_count) || 0,
+    };
+    const unchanged =
+      cleaned.length_ft === (room.length_ft ?? null) &&
+      cleaned.width_ft === (room.width_ft ?? null) &&
+      cleaned.ceiling_height_ft === (room.ceiling_height_ft ?? null) &&
+      cleaned.door_count === (room.door_count ?? 0) &&
+      cleaned.window_count === (room.window_count ?? 0);
+    if (unchanged) return;
+    const updated = await updateRemodelRoom(room.id, cleaned);
+    onRoomChanged({ ...updated, remodel_room_items: items });
+  }
+
+  const roomWithMeasurements = { ...room, ...measurements };
 
   async function handleDeleteRoom() {
     if (!window.confirm(`Delete "${room.name}" and all its items?`)) return;
@@ -303,6 +343,65 @@ function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
         </button>
       </div>
 
+      <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg border border-navy-500 bg-navy-900/40 p-3 sm:grid-cols-5">
+        <Field label="Length (ft)">
+          <Input
+            type="number"
+            step="0.1"
+            value={measurements.length_ft}
+            onChange={setMeasurement("length_ft")}
+            onBlur={handleMeasurementsBlur}
+            placeholder="e.g. 12"
+          />
+        </Field>
+        <Field label="Width (ft)">
+          <Input
+            type="number"
+            step="0.1"
+            value={measurements.width_ft}
+            onChange={setMeasurement("width_ft")}
+            onBlur={handleMeasurementsBlur}
+            placeholder="e.g. 10"
+          />
+        </Field>
+        <Field label="Ceiling ht (ft)">
+          <Input
+            type="number"
+            step="0.1"
+            value={measurements.ceiling_height_ft}
+            onChange={setMeasurement("ceiling_height_ft")}
+            onBlur={handleMeasurementsBlur}
+            placeholder="default 8"
+          />
+        </Field>
+        <Field label="# Doors">
+          <Input
+            type="number"
+            step="1"
+            value={measurements.door_count}
+            onChange={setMeasurement("door_count")}
+            onBlur={handleMeasurementsBlur}
+          />
+        </Field>
+        <Field label="# Windows">
+          <Input
+            type="number"
+            step="1"
+            value={measurements.window_count}
+            onChange={setMeasurement("window_count")}
+            onBlur={handleMeasurementsBlur}
+          />
+        </Field>
+        {hasMeasurements(roomWithMeasurements) && (
+          <div className="col-span-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/60 sm:col-span-5">
+            <span>Floor: {floorAreaSF(roomWithMeasurements).toFixed(1)} SF</span>
+            <span>Walls: {wallAreaSF(roomWithMeasurements).toFixed(1)} SF</span>
+            <span>Ceiling: {ceilingAreaSF(roomWithMeasurements).toFixed(1)} SF</span>
+            <span>Perimeter: {perimeterLF(roomWithMeasurements).toFixed(1)} LF</span>
+          </div>
+        )}
+      </div>
+
       <div className="mt-4 space-y-2">
         {items.map((item) => (
           <RoomItemRow
@@ -314,7 +413,12 @@ function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
         ))}
       </div>
 
-      <AddItemForm roomId={room.id} catalog={catalog} onAdded={handleItemAdded} />
+      <AddItemForm
+        roomId={room.id}
+        catalog={catalog}
+        room={roomWithMeasurements}
+        onAdded={handleItemAdded}
+      />
 
       <div className="mt-4 flex justify-end border-t border-navy-600/60 pt-3">
         <span className="font-bold text-white">
@@ -398,7 +502,7 @@ function RoomItemRow({ item, onChanged, onDeleted }) {
   );
 }
 
-function AddItemForm({ roomId, catalog, onAdded }) {
+function AddItemForm({ roomId, catalog, room, onAdded }) {
   const [mode, setMode] = useState("catalog"); // "catalog" | "custom"
   const [category, setCategory] = useState("");
   const [catalogItemId, setCatalogItemId] = useState("");
@@ -523,6 +627,39 @@ function AddItemForm({ roomId, catalog, onAdded }) {
                 {busy ? "Adding…" : "Add"}
               </Button>
             </div>
+            {hasMeasurements(room) && (
+              <div className="sm:col-span-12 -mt-1 flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-white/40">Fill qty from this room's measurements:</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(floorAreaSF(room).toFixed(1))}
+                  className="rounded bg-navy-700 px-2 py-1 font-semibold text-white/80 hover:bg-navy-600"
+                >
+                  Floor ({floorAreaSF(room).toFixed(1)} SF)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(wallAreaSF(room).toFixed(1))}
+                  className="rounded bg-navy-700 px-2 py-1 font-semibold text-white/80 hover:bg-navy-600"
+                >
+                  Walls ({wallAreaSF(room).toFixed(1)} SF)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(ceilingAreaSF(room).toFixed(1))}
+                  className="rounded bg-navy-700 px-2 py-1 font-semibold text-white/80 hover:bg-navy-600"
+                >
+                  Ceiling ({ceilingAreaSF(room).toFixed(1)} SF)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(perimeterLF(room).toFixed(1))}
+                  className="rounded bg-navy-700 px-2 py-1 font-semibold text-white/80 hover:bg-navy-600"
+                >
+                  Perimeter ({perimeterLF(room).toFixed(1)} LF)
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <>

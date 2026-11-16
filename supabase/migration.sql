@@ -2010,6 +2010,21 @@ alter table public.remodel_items add constraint remodel_items_category_check
   );
 
 -- ============================================================================
+-- REMODEL ESTIMATOR — room measurements
+-- ----------------------------------------------------------------------------
+-- Lets a room store its length/width/ceiling height and door/window counts,
+-- so the UI can compute floor/wall/ceiling SF and perimeter LF for the
+-- contractor instead of them doing that math by hand. Nullable — a room
+-- with no measurements entered just doesn't show the computed numbers.
+-- ============================================================================
+
+alter table public.remodel_rooms add column if not exists length_ft numeric(8, 2);
+alter table public.remodel_rooms add column if not exists width_ft numeric(8, 2);
+alter table public.remodel_rooms add column if not exists ceiling_height_ft numeric(8, 2);
+alter table public.remodel_rooms add column if not exists door_count int not null default 0;
+alter table public.remodel_rooms add column if not exists window_count int not null default 0;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
