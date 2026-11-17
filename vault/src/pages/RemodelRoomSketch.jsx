@@ -55,6 +55,7 @@ export default function RemodelRoomSketch() {
   const [doorWalls, setDoorWalls] = useState(new Set());
   const [windowWalls, setWindowWalls] = useState(new Set());
   const [ceilingHeight, setCeilingHeight] = useState("8");
+  const [draggingIndex, setDraggingIndex] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -142,6 +143,37 @@ export default function RemodelRoomSketch() {
     const last = points[points.length - 1];
     setCursor(snapPoint(last, raw));
   }
+
+  // Lets a corner be dragged to fix an imprecise shape, before or after
+  // closing it — no snapping here, since the whole point is a free nudge.
+  function handleCornerPointerDown(index, e) {
+    e.stopPropagation();
+    e.preventDefault();
+    setDraggingIndex(index);
+  }
+
+  useEffect(() => {
+    if (draggingIndex === null) return;
+    function handleMove(e) {
+      const svgEl = svgRef.current;
+      if (!svgEl) return;
+      const raw = clientToSvgPoint(svgEl, e.clientX, e.clientY);
+      setPoints((p) => {
+        const next = [...p];
+        next[draggingIndex] = raw;
+        return next;
+      });
+    }
+    function handleUp() {
+      setDraggingIndex(null);
+    }
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    };
+  }, [draggingIndex]);
 
   function handleUndo() {
     if (closed) return;
@@ -238,8 +270,8 @@ export default function RemodelRoomSketch() {
           </h1>
           <p className="text-sm text-white/50">
             {!closed
-              ? "Click to place each corner — type each wall's real length right on the drawing as you go. Click back near the first point to close the shape."
-              : "Tag which walls have a door or window, double-check the lengths, then save."}
+              ? "Click to place each corner — type each wall's real length right on the drawing as you go. Click back near the first point to close the shape. Drag any corner any time to fix it."
+              : "Drag any corner to fix the shape, tag which walls have a door or window, double-check the lengths, then save."}
           </p>
         </div>
         <Button variant="ghost" onClick={() => navigate(`/remodel/${estimateId}`)}>
@@ -313,10 +345,14 @@ export default function RemodelRoomSketch() {
                 key={i}
                 cx={p.x}
                 cy={p.y}
-                r={i === 0 && !closed && points.length >= 3 ? 9 : 5}
+                r={draggingIndex === i ? 10 : i === 0 && !closed && points.length >= 3 ? 9 : 7}
                 fill={i === 0 && !closed && points.length >= 3 ? "#eab30855" : "#eab308"}
-                stroke="#0a1225"
-                strokeWidth="1.5"
+                stroke={draggingIndex === i ? "#fff" : "#0a1225"}
+                strokeWidth={draggingIndex === i ? 2.5 : 1.5}
+                className="cursor-grab active:cursor-grabbing"
+                style={{ touchAction: "none" }}
+                onPointerDown={(e) => handleCornerPointerDown(i, e)}
+                onClick={(e) => e.stopPropagation()}
               />
             ))}
           </svg>
