@@ -2284,6 +2284,65 @@ alter table public.remodel_rooms add column if not exists sketch_wall_area_sf nu
 alter table public.remodel_rooms add column if not exists sketch_perimeter_lf numeric(10, 2);
 
 -- ============================================================================
+-- REMODEL ESTIMATOR — macros (one-click line-item bundles)
+-- ----------------------------------------------------------------------------
+-- Our own version of what Xactimate/Symbility call macros — a named bundle
+-- of catalog items that get added to a room in one click instead of one at
+-- a time (e.g. "Bathroom Remodel (Full)" adds the vanity, toilet, tile,
+-- paint, etc. all at once). Independently designed, referencing only our
+-- own category/item IDs — no third-party macro content or codes involved.
+--
+-- quantity_mode controls how big a line comes in at when the macro is
+-- applied: 'fixed' always uses fixed_quantity; 'floor_sf'/'wall_sf'/
+-- 'ceiling_sf'/'perimeter_lf' pull the live number from the room's
+-- measurements (lib/remodel/measurements.js) when available, falling back
+-- to fixed_quantity for a room with none entered yet. Quantities are always
+-- editable after the macro adds them — this just saves the first typing.
+-- ============================================================================
+
+create table if not exists public.remodel_macros (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.remodel_macro_items (
+  id uuid primary key default gen_random_uuid(),
+  macro_id uuid not null references public.remodel_macros(id) on delete cascade,
+  remodel_item_id uuid not null references public.remodel_items(id) on delete cascade,
+  quantity_mode text not null default 'fixed'
+    check (quantity_mode in ('fixed', 'floor_sf', 'wall_sf', 'ceiling_sf', 'perimeter_lf')),
+  fixed_quantity numeric(10, 2) not null default 1,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_macro_items_macro_id_idx on public.remodel_macro_items(macro_id);
+
+alter table public.remodel_macros enable row level security;
+alter table public.remodel_macro_items enable row level security;
+
+create policy "remodel_macros_select_authenticated" on public.remodel_macros
+  for select using (auth.role() = 'authenticated' or public.is_admin());
+create policy "remodel_macros_insert_admin" on public.remodel_macros
+  for insert with check (public.is_admin());
+create policy "remodel_macros_update_admin" on public.remodel_macros
+  for update using (public.is_admin());
+create policy "remodel_macros_delete_admin" on public.remodel_macros
+  for delete using (public.is_admin());
+
+create policy "remodel_macro_items_select_authenticated" on public.remodel_macro_items
+  for select using (auth.role() = 'authenticated' or public.is_admin());
+create policy "remodel_macro_items_insert_admin" on public.remodel_macro_items
+  for insert with check (public.is_admin());
+create policy "remodel_macro_items_update_admin" on public.remodel_macro_items
+  for update using (public.is_admin());
+create policy "remodel_macro_items_delete_admin" on public.remodel_macro_items
+  for delete using (public.is_admin());
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================

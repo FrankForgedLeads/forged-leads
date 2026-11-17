@@ -12,6 +12,7 @@ import {
   updateRemodelRoomItem,
   deleteRemodelRoomItem,
   fetchRemodelItems,
+  fetchRemodelMacros,
 } from "../lib/api/remodelEstimates.js";
 import { generateRemodelEstimatePdf } from "../lib/remodel/pdf.js";
 import { roomTotal, computeEstimateTotals } from "../lib/remodel/totals.js";
@@ -88,14 +89,20 @@ export default function RemodelEstimateDetail() {
   const [estimate, setEstimate] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [catalog, setCatalog] = useState([]);
+  const [macros, setMacros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([fetchRemodelEstimate(id), fetchRemodelRooms(id), fetchRemodelItems()])
-      .then(([est, roomRows, items]) => {
+    Promise.all([
+      fetchRemodelEstimate(id),
+      fetchRemodelRooms(id),
+      fetchRemodelItems(),
+      fetchRemodelMacros(),
+    ])
+      .then(([est, roomRows, items, macroRows]) => {
         if (cancelled) return;
         if (!est) {
           setError("Estimate not found.");
@@ -104,6 +111,7 @@ export default function RemodelEstimateDetail() {
         setEstimate(est);
         setRooms(roomRows);
         setCatalog(items);
+        setMacros(macroRows);
       })
       .catch((e) => !cancelled && setError(e.message))
       .finally(() => !cancelled && setLoading(false));
@@ -178,6 +186,7 @@ export default function RemodelEstimateDetail() {
             key={room.id}
             room={room}
             catalog={catalog}
+            macros={macros}
             onRoomChanged={(updated) =>
               setRooms((rs) => rs.map((r) => (r.id === updated.id ? updated : r)))
             }
@@ -252,7 +261,7 @@ function EstimateHeader({ estimate, onSaved }) {
   );
 }
 
-function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
+function RoomCard({ room, catalog, macros, onRoomChanged, onRoomDeleted }) {
   const navigate = useNavigate();
   const [name, setName] = useState(room.name || "");
   const [measurements, setMeasurements] = useState({
@@ -304,6 +313,10 @@ function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
 
   function handleItemAdded(newItem) {
     onRoomChanged({ ...room, remodel_room_items: [...items, newItem] });
+  }
+
+  function handleItemsAdded(newItems) {
+    onRoomChanged({ ...room, remodel_room_items: [...items, ...newItems] });
   }
 
   function handleItemChanged(updatedItem) {
@@ -439,6 +452,13 @@ function RoomCard({ room, catalog, onRoomChanged, onRoomDeleted }) {
         ))}
       </div>
 
+      <MacroPicker
+        roomId={room.id}
+        room={roomWithMeasurements}
+        macros={macros}
+        onItemsAdded={handleItemsAdded}
+      />
+
       <AddItemForm
         roomId={room.id}
         catalog={catalog}
@@ -524,6 +544,107 @@ function RoomItemRow({ item, onChanged, onDeleted }) {
       >
         Remove
       </button>
+    </div>
+  );
+}
+
+// Resolves one macro line's quantity against the room's live measurements —
+// same functions the quick-fill buttons below use — falling back to the
+// macro's fixed_quantity for a room with nothing measured yet.
+function resolveMacroItemQuantity(mode, fixedQuantity, room) {
+  if (!hasMeasurements(room)) return fixedQuantity;
+  switch (mode) {
+    case "floor_sf":
+      return floorAreaSF(room);
+    case "wall_sf":
+      return wallAreaSF(room);
+    case "ceiling_sf":
+      return ceilingAreaSF(room);
+    case "perimeter_lf":
+      return perimeterLF(room);
+    default:
+      return fixedQuantity;
+  }
+}
+
+function MacroPicker({ roomId, room, macros, onItemsAdded }) {
+  const [macroId, setMacroId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  if (!macros.length) return null;
+
+  async function handleApply() {
+    const macro = macros.find((m) => m.id === macroId);
+    if (!macro) return;
+    setBusy(true);
+    setError("");
+    try {
+      const macroItems = [...(macro.remodel_macro_items || [])].sort(
+        (a, b) => a.sort_order - b.sort_order,
+      );
+      const newItems = [];
+      for (const mi of macroItems) {
+        const catalogItem = mi.remodel_items;
+        if (!catalogItem) continue;
+        const quantity = resolveMacroItemQuantity(
+          mi.quantity_mode,
+          Number(mi.fixed_quantity) || 1,
+          room,
+        );
+        const newItem = await addRemodelRoomItem({
+          roomId,
+          remodelItemId: catalogItem.id,
+          description: catalogItem.description,
+          unit: catalogItem.unit,
+          quantity: Number(Number(quantity).toFixed(2)),
+          unitPrice: midpoint(catalogItem.price_low, catalogItem.price_high),
+        });
+        newItems.push(newItem);
+      }
+      onItemsAdded(newItems);
+      setMacroId("");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-lg border border-gold-500/40 bg-gold-500/5 p-3">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gold-400">
+        ⚡ Macros — add a whole job's items in one click
+      </div>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-[220px] flex-1">
+          <Field label="Macro">
+            <Select value={macroId} onChange={(e) => setMacroId(e.target.value)}>
+              <option value="">Select a macro…</option>
+              {macros.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+        <Button
+          as="button"
+          type="button"
+          onClick={handleApply}
+          disabled={!macroId || busy}
+          className="px-4 py-3.5"
+        >
+          {busy ? "Adding…" : "Apply macro"}
+        </Button>
+      </div>
+      {macroId && macros.find((m) => m.id === macroId)?.description && (
+        <p className="mt-2 text-xs text-white/50">
+          {macros.find((m) => m.id === macroId).description}
+        </p>
+      )}
+      {error && <p className="mt-2 text-xs font-semibold text-red-400">{error}</p>}
     </div>
   );
 }

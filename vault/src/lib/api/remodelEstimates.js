@@ -62,6 +62,18 @@ export async function deleteRemodelEstimate(id) {
   if (error) throw error;
 }
 
+// Macros + their line items, each joined to its full catalog row (so the
+// macro picker has code/description/unit/price without a second round trip).
+export async function fetchRemodelMacros() {
+  const { data, error } = await supabase
+    .from("remodel_macros")
+    .select("*, remodel_macro_items(*, remodel_items(*))")
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
 // Rooms + their line items in one round trip (nested select), since the
 // estimate detail page always needs the full tree at once.
 export async function fetchRemodelRooms(estimateId) {
