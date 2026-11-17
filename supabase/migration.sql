@@ -2321,6 +2321,17 @@ create table if not exists public.remodel_macro_items (
 
 create index if not exists remodel_macro_items_macro_id_idx on public.remodel_macro_items(macro_id);
 
+-- Guards against the seed file being re-run and silently duplicating macros
+-- (each macro name should only ever exist once).
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'remodel_macros_name_key'
+  ) then
+    alter table public.remodel_macros add constraint remodel_macros_name_key unique (name);
+  end if;
+end $$;
+
 alter table public.remodel_macros enable row level security;
 alter table public.remodel_macro_items enable row level security;
 

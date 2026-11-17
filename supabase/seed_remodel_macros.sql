@@ -15,6 +15,7 @@
 with m as (
   insert into public.remodel_macros (name, description, sort_order)
   values ('Bathroom Remodel (Full)', 'Full bathroom gut: vanity, toilet, tub, tile, fixtures, and paint.', 1)
+  on conflict (name) do nothing
   returning id
 )
 insert into public.remodel_macro_items (macro_id, remodel_item_id, quantity_mode, fixed_quantity, sort_order)
@@ -41,6 +42,7 @@ join public.remodel_items ri on ri.category = v.category and ri.description = v.
 with m as (
   insert into public.remodel_macros (name, description, sort_order)
   values ('Kitchen Remodel (Full)', 'Full kitchen gut: cabinets, countertop, backsplash, appliance hookups, flooring, and paint.', 2)
+  on conflict (name) do nothing
   returning id
 )
 insert into public.remodel_macro_items (macro_id, remodel_item_id, quantity_mode, fixed_quantity, sort_order)
@@ -67,6 +69,7 @@ join public.remodel_items ri on ri.category = v.category and ri.description = v.
 with m as (
   insert into public.remodel_macros (name, description, sort_order)
   values ('Standard Room Paint Refresh', 'Walls, ceiling, and baseboard — the three line items almost every room''s paint job needs.', 3)
+  on conflict (name) do nothing
   returning id
 )
 insert into public.remodel_macro_items (macro_id, remodel_item_id, quantity_mode, fixed_quantity, sort_order)
@@ -84,6 +87,7 @@ join public.remodel_items ri on ri.category = v.category and ri.description = v.
 with m as (
   insert into public.remodel_macros (name, description, sort_order)
   values ('Bedroom Refresh', 'Paint, carpet, and closet shelving — a standard bedroom turnover.', 4)
+  on conflict (name) do nothing
   returning id
 )
 insert into public.remodel_macro_items (macro_id, remodel_item_id, quantity_mode, fixed_quantity, sort_order)
@@ -103,6 +107,7 @@ join public.remodel_items ri on ri.category = v.category and ri.description = v.
 with m as (
   insert into public.remodel_macros (name, description, sort_order)
   values ('Hurricane Roof Replacement', 'Full roof tear-off and architectural shingle replacement with standard components.', 5)
+  on conflict (name) do nothing
   returning id
 )
 insert into public.remodel_macro_items (macro_id, remodel_item_id, quantity_mode, fixed_quantity, sort_order)
@@ -124,6 +129,7 @@ join public.remodel_items ri on ri.category = v.category and ri.description = v.
 with m as (
   insert into public.remodel_macros (name, description, sort_order)
   values ('Water Damage Dry-Out', 'Emergency extraction and drying equipment for a standard water-loss room.', 6)
+  on conflict (name) do nothing
   returning id
 )
 insert into public.remodel_macro_items (macro_id, remodel_item_id, quantity_mode, fixed_quantity, sort_order)
@@ -145,6 +151,7 @@ join public.remodel_items ri on ri.category = v.category and ri.description = v.
 with m as (
   insert into public.remodel_macros (name, description, sort_order)
   values ('Fire & Smoke Restoration (per room)', 'Clean-only restoration pass for a room with smoke/soot damage, before repainting.', 7)
+  on conflict (name) do nothing
   returning id
 )
 insert into public.remodel_macro_items (macro_id, remodel_item_id, quantity_mode, fixed_quantity, sort_order)
