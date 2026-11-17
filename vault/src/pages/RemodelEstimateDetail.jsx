@@ -548,6 +548,29 @@ function RoomItemRow({ item, onChanged, onDeleted }) {
   );
 }
 
+// Matches the room name typed during sketching (or on the room card) to the
+// macro that fits it, so naming a room "Kitchen" is enough — no separate,
+// disconnected macro pick for the common cases.
+const MACRO_NAME_SUGGESTIONS = [
+  { keywords: ["bathroom", "bath"], macroName: "Bathroom Remodel (Full)" },
+  { keywords: ["kitchen"], macroName: "Kitchen Remodel (Full)" },
+  { keywords: ["bedroom", "bed room"], macroName: "Bedroom Refresh" },
+  { keywords: ["roof"], macroName: "Hurricane Roof Replacement" },
+  { keywords: ["water", "flood", "leak"], macroName: "Water Damage Dry-Out" },
+  { keywords: ["fire", "smoke", "soot"], macroName: "Fire & Smoke Restoration (per room)" },
+];
+
+function suggestMacroForRoomName(name, macros) {
+  if (!name) return null;
+  const lower = name.toLowerCase();
+  for (const { keywords, macroName } of MACRO_NAME_SUGGESTIONS) {
+    if (keywords.some((k) => lower.includes(k))) {
+      return macros.find((m) => m.name === macroName) || null;
+    }
+  }
+  return null;
+}
+
 // Resolves one macro line's quantity against the room's live measurements —
 // same functions the quick-fill buttons below use — falling back to the
 // macro's fixed_quantity for a room with nothing measured yet.
@@ -569,8 +592,18 @@ function resolveMacroItemQuantity(mode, fixedQuantity, room) {
 
 function MacroPicker({ roomId, room, macros, onItemsAdded }) {
   const [macroId, setMacroId] = useState("");
+  const [userPicked, setUserPicked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const suggested = useMemo(
+    () => suggestMacroForRoomName(room?.name, macros),
+    [room?.name, macros],
+  );
+
+  useEffect(() => {
+    if (!userPicked && suggested) setMacroId(suggested.id);
+  }, [suggested, userPicked]);
 
   if (!macros.length) return null;
 
@@ -616,10 +649,22 @@ function MacroPicker({ roomId, room, macros, onItemsAdded }) {
       <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gold-400">
         ⚡ Macros — add a whole job's items in one click
       </div>
+      {suggested && !userPicked && (
+        <p className="mb-2 text-xs text-white/50">
+          Matched to this room's name: <strong className="text-white/80">{suggested.name}</strong>{" "}
+          — change it below if that's not right.
+        </p>
+      )}
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-[220px] flex-1">
           <Field label="Macro">
-            <Select value={macroId} onChange={(e) => setMacroId(e.target.value)}>
+            <Select
+              value={macroId}
+              onChange={(e) => {
+                setMacroId(e.target.value);
+                setUserPicked(true);
+              }}
+            >
               <option value="">Select a macro…</option>
               {macros.map((m) => (
                 <option key={m.id} value={m.id}>
