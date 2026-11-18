@@ -109,6 +109,29 @@ describe("baseboardLF", () => {
   });
 });
 
+describe("real floor-plan openings take priority over door/window counts", () => {
+  const room = {
+    width_ft: 12,
+    length_ft: 10,
+    ceiling_height_ft: 8,
+    door_count: 0, // deliberately wrong/stale — the real openings should win
+    window_count: 0,
+    remodel_room_openings: [
+      { wall_side: "N", width_ft: 3, height_ft: 7, qty: 1, starts_at_floor: true },
+      { wall_side: "E", width_ft: 4, height_ft: 3, qty: 1, starts_at_floor: false },
+    ],
+  };
+
+  it("nets out the real openings instead of the (empty) counts", () => {
+    expect(wallGrossAreaSF(room)).toBe(352);
+    expect(wallAreaSF(room)).toBe(319); // 352 - 21 (door) - 12 (window)
+  });
+
+  it("nets baseboard by the real door width, not a guessed count", () => {
+    expect(baseboardLF(room)).toBe(41); // 44 - 3
+  });
+});
+
 describe("roomVolumeCF", () => {
   it("is floor area x ceiling height for a simple-entry room", () => {
     const room = { length_ft: 10, width_ft: 12, ceiling_height_ft: 8 };

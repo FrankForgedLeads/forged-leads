@@ -13,12 +13,33 @@
 // result directly on sketch_floor_area_sf/sketch_wall_area_sf/etc. — those
 // take priority over the simple length/width fields below, since a sketched
 // room isn't necessarily a plain rectangle.
+//
+// A room placed on the floor plan (lib/remodel/floorplanGeometry.js) has
+// real per-wall openings in remodel_room_openings instead of just a door/
+// window count — when those are loaded on the room, they win over the
+// generic door/window SF guesses below, so this page and the floor plan
+// page always agree on the same room's numbers.
+
+import { computeRoomGeometry } from "./floorplanGeometry.js";
 
 export const DOOR_DEDUCTION_SF = 20;
 export const WINDOW_DEDUCTION_SF = 15;
 
 export function hasSketch(room) {
   return Number(room?.sketch_perimeter_lf) > 0;
+}
+
+function hasRealOpenings(room) {
+  return Array.isArray(room?.remodel_room_openings) && room.remodel_room_openings.length > 0;
+}
+
+function floorplanGeometryFor(room) {
+  return computeRoomGeometry({
+    widthFt: room.width_ft,
+    lengthFt: room.length_ft,
+    ceilingHeightFt: room.ceiling_height_ft,
+    openings: room.remodel_room_openings,
+  });
 }
 
 export function hasMeasurements(room) {
@@ -48,6 +69,7 @@ export function perimeterLF(room) {
 // (paint/drywall quick-fill, macros) — kept as-is for backward compatibility.
 export function wallAreaSF(room) {
   if (hasSketch(room)) return Number(room.sketch_wall_area_sf) || 0;
+  if (hasRealOpenings(room)) return floorplanGeometryFor(room).wallAreaSF;
   if (!hasMeasurements(room)) return 0;
   const height = Number(room.ceiling_height_ft) > 0 ? Number(room.ceiling_height_ft) : 8;
   const gross = perimeterLF(room) * height;
@@ -57,21 +79,24 @@ export function wallAreaSF(room) {
   return Math.max(0, gross - deductions);
 }
 
-// Gross wall SF — before any door/window deduction. A sketched room with
-// per-wall openings stores this directly; a simple length/width room has no
-// real openings on file, so gross and net are the same there.
+// Gross wall SF — before any door/window deduction. A sketched or
+// floor-plan room with real openings stores/computes this directly; a
+// simple length/width room has no real openings on file, so gross and net
+// are the same there.
 export function wallGrossAreaSF(room) {
   if (hasSketch(room)) return Number(room.sketch_wall_gross_area_sf) || 0;
+  if (hasRealOpenings(room)) return floorplanGeometryFor(room).wallGrossAreaSF;
   if (!hasMeasurements(room)) return 0;
   const height = Number(room.ceiling_height_ft) > 0 ? Number(room.ceiling_height_ft) : 8;
   return perimeterLF(room) * height;
 }
 
-// Baseboard doesn't run through a doorway — a sketched room nets out each
-// wall's door-width openings exactly; a simple-entry room just assumes each
-// counted door is a typical 3 ft wide opening.
+// Baseboard doesn't run through a doorway — a sketched or floor-plan room
+// nets out each wall's real door-width openings exactly; a simple-entry
+// room just assumes each counted door is a typical 3 ft wide opening.
 export function baseboardLF(room) {
   if (hasSketch(room)) return Number(room.sketch_baseboard_lf) || 0;
+  if (hasRealOpenings(room)) return floorplanGeometryFor(room).baseboardLF;
   if (!hasMeasurements(room)) return 0;
   const TYPICAL_DOOR_WIDTH_FT = 3;
   return Math.max(0, perimeterLF(room) - Number(room.door_count || 0) * TYPICAL_DOOR_WIDTH_FT);

@@ -260,6 +260,9 @@ export default function RemodelEstimateDetail() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <EstimateHeader estimate={estimate} onSaved={setEstimate} />
         <div className="flex gap-3">
+          <Button variant="secondary" onClick={() => navigate(`/remodel/${id}/floorplan`)}>
+            📐 Floor Plan
+          </Button>
           <Button variant="secondary" onClick={handleExportPdf} disabled={exporting}>
             {exporting ? "Exporting…" : "Export PDF"}
           </Button>

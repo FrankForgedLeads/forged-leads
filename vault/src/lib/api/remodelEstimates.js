@@ -74,12 +74,13 @@ export async function fetchRemodelMacros() {
   return data;
 }
 
-// Rooms + their line items in one round trip (nested select), since the
-// estimate detail page always needs the full tree at once.
+// Rooms + their line items + their floor-plan openings in one round trip
+// (nested select), since the estimate detail and floor plan pages always
+// need the full tree at once.
 export async function fetchRemodelRooms(estimateId) {
   const { data, error } = await supabase
     .from("remodel_rooms")
-    .select("*, remodel_room_items(*)")
+    .select("*, remodel_room_items(*), remodel_room_openings(*)")
     .eq("estimate_id", estimateId)
     .order("sort_order", { ascending: true });
 
@@ -98,11 +99,29 @@ export async function fetchRemodelRoom(id) {
   return data;
 }
 
-export async function addRemodelRoom({ estimateId, name, sortOrder = 0 }) {
+export async function addRemodelRoom({
+  estimateId,
+  name,
+  sortOrder = 0,
+  widthFt = null,
+  lengthFt = null,
+  ceilingHeightFt = null,
+  floorplanX = null,
+  floorplanY = null,
+}) {
   const { data, error } = await supabase
     .from("remodel_rooms")
-    .insert({ estimate_id: estimateId, name, sort_order: sortOrder })
-    .select("*, remodel_room_items(*)")
+    .insert({
+      estimate_id: estimateId,
+      name,
+      sort_order: sortOrder,
+      width_ft: widthFt,
+      length_ft: lengthFt,
+      ceiling_height_ft: ceilingHeightFt,
+      floorplan_x: floorplanX,
+      floorplan_y: floorplanY,
+    })
+    .select("*, remodel_room_items(*), remodel_room_openings(*)")
     .single();
 
   if (error) throw error;
@@ -114,7 +133,7 @@ export async function updateRemodelRoom(id, fields) {
     .from("remodel_rooms")
     .update(fields)
     .eq("id", id)
-    .select("*, remodel_room_items(*)")
+    .select("*, remodel_room_items(*), remodel_room_openings(*)")
     .single();
 
   if (error) throw error;
@@ -175,5 +194,55 @@ export async function updateRemodelRoomItem(id, fields) {
 
 export async function deleteRemodelRoomItem(id) {
   const { error } = await supabase.from("remodel_room_items").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// A door/window on the floor plan — attached to one wall side of one room
+// (not raw canvas coordinates), per lib/remodel/floorplanGeometry.js.
+export async function addRoomOpening({
+  roomId,
+  wallSide,
+  offsetFt = 0,
+  widthFt,
+  heightFt,
+  qty = 1,
+  type = "door",
+  description = "",
+  startsAtFloor = true,
+}) {
+  const { data, error } = await supabase
+    .from("remodel_room_openings")
+    .insert({
+      room_id: roomId,
+      wall_side: wallSide,
+      offset_ft: offsetFt,
+      width_ft: widthFt,
+      height_ft: heightFt,
+      qty,
+      type,
+      description: description || null,
+      starts_at_floor: startsAtFloor,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateRoomOpening(id, fields) {
+  const { data, error } = await supabase
+    .from("remodel_room_openings")
+    .update(fields)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteRoomOpening(id) {
+  const { error } = await supabase.from("remodel_room_openings").delete().eq("id", id);
   if (error) throw error;
 }

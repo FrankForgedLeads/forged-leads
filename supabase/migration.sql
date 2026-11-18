@@ -1757,7 +1757,9 @@ create policy "remodel_room_items_delete" on public.remodel_room_items
   );
 
 revoke update on public.remodel_room_items from authenticated;
-grant update (description, unit, quantity, unit_price, note) on public.remodel_room_items to authenticated;
+grant update (
+  description, unit, quantity, unit_price, note, measurement_source, quantity_overridden
+) on public.remodel_room_items to authenticated;
 
 -- ============================================================================
 -- COMPANY LOGO — profiles.logo_path + private 'company-logos' bucket
@@ -2374,6 +2376,98 @@ create policy "remodel_macro_items_update_admin" on public.remodel_macro_items
   for update using (public.is_admin());
 create policy "remodel_macro_items_delete_admin" on public.remodel_macro_items
   for delete using (public.is_admin());
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — floor plan (object-based rooms + wall-attached openings)
+-- ----------------------------------------------------------------------------
+-- The keyboard-driven floor plan (press R for a room, D for a door, W for a
+-- window) places rooms as real rectangles instead of a freehand-drawn shape.
+-- A room's geometry is just length_ft/width_ft/ceiling_height_ft — columns
+-- that already existed for the old "simple entry" fields — plus where it
+-- sits on the shared canvas (floorplan_x/floorplan_y, in feet). Its walls
+-- are implicit (N/E/S/W sides of that rectangle), so an opening attaches to
+-- a room by naming which side and how far along it, not by raw pixel
+-- position — moving or resizing the room keeps every opening attached.
+-- ============================================================================
+alter table public.remodel_rooms add column if not exists floorplan_x numeric(10, 2);
+alter table public.remodel_rooms add column if not exists floorplan_y numeric(10, 2);
+
+create table if not exists public.remodel_room_openings (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.remodel_rooms(id) on delete cascade,
+  wall_side text not null check (wall_side in ('N', 'E', 'S', 'W')),
+  offset_ft numeric(10, 2) not null default 0,
+  width_ft numeric(10, 2) not null default 3,
+  height_ft numeric(10, 2) not null default 7,
+  qty int not null default 1,
+  type text not null default 'door',
+  description text,
+  starts_at_floor boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_room_openings_room_id_idx on public.remodel_room_openings(room_id);
+
+alter table public.remodel_room_openings enable row level security;
+
+-- Same ownership pattern as remodel_room_items: access follows the parent
+-- room -> estimate chain (owner, shared team, or admin to read/edit; admin
+-- is excluded from insert, matching remodel_room_items, so an admin account
+-- can moderate/view but not quietly insert openings as if they were you).
+create policy "remodel_room_openings_select" on public.remodel_room_openings
+  for select using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_room_openings_insert" on public.remodel_room_openings
+  for insert with check (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_room_openings_update" on public.remodel_room_openings
+  for update using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_room_openings_delete" on public.remodel_room_openings
+  for delete using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
 
 -- ============================================================================
 -- End of migration.
