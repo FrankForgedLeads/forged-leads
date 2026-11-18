@@ -2475,6 +2475,267 @@ create policy "remodel_room_openings_delete" on public.remodel_room_openings
   );
 
 -- ============================================================================
+-- FLOOR PLAN v2 — Phase 1: vertex/wall geometry foundation
+-- ============================================================================
+-- The floor plan today represents each room as an independent rectangle
+-- (width_ft x length_ft at floorplan_x/floorplan_y) with its 4 walls
+-- implicit. That can't represent one physical wall shared by two rooms,
+-- closets as true subrooms, or door types with real swing/hinge data —
+-- all requested next. This phase only adds the new foundation tables and
+-- backfills them from today's rooms; it changes no existing column, no
+-- existing table, and nothing the app currently reads from yet, so it is
+-- safe to run with zero visible behavior change.
+--
+-- Coordinates are stored in INCHES (not feet, not pixels) per the
+-- "screen pixels must never be the source of truth" requirement — ft/in
+-- display conversion is a presentation-layer concern only.
+
+create table if not exists public.remodel_vertices (
+  id uuid primary key default gen_random_uuid(),
+  estimate_id uuid not null references public.remodel_estimates(id) on delete cascade,
+  x_in numeric(10, 2) not null,
+  y_in numeric(10, 2) not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_vertices_estimate_id_idx on public.remodel_vertices(estimate_id);
+
+alter table public.remodel_vertices enable row level security;
+
+create policy "remodel_vertices_select" on public.remodel_vertices
+  for select using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_vertices_insert" on public.remodel_vertices
+  for insert with check (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_vertices_update" on public.remodel_vertices
+  for update using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_vertices_delete" on public.remodel_vertices
+  for delete using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create table if not exists public.remodel_walls (
+  id uuid primary key default gen_random_uuid(),
+  estimate_id uuid not null references public.remodel_estimates(id) on delete cascade,
+  start_vertex_id uuid not null references public.remodel_vertices(id) on delete restrict,
+  end_vertex_id uuid not null references public.remodel_vertices(id) on delete restrict,
+  height_in numeric(10, 2) not null default 96,
+  thickness_in numeric(10, 2) not null default 4.5,
+  wall_type text not null default 'interior',
+  is_exterior boolean not null default false,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_walls_estimate_id_idx on public.remodel_walls(estimate_id);
+
+alter table public.remodel_walls enable row level security;
+
+create policy "remodel_walls_select" on public.remodel_walls
+  for select using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_walls_insert" on public.remodel_walls
+  for insert with check (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_walls_update" on public.remodel_walls
+  for update using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_walls_delete" on public.remodel_walls
+  for delete using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- Join table: which room(s) a wall belongs to. A wall with ONE row here is
+-- an unshared/exterior wall; a wall with TWO rows (side 'A' and side 'B')
+-- is a true shared wall between two rooms — the whole point of this
+-- phase. ordinal is this wall's position in that room's loop (0, 1, 2...),
+-- so the room's polygon can be walked in order.
+create table if not exists public.remodel_wall_rooms (
+  wall_id uuid not null references public.remodel_walls(id) on delete cascade,
+  room_id uuid not null references public.remodel_rooms(id) on delete cascade,
+  side text not null default 'A' check (side in ('A', 'B')),
+  ordinal int not null default 0,
+  primary key (wall_id, room_id)
+);
+
+create index if not exists remodel_wall_rooms_room_id_idx on public.remodel_wall_rooms(room_id);
+
+alter table public.remodel_wall_rooms enable row level security;
+
+create policy "remodel_wall_rooms_select" on public.remodel_wall_rooms
+  for select using (
+    exists (
+      select 1 from public.remodel_walls w
+      join public.remodel_estimates e on e.id = w.estimate_id
+      where w.id = wall_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_wall_rooms_insert" on public.remodel_wall_rooms
+  for insert with check (
+    exists (
+      select 1 from public.remodel_walls w
+      join public.remodel_estimates e on e.id = w.estimate_id
+      where w.id = wall_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_wall_rooms_update" on public.remodel_wall_rooms
+  for update using (
+    exists (
+      select 1 from public.remodel_walls w
+      join public.remodel_estimates e on e.id = w.estimate_id
+      where w.id = wall_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_wall_rooms_delete" on public.remodel_wall_rooms
+  for delete using (
+    exists (
+      select 1 from public.remodel_walls w
+      join public.remodel_estimates e on e.id = w.estimate_id
+      where w.id = wall_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- One-time backfill: generate 4 vertices + 4 walls + 4 wall_rooms rows for
+-- every existing room that doesn't have any walls yet, from its current
+-- floorplan_x/floorplan_y/width_ft/length_ft/ceiling_height_ft (feet ->
+-- inches: x12). Safe to re-run — "where not exists" skips rooms already
+-- backfilled, so this never creates duplicates.
+do $$
+declare
+  r record;
+  v_nw uuid; v_ne uuid; v_se uuid; v_sw uuid;
+  w_n uuid; w_e uuid; w_s uuid; w_w uuid;
+  x0 numeric; y0 numeric; x1 numeric; y1 numeric; h_in numeric;
+begin
+  for r in
+    select * from public.remodel_rooms
+    where not exists (
+      select 1 from public.remodel_wall_rooms wr where wr.room_id = remodel_rooms.id
+    )
+  loop
+    x0 := coalesce(r.floorplan_x, 0) * 12;
+    y0 := coalesce(r.floorplan_y, 0) * 12;
+    x1 := x0 + coalesce(r.width_ft, 10) * 12;
+    y1 := y0 + coalesce(r.length_ft, 10) * 12;
+    h_in := coalesce(r.ceiling_height_ft, 8) * 12;
+
+    insert into public.remodel_vertices (estimate_id, x_in, y_in) values (r.estimate_id, x0, y0) returning id into v_nw;
+    insert into public.remodel_vertices (estimate_id, x_in, y_in) values (r.estimate_id, x1, y0) returning id into v_ne;
+    insert into public.remodel_vertices (estimate_id, x_in, y_in) values (r.estimate_id, x1, y1) returning id into v_se;
+    insert into public.remodel_vertices (estimate_id, x_in, y_in) values (r.estimate_id, x0, y1) returning id into v_sw;
+
+    insert into public.remodel_walls (estimate_id, start_vertex_id, end_vertex_id, height_in) values (r.estimate_id, v_nw, v_ne, h_in) returning id into w_n;
+    insert into public.remodel_walls (estimate_id, start_vertex_id, end_vertex_id, height_in) values (r.estimate_id, v_ne, v_se, h_in) returning id into w_e;
+    insert into public.remodel_walls (estimate_id, start_vertex_id, end_vertex_id, height_in) values (r.estimate_id, v_se, v_sw, h_in) returning id into w_s;
+    insert into public.remodel_walls (estimate_id, start_vertex_id, end_vertex_id, height_in) values (r.estimate_id, v_sw, v_nw, h_in) returning id into w_w;
+
+    insert into public.remodel_wall_rooms (wall_id, room_id, side, ordinal) values
+      (w_n, r.id, 'A', 0),
+      (w_e, r.id, 'A', 1),
+      (w_s, r.id, 'A', 2),
+      (w_w, r.id, 'A', 3);
+  end loop;
+end $$;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
