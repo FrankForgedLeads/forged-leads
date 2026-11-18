@@ -2284,6 +2284,28 @@ alter table public.remodel_rooms add column if not exists sketch_wall_area_sf nu
 alter table public.remodel_rooms add column if not exists sketch_perimeter_lf numeric(10, 2);
 
 -- ============================================================================
+-- REMODEL ESTIMATOR — wall-by-wall engine upgrade
+-- ----------------------------------------------------------------------------
+-- sketch_data's internal shape changed from parallel wallLengths/doorWalls/
+-- windowWalls arrays to one walls[] array (length, height override,
+-- real-dimension openings, demo/replace flags, flood-cut height, notes) —
+-- that's a JSON shape change only, so it needs no column here; old sketches
+-- upgrade themselves the moment they're reopened (lib/remodel/sketch.js's
+-- upgradeLegacySketchData). These three room-level columns are new,
+-- feeding the room's gross wall SF / baseboard LF / volume quick-fills.
+-- ============================================================================
+alter table public.remodel_rooms add column if not exists sketch_wall_gross_area_sf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_baseboard_lf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_room_volume_cf numeric(10, 2);
+
+-- Lets a line item say WHERE its quantity came from (a sketch measurement,
+-- a specific wall, a flood cut) and whether someone has since hand-edited
+-- the quantity away from that source — so "refresh from sketch" never
+-- silently overwrites a deliberate manual change.
+alter table public.remodel_room_items add column if not exists measurement_source text;
+alter table public.remodel_room_items add column if not exists quantity_overridden boolean not null default false;
+
+-- ============================================================================
 -- REMODEL ESTIMATOR — macros (one-click line-item bundles)
 -- ----------------------------------------------------------------------------
 -- Our own version of what Xactimate/Symbility call macros — a named bundle

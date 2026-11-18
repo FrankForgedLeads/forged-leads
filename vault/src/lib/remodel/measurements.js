@@ -44,6 +44,8 @@ export function perimeterLF(room) {
   return 2 * (Number(room.length_ft) + Number(room.width_ft));
 }
 
+// "Wall area" means NET wall SF everywhere this has always been used
+// (paint/drywall quick-fill, macros) — kept as-is for backward compatibility.
 export function wallAreaSF(room) {
   if (hasSketch(room)) return Number(room.sketch_wall_area_sf) || 0;
   if (!hasMeasurements(room)) return 0;
@@ -53,4 +55,31 @@ export function wallAreaSF(room) {
     Number(room.door_count || 0) * DOOR_DEDUCTION_SF +
     Number(room.window_count || 0) * WINDOW_DEDUCTION_SF;
   return Math.max(0, gross - deductions);
+}
+
+// Gross wall SF — before any door/window deduction. A sketched room with
+// per-wall openings stores this directly; a simple length/width room has no
+// real openings on file, so gross and net are the same there.
+export function wallGrossAreaSF(room) {
+  if (hasSketch(room)) return Number(room.sketch_wall_gross_area_sf) || 0;
+  if (!hasMeasurements(room)) return 0;
+  const height = Number(room.ceiling_height_ft) > 0 ? Number(room.ceiling_height_ft) : 8;
+  return perimeterLF(room) * height;
+}
+
+// Baseboard doesn't run through a doorway — a sketched room nets out each
+// wall's door-width openings exactly; a simple-entry room just assumes each
+// counted door is a typical 3 ft wide opening.
+export function baseboardLF(room) {
+  if (hasSketch(room)) return Number(room.sketch_baseboard_lf) || 0;
+  if (!hasMeasurements(room)) return 0;
+  const TYPICAL_DOOR_WIDTH_FT = 3;
+  return Math.max(0, perimeterLF(room) - Number(room.door_count || 0) * TYPICAL_DOOR_WIDTH_FT);
+}
+
+export function roomVolumeCF(room) {
+  if (hasSketch(room)) return Number(room.sketch_room_volume_cf) || 0;
+  if (!hasMeasurements(room)) return 0;
+  const height = Number(room.ceiling_height_ft) > 0 ? Number(room.ceiling_height_ft) : 8;
+  return floorAreaSF(room) * height;
 }

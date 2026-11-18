@@ -138,6 +138,8 @@ export async function addRemodelRoomItem({
   quantity = 1,
   unitPrice,
   note = "",
+  measurementSource = null,
+  quantityOverridden = false,
 }) {
   const { data, error } = await supabase
     .from("remodel_room_items")
@@ -149,6 +151,8 @@ export async function addRemodelRoomItem({
       quantity,
       unit_price: unitPrice,
       note: note || null,
+      measurement_source: measurementSource,
+      quantity_overridden: quantityOverridden,
     })
     .select("*")
     .single();

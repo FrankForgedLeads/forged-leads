@@ -23,7 +23,11 @@ import {
   ceilingAreaSF,
   perimeterLF,
   wallAreaSF,
+  wallGrossAreaSF,
+  baseboardLF,
+  roomVolumeCF,
 } from "../lib/remodel/measurements.js";
+import { upgradeLegacySketchData, computeSketchMeasurements } from "../lib/remodel/sketch.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
@@ -80,6 +84,93 @@ const ROOM_NAME_SUGGESTIONS = [
   "Exterior",
   "Roof",
 ];
+
+// Everything about where a line item's quantity came from — the whole-room
+// measurements plus, when the room was sketched wall-by-wall, each wall's
+// own net/gross/flood-cut SF. A line tagged with one of these codes can be
+// "refreshed" later without guessing what it meant.
+const MEASUREMENT_SOURCE_LABELS = {
+  floor_sf: "Floor SF",
+  ceiling_sf: "Ceiling SF",
+  wall_net_sf: "Wall SF (net)",
+  wall_gross_sf: "Wall SF (gross)",
+  perimeter_lf: "Perimeter LF",
+  baseboard_lf: "Baseboard LF",
+  room_volume_cf: "Room volume CF",
+};
+
+// Recomputes the room's full wall-by-wall breakdown from its stored sketch
+// data, so the quantity-source picker can offer "Wall 2 — net SF" etc. —
+// the room's own sketch_wall_area_sf etc. columns only hold the whole-room
+// totals, not the per-wall numbers.
+function getRoomSketchCalc(room) {
+  if (!room?.sketch_data) return null;
+  const sd = upgradeLegacySketchData(room.sketch_data);
+  if (!sd?.points?.length || !sd?.walls?.length) return null;
+  return computeSketchMeasurements({
+    points: sd.points,
+    walls: sd.walls.map((w) => ({
+      lengthFt: w.lengthFt,
+      heightFt: w.heightFt,
+      openings: w.openings || [],
+      floodCut: w.floodCut,
+    })),
+    ceilingHeightFt: room.ceiling_height_ft || 8,
+  });
+}
+
+function measurementSourceOptions(room, sketchCalc) {
+  if (!hasMeasurements(room)) return [];
+  const wholeRoom = [
+    ["floor_sf", floorAreaSF(room)],
+    ["ceiling_sf", ceilingAreaSF(room)],
+    ["wall_net_sf", wallAreaSF(room)],
+    ["wall_gross_sf", wallGrossAreaSF(room)],
+    ["perimeter_lf", perimeterLF(room)],
+    ["baseboard_lf", baseboardLF(room)],
+    ["room_volume_cf", roomVolumeCF(room)],
+  ].map(([value, qty]) => ({
+    value,
+    qty,
+    label: `${MEASUREMENT_SOURCE_LABELS[value]} (${qty.toFixed(value === "room_volume_cf" ? 0 : 1)})`,
+  }));
+
+  const perWall = [];
+  if (sketchCalc) {
+    sketchCalc.walls.forEach((w, i) => {
+      perWall.push({
+        value: `wall_${i}_net_sf`,
+        qty: w.netSF,
+        label: `Wall ${i + 1} — net SF (${w.netSF.toFixed(1)})`,
+      });
+      perWall.push({
+        value: `wall_${i}_gross_sf`,
+        qty: w.grossSF,
+        label: `Wall ${i + 1} — gross SF (${w.grossSF.toFixed(1)})`,
+      });
+      if (w.floodCutSF > 0) {
+        perWall.push({
+          value: `wall_${i}_flood_cut_sf`,
+          qty: w.floodCutSF,
+          label: `Wall ${i + 1} — flood cut SF (${w.floodCutSF.toFixed(1)})`,
+        });
+      }
+    });
+  }
+  return [...wholeRoom, ...perWall];
+}
+
+function resolveMeasurementQuantity(sourceCode, room, sketchCalc) {
+  if (!sourceCode) return null;
+  const match = measurementSourceOptions(room, sketchCalc).find((o) => o.value === sourceCode);
+  return match ? match.qty : null;
+}
+
+function describeMeasurementSource(sourceCode, room, sketchCalc) {
+  if (!sourceCode) return null;
+  const match = measurementSourceOptions(room, sketchCalc).find((o) => o.value === sourceCode);
+  return match ? match.label.replace(/\s*\([^)]*\)$/, "") : sourceCode;
+}
 
 export default function RemodelEstimateDetail() {
   const { id } = useParams();
@@ -433,9 +524,12 @@ function RoomCard({ room, catalog, macros, onRoomChanged, onRoomDeleted }) {
         {hasMeasurements(roomWithMeasurements) && (
           <div className="col-span-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/60 sm:col-span-5">
             <span>Floor: {floorAreaSF(roomWithMeasurements).toFixed(1)} SF</span>
-            <span>Walls: {wallAreaSF(roomWithMeasurements).toFixed(1)} SF</span>
             <span>Ceiling: {ceilingAreaSF(roomWithMeasurements).toFixed(1)} SF</span>
+            <span>Walls, net: {wallAreaSF(roomWithMeasurements).toFixed(1)} SF</span>
+            <span>Walls, gross: {wallGrossAreaSF(roomWithMeasurements).toFixed(1)} SF</span>
             <span>Perimeter: {perimeterLF(roomWithMeasurements).toFixed(1)} LF</span>
+            <span>Baseboard: {baseboardLF(roomWithMeasurements).toFixed(1)} LF</span>
+            <span>Volume: {roomVolumeCF(roomWithMeasurements).toFixed(0)} CF</span>
           </div>
         )}
       </div>
@@ -446,6 +540,7 @@ function RoomCard({ room, catalog, macros, onRoomChanged, onRoomDeleted }) {
           <RoomItemRow
             key={item.id}
             item={item}
+            room={roomWithMeasurements}
             onChanged={handleItemChanged}
             onDeleted={handleItemDeleted}
           />
@@ -475,7 +570,7 @@ function RoomCard({ room, catalog, macros, onRoomChanged, onRoomDeleted }) {
   );
 }
 
-function RoomItemRow({ item, onChanged, onDeleted }) {
+function RoomItemRow({ item, room, onChanged, onDeleted }) {
   const [fields, setFields] = useState({
     description: item.description,
     unit: item.unit,
@@ -484,17 +579,35 @@ function RoomItemRow({ item, onChanged, onDeleted }) {
     note: item.note || "",
   });
 
+  const sketchCalc = useMemo(() => getRoomSketchCalc(room), [room]);
+  const sourceLabel = describeMeasurementSource(item.measurement_source, room, sketchCalc);
+
   function set(field) {
     return (e) => setFields((f) => ({ ...f, [field]: e.target.value }));
   }
 
   async function save() {
+    const newQuantity = Number(fields.quantity) || 0;
+    const becameOverridden = item.measurement_source && newQuantity !== Number(item.quantity);
     const updated = await updateRemodelRoomItem(item.id, {
       description: fields.description,
       unit: fields.unit,
-      quantity: Number(fields.quantity) || 0,
+      quantity: newQuantity,
       unit_price: Number(fields.unit_price) || 0,
       note: fields.note || null,
+      ...(becameOverridden ? { quantity_overridden: true } : {}),
+    });
+    onChanged(updated);
+  }
+
+  async function handleRefresh() {
+    const fresh = resolveMeasurementQuantity(item.measurement_source, room, sketchCalc);
+    if (fresh == null) return;
+    const rounded = Number(fresh.toFixed(2));
+    setFields((f) => ({ ...f, quantity: rounded }));
+    const updated = await updateRemodelRoomItem(item.id, {
+      quantity: rounded,
+      quantity_overridden: false,
     });
     onChanged(updated);
   }
@@ -508,12 +621,30 @@ function RoomItemRow({ item, onChanged, onDeleted }) {
 
   return (
     <div className="grid grid-cols-12 items-center gap-2 rounded-lg bg-navy-900/60 p-2.5 text-sm">
-      <input
-        value={fields.description}
-        onChange={set("description")}
-        onBlur={save}
-        className="col-span-5 bg-transparent text-white focus:outline-none"
-      />
+      <div className="col-span-5">
+        <input
+          value={fields.description}
+          onChange={set("description")}
+          onBlur={save}
+          className="w-full bg-transparent text-white focus:outline-none"
+        />
+        {item.measurement_source && (
+          <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/40">
+            <span>
+              via {sourceLabel}
+              {item.quantity_overridden ? " (edited)" : ""}
+            </span>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              className="font-semibold text-gold-400 hover:underline"
+              title="Pull this quantity from the sketch again"
+            >
+              🔄 Refresh
+            </button>
+          </div>
+        )}
+      </div>
       <input
         value={fields.quantity}
         onChange={set("quantity")}
@@ -590,6 +721,13 @@ function resolveMacroItemQuantity(mode, fixedQuantity, room) {
   }
 }
 
+const MACRO_MODE_TO_SOURCE = {
+  floor_sf: "floor_sf",
+  wall_sf: "wall_net_sf",
+  ceiling_sf: "ceiling_sf",
+  perimeter_lf: "perimeter_lf",
+};
+
 function MacroPicker({ roomId, room, macros, onItemsAdded }) {
   const [macroId, setMacroId] = useState("");
   const [userPicked, setUserPicked] = useState(false);
@@ -632,6 +770,7 @@ function MacroPicker({ roomId, room, macros, onItemsAdded }) {
           unit: catalogItem.unit,
           quantity: Number(Number(quantity).toFixed(2)),
           unitPrice: midpoint(catalogItem.price_low, catalogItem.price_high),
+          measurementSource: hasMeasurements(room) ? MACRO_MODE_TO_SOURCE[mi.quantity_mode] || null : null,
         });
         newItems.push(newItem);
       }
@@ -700,17 +839,37 @@ function AddItemForm({ roomId, catalog, room, onAdded }) {
   const [catalogItemId, setCatalogItemId] = useState("");
   const [custom, setCustom] = useState({ description: "", unit: "EA", unitPrice: "" });
   const [quantity, setQuantity] = useState(1);
+  const [measurementSource, setMeasurementSource] = useState("");
+  const [autoFilledQty, setAutoFilledQty] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const sketchCalc = useMemo(() => getRoomSketchCalc(room), [room]);
+  const sourceOptions = useMemo(() => measurementSourceOptions(room, sketchCalc), [room, sketchCalc]);
 
   const itemsInCategory = (category ? catalog.filter((it) => it.category === category) : catalog)
     .slice()
     .sort((a, b) => a.description.localeCompare(b.description));
 
+  function handleSourceChange(e) {
+    const value = e.target.value;
+    setMeasurementSource(value);
+    const match = sourceOptions.find((o) => o.value === value);
+    if (match) {
+      const decimals = match.value === "room_volume_cf" ? 0 : 2;
+      const rounded = Number(match.qty.toFixed(decimals));
+      setQuantity(rounded);
+      setAutoFilledQty(rounded);
+    } else {
+      setAutoFilledQty(null);
+    }
+  }
+
   async function handleAdd() {
     setBusy(true);
     setError("");
     try {
+      const quantityOverridden = Boolean(measurementSource) && Number(quantity) !== autoFilledQty;
       if (mode === "catalog") {
         const picked = catalog.find((it) => it.id === catalogItemId);
         if (!picked) {
@@ -725,6 +884,8 @@ function AddItemForm({ roomId, catalog, room, onAdded }) {
           unit: picked.unit,
           quantity: Number(quantity) || 1,
           unitPrice,
+          measurementSource: measurementSource || null,
+          quantityOverridden,
         });
         onAdded(newItem);
         setCatalogItemId("");
@@ -739,11 +900,15 @@ function AddItemForm({ roomId, catalog, room, onAdded }) {
           unit: custom.unit || "EA",
           quantity: Number(quantity) || 1,
           unitPrice: Number(custom.unitPrice),
+          measurementSource: measurementSource || null,
+          quantityOverridden,
         });
         onAdded(newItem);
         setCustom({ description: "", unit: "EA", unitPrice: "" });
       }
       setQuantity(1);
+      setMeasurementSource("");
+      setAutoFilledQty(null);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -771,6 +936,20 @@ function AddItemForm({ roomId, catalog, room, onAdded }) {
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-12 sm:items-end">
+        {sourceOptions.length > 0 && (
+          <div className="sm:col-span-12">
+            <Field label="Quantity source (optional — fills Qty below and tags the line so it can be refreshed later)">
+              <Select value={measurementSource} onChange={handleSourceChange}>
+                <option value="">Manual / custom quantity</option>
+                {sourceOptions.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+        )}
         {mode === "catalog" ? (
           <>
             <div className="sm:col-span-3">
@@ -819,39 +998,6 @@ function AddItemForm({ roomId, catalog, room, onAdded }) {
                 {busy ? "Adding…" : "Add"}
               </Button>
             </div>
-            {hasMeasurements(room) && (
-              <div className="sm:col-span-12 -mt-1 flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-white/40">Fill qty from this room's measurements:</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(floorAreaSF(room).toFixed(1))}
-                  className="rounded bg-navy-700 px-2 py-1 font-semibold text-white/80 hover:bg-navy-600"
-                >
-                  Floor ({floorAreaSF(room).toFixed(1)} SF)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(wallAreaSF(room).toFixed(1))}
-                  className="rounded bg-navy-700 px-2 py-1 font-semibold text-white/80 hover:bg-navy-600"
-                >
-                  Walls ({wallAreaSF(room).toFixed(1)} SF)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(ceilingAreaSF(room).toFixed(1))}
-                  className="rounded bg-navy-700 px-2 py-1 font-semibold text-white/80 hover:bg-navy-600"
-                >
-                  Ceiling ({ceilingAreaSF(room).toFixed(1)} SF)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(perimeterLF(room).toFixed(1))}
-                  className="rounded bg-navy-700 px-2 py-1 font-semibold text-white/80 hover:bg-navy-600"
-                >
-                  Perimeter ({perimeterLF(room).toFixed(1)} LF)
-                </button>
-              </div>
-            )}
           </>
         ) : (
           <>

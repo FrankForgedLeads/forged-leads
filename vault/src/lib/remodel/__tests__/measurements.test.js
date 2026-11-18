@@ -5,6 +5,9 @@ import {
   ceilingAreaSF,
   perimeterLF,
   wallAreaSF,
+  wallGrossAreaSF,
+  baseboardLF,
+  roomVolumeCF,
 } from "../measurements.js";
 
 describe("hasMeasurements", () => {
@@ -79,5 +82,41 @@ describe("sketch-derived measurements take priority over length/width", () => {
   it("falls back to length/width when there's no sketch", () => {
     const room = { length_ft: 10, width_ft: 12 };
     expect(floorAreaSF(room)).toBe(120);
+  });
+});
+
+describe("wallGrossAreaSF", () => {
+  it("is perimeter x height, with no deductions, for a simple-entry room", () => {
+    const room = { length_ft: 10, width_ft: 12, ceiling_height_ft: 8, door_count: 1, window_count: 2 };
+    expect(wallGrossAreaSF(room)).toBe(44 * 8);
+  });
+
+  it("reads the sketch's stored gross SF when the room was sketched", () => {
+    const room = { sketch_perimeter_lf: 44, sketch_wall_gross_area_sf: 352 };
+    expect(wallGrossAreaSF(room)).toBe(352);
+  });
+});
+
+describe("baseboardLF", () => {
+  it("nets out a typical 3 ft door width per counted door, not windows", () => {
+    const room = { length_ft: 10, width_ft: 12, door_count: 1, window_count: 2 };
+    expect(baseboardLF(room)).toBe(44 - 3);
+  });
+
+  it("reads the sketch's stored baseboard LF when the room was sketched", () => {
+    const room = { sketch_perimeter_lf: 44, sketch_baseboard_lf: 41 };
+    expect(baseboardLF(room)).toBe(41);
+  });
+});
+
+describe("roomVolumeCF", () => {
+  it("is floor area x ceiling height for a simple-entry room", () => {
+    const room = { length_ft: 10, width_ft: 12, ceiling_height_ft: 8 };
+    expect(roomVolumeCF(room)).toBe(120 * 8);
+  });
+
+  it("reads the sketch's stored volume when the room was sketched", () => {
+    const room = { sketch_perimeter_lf: 44, sketch_floor_area_sf: 120, sketch_room_volume_cf: 960 };
+    expect(roomVolumeCF(room)).toBe(960);
   });
 });
