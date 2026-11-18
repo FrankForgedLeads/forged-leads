@@ -33,6 +33,7 @@ import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 import { Field, Input, Select } from "../components/ui/Field.jsx";
 import { formatCurrency, midpoint } from "../lib/format.js";
+import CatalogItemProvenance from "../components/remodel/CatalogItemProvenance.jsx";
 
 const CATEGORY_LABEL = {
   paint: "Paint",
@@ -1014,6 +1015,7 @@ function AddItemForm({ roomId, catalog, room, onAdded }) {
                   ))}
                 </Select>
               </Field>
+              <CatalogItemProvenance item={catalog.find((it) => it.id === catalogItemId)} />
             </div>
             <div className="sm:col-span-1">
               <Field label="Qty">

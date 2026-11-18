@@ -1676,7 +1676,12 @@ create policy "remodel_rooms_delete" on public.remodel_rooms
   );
 
 revoke update on public.remodel_rooms from authenticated;
-grant update (name, sort_order) on public.remodel_rooms to authenticated;
+grant update (
+  name, sort_order, length_ft, width_ft, ceiling_height_ft, door_count, window_count,
+  sketch_data, sketch_floor_area_sf, sketch_ceiling_area_sf, sketch_wall_area_sf,
+  sketch_wall_gross_area_sf, sketch_baseboard_lf, sketch_room_volume_cf, sketch_perimeter_lf,
+  floorplan_x, floorplan_y
+) on public.remodel_rooms to authenticated;
 
 -- ----------------------------------------------------------------------------
 

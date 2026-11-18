@@ -37,6 +37,7 @@ import { formatCurrency, midpoint } from "../lib/format.js";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 import { Field, Input, Select } from "../components/ui/Field.jsx";
+import CatalogItemProvenance from "../components/remodel/CatalogItemProvenance.jsx";
 
 const PX_PER_FT = 24;
 const VIEW_W = 1100;
@@ -1217,6 +1218,7 @@ function AddLineItem({ rooms, catalog, macros, onRoomItemsChanged }) {
               ))}
             </Select>
           </Field>
+          <CatalogItemProvenance item={catalog.find((it) => it.id === itemId)} />
         </div>
         <div className="sm:col-span-2">
           <Field label="Quantity source">
