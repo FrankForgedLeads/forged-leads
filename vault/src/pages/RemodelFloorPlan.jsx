@@ -64,7 +64,21 @@ const TOOLS = [
   { id: "room", key: "R", label: "Room", icon: "▭" },
   { id: "door", key: "D", label: "Door", icon: "🚪" },
   { id: "window", key: "W", label: "Window", icon: "🪟" },
+  { id: "missing", key: "M", label: "Missing Wall", icon: "⬚" },
 ];
+
+// Per-opening-type canvas styling — doors/windows keep their original
+// colors; the two "missing wall" types get a distinct dashed red so a gap
+// in the wall reads differently from a fixture.
+const OPENING_RENDER_STYLE = {
+  window: { color: "#38bdf8", width: 5 },
+  pass_through: { color: "#38bdf8", width: 5 },
+  open_no_wall: { color: "#ef4444", width: 5, dash: "2,3" },
+  half_wall: { color: "#ef4444", width: 4, dash: "7,3" },
+};
+function openingRenderStyle(type) {
+  return OPENING_RENDER_STYLE[type] || { color: "#eab308", width: 7 };
+}
 
 function snapFt(ft) {
   return Math.round(ft * 2) / 2; // nearest 0.5 ft
@@ -295,6 +309,7 @@ export default function RemodelFloorPlan() {
       if (key === "r") setTool("room");
       else if (key === "d") setTool("door");
       else if (key === "w") setTool("window");
+      else if (key === "m") setTool("missing");
       else if (key === "v" || key === "s") setTool("select");
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -354,9 +369,12 @@ export default function RemodelFloorPlan() {
       handleCreateRoomAt(pointFt).catch((err) => setError(err.message));
       return;
     }
-    if (tool === "door" || tool === "window") {
+    if (tool === "door" || tool === "window" || tool === "missing") {
       const hit = findNearestWall(pointFt, rooms);
-      if (hit) handleAttachOpening(hit, tool).catch((err) => setError(err.message));
+      if (hit) {
+        const openingType = tool === "missing" ? "open_no_wall" : tool;
+        handleAttachOpening(hit, openingType).catch((err) => setError(err.message));
+      }
       return;
     }
     setSelectedRoomId(null);
@@ -365,7 +383,7 @@ export default function RemodelFloorPlan() {
   }
 
   function handleCanvasMouseMove(e) {
-    if (tool !== "door" && tool !== "window") {
+    if (tool !== "door" && tool !== "window" && tool !== "missing") {
       if (hoverWall) setHoverWall(null);
       return;
     }
@@ -733,7 +751,10 @@ export default function RemodelFloorPlan() {
                 />
               ))}
               {hoverWall && (
-                <WallHighlight hit={hoverWall} color={tool === "door" ? "#eab308" : "#38bdf8"} />
+                <WallHighlight
+                  hit={hoverWall}
+                  color={tool === "door" ? "#eab308" : tool === "missing" ? "#ef4444" : "#38bdf8"}
+                />
               )}
             </g>
           </svg>
@@ -741,8 +762,10 @@ export default function RemodelFloorPlan() {
             {tool === "room" && "Click the canvas to place a room, then set its size on the right."}
             {tool === "door" && "Move near a wall and click to attach a door."}
             {tool === "window" && "Move near a wall and click to attach a window."}
+            {tool === "missing" &&
+              "Move near a wall and click to mark part of it missing, then set the exact feet and pick \"No wall\" or \"Half wall\" on the right."}
             {tool === "select" &&
-              "Click a room or opening to select it, or shift-click more rooms to highlight several — drag any of their red dots to move the whole group together. Drag a yellow dot (corner or wall-middle) to resize a room. R = room, D = door, W = window, Esc = select, Delete = remove selection."}
+              "Click a room or opening to select it, or shift-click more rooms to highlight several — drag any of their red dots to move the whole group together. Drag a yellow dot (corner or wall-middle) to resize a room. R = room, D = door, W = window, M = missing wall, Esc = select, Delete = remove selection."}
           </p>
         </Card>
 
@@ -933,9 +956,8 @@ function WallWithOpenings({ room, side, color, selectedOpeningId, onSelectOpenin
         const sy = horizontal ? ay : ay + startFt * PX_PER_FT;
         const ex = horizontal ? ax + endFt * PX_PER_FT : ax;
         const ey = horizontal ? ay : ay + endFt * PX_PER_FT;
-        const isWindow = o.type === "window";
-        const openingColor =
-          selectedOpeningId === o.id ? "#0f172a" : isWindow ? "#38bdf8" : "#eab308";
+        const style = openingRenderStyle(o.type);
+        const openingColor = selectedOpeningId === o.id ? "#0f172a" : style.color;
         return (
           <line
             key={o.id}
@@ -944,7 +966,8 @@ function WallWithOpenings({ room, side, color, selectedOpeningId, onSelectOpenin
             x2={ex}
             y2={ey}
             stroke={openingColor}
-            strokeWidth={isWindow ? 5 : 7}
+            strokeWidth={style.width}
+            strokeDasharray={selectedOpeningId === o.id ? undefined : style.dash}
             strokeLinecap="butt"
             className="cursor-pointer"
             onClick={(e) => onSelectOpening(o.id, e)}
@@ -1105,12 +1128,13 @@ function OpeningProperties({ opening, room, onChange, onDelete }) {
   }
 
   const areaSF = (Number(form.width_ft) || 0) * (Number(form.height_ft) || 0) * (Number(form.qty) || 1);
+  const isMissingWall = form.type === "open_no_wall" || form.type === "half_wall";
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-bold uppercase tracking-wide text-white/60">
-          Opening — Wall {opening.wall_side}
+          {isMissingWall ? "Missing wall" : "Opening"} — Wall {opening.wall_side}
         </h2>
         <button type="button" onClick={onDelete} className="text-xs font-semibold text-red-400 hover:underline">
           Delete
@@ -1136,10 +1160,10 @@ function OpeningProperties({ opening, room, onChange, onDelete }) {
           </Select>
         </Field>
         <div className="grid grid-cols-2 gap-2">
-          <Field label="Width (ft)">
+          <Field label={isMissingWall ? "Missing length (ft)" : "Width (ft)"}>
             <Input type="number" step="0.1" value={form.width_ft} onChange={set("width_ft")} onBlur={() => commit()} />
           </Field>
-          <Field label="Height (ft)">
+          <Field label={isMissingWall ? "Open height (ft)" : "Height (ft)"}>
             <Input type="number" step="0.1" value={form.height_ft} onChange={set("height_ft")} onBlur={() => commit()} />
           </Field>
         </div>

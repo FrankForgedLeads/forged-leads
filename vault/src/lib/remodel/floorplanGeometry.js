@@ -33,6 +33,13 @@ export const OPENING_TYPES = {
   large_opening: { label: "Large opening", defaultWidthFt: 6, defaultHeightFt: 8, startsAtFloor: true },
   pass_through: { label: "Pass-through", defaultWidthFt: 3, defaultHeightFt: 3, startsAtFloor: false },
   custom: { label: "Custom opening", defaultWidthFt: 3, defaultHeightFt: 3, startsAtFloor: true },
+  // "Missing wall" section — same opening math as a door/window (a width x
+  // height area subtracted from that wall), just framed as "this much of
+  // the wall isn't there" instead of a fixture. open_no_wall removes the
+  // wall entirely (no baseboard, same as a doorway); half_wall leaves the
+  // lower portion standing (baseboard still applies, same as a window).
+  open_no_wall: { label: "No wall (fully open)", defaultWidthFt: 4, defaultHeightFt: 8, startsAtFloor: true },
+  half_wall: { label: "Half wall (open above)", defaultWidthFt: 4, defaultHeightFt: 4, startsAtFloor: false },
 };
 
 export function defaultOpeningFor(type = "door") {

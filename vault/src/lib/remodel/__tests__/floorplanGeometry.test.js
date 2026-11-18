@@ -35,6 +35,24 @@ describe("defaultOpeningFor", () => {
   });
 });
 
+describe("missing-wall opening types", () => {
+  it("open_no_wall behaves like a doorway: no baseboard where it sits", () => {
+    const opening = defaultOpeningFor("open_no_wall");
+    expect(opening.starts_at_floor).toBe(true);
+    const wall = wallMeasurements("N", 12, 10, 8, [{ wall_side: "N", ...opening }]);
+    expect(wall.openingsSF).toBe(opening.width_ft * opening.height_ft);
+    expect(wall.baseboardLF).toBe(12 - opening.width_ft);
+  });
+
+  it("half_wall behaves like a window: baseboard still runs underneath it", () => {
+    const opening = defaultOpeningFor("half_wall");
+    expect(opening.starts_at_floor).toBe(false);
+    const wall = wallMeasurements("N", 12, 10, 8, [{ wall_side: "N", ...opening }]);
+    expect(wall.openingsSF).toBe(opening.width_ft * opening.height_ft);
+    expect(wall.baseboardLF).toBe(12); // nothing deducted — the lower wall still stands
+  });
+});
+
 describe("wallMeasurements", () => {
   it("computes gross/net SF and baseboard LF for a plain wall", () => {
     const result = wallMeasurements("N", 12, 10, 8, []);
