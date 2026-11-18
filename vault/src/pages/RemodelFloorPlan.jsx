@@ -648,7 +648,7 @@ export default function RemodelFloorPlan() {
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
             onClick={handleCanvasClick}
             onMouseMove={handleCanvasMouseMove}
-            className={`w-full rounded-xl border border-navy-500 bg-navy-950 ${
+            className={`w-full rounded-xl border border-slate-300 bg-white ${
               tool === "select" ? "cursor-default" : "cursor-crosshair"
             }`}
             style={{ aspectRatio: `${VIEW_W} / ${VIEW_H}` }}
@@ -658,7 +658,7 @@ export default function RemodelFloorPlan() {
                 <path
                   d={`M ${PX_PER_FT} 0 L 0 0 0 ${PX_PER_FT}`}
                   fill="none"
-                  stroke="#1e2a44"
+                  stroke="#e2e8f0"
                   strokeWidth="1"
                 />
               </pattern>
@@ -764,7 +764,7 @@ function RoomShape({
     openings: room.remodel_room_openings || [],
   });
 
-  const wallColor = selected ? "#eab308" : "#cbd5e1";
+  const wallColor = selected ? "#eab308" : "#334155";
 
   return (
     <g onClick={onSelectRoom} className="cursor-pointer">
@@ -780,7 +780,7 @@ function RoomShape({
         />
       ))}
       {/* Dimension labels */}
-      <text x={x + w / 2} y={y - 6} textAnchor="middle" fontSize="11" fill="#94a3b8">
+      <text x={x + w / 2} y={y - 6} textAnchor="middle" fontSize="11" fill="#475569">
         {room.width_ft}'
       </text>
       <text
@@ -788,15 +788,15 @@ function RoomShape({
         y={y + l / 2}
         textAnchor="middle"
         fontSize="11"
-        fill="#94a3b8"
+        fill="#475569"
         transform={`rotate(-90 ${x - 8} ${y + l / 2})`}
       >
         {room.length_ft}'
       </text>
-      <text x={x + w / 2} y={y + l / 2 - 6} textAnchor="middle" fontSize="13" fontWeight="bold" fill="#fff">
+      <text x={x + w / 2} y={y + l / 2 - 6} textAnchor="middle" fontSize="13" fontWeight="bold" fill="#1e293b">
         {(room.name || "Untitled room").toUpperCase()}
       </text>
-      <text x={x + w / 2} y={y + l / 2 + 12} textAnchor="middle" fontSize="11" fill="#eab308">
+      <text x={x + w / 2} y={y + l / 2 + 12} textAnchor="middle" fontSize="11" fill="#b45309">
         {geometry.floorAreaSF.toFixed(0)} SF
       </text>
       {/* Drag handle — grab and drag to move this room next to another one. */}
@@ -876,7 +876,7 @@ function WallWithOpenings({ room, side, color, selectedOpeningId, onSelectOpenin
         const ey = horizontal ? ay : ay + endFt * PX_PER_FT;
         const isWindow = o.type === "window";
         const openingColor =
-          selectedOpeningId === o.id ? "#fff" : isWindow ? "#38bdf8" : "#eab308";
+          selectedOpeningId === o.id ? "#0f172a" : isWindow ? "#38bdf8" : "#eab308";
         return (
           <line
             key={o.id}
