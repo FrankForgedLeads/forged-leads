@@ -152,16 +152,23 @@ export default function RemodelFloorPlan() {
 
   const [tool, setTool] = useState("select");
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+  // Every highlighted room (shift-click adds/removes a room) — always
+  // includes selectedRoomId when non-empty. Grabbing any one of these
+  // rooms' drag handles moves the whole group together.
+  const [selectedRoomIds, setSelectedRoomIds] = useState(() => new Set());
   const [selectedOpeningId, setSelectedOpeningId] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [hoverWall, setHoverWall] = useState(null);
-  // Dragging an already-placed room by its center handle (the red dot) —
-  // the offset keeps the grab point fixed under the cursor instead of the
-  // room snapping its corner there; the ref mirrors the live position so
-  // pointerup can persist the final spot without waiting on state timing.
+  // Dragging an already-placed room (or several, if more than one is
+  // highlighted) by a center handle (the red dot) — each room's offset
+  // keeps its own grab-point-to-corner distance fixed, so the group moves
+  // together without drifting relative to each other. The refs mirror the
+  // live positions so pointerup can persist the final spots without
+  // waiting on state timing.
   const [draggingRoomId, setDraggingRoomId] = useState(null);
-  const dragOffsetRef = useRef({ dxFt: 0, dyFt: 0 });
-  const dragPositionRef = useRef({ xFt: 0, yFt: 0 });
+  const dragOffsetsRef = useRef({});
+  const dragPositionsRef = useRef({});
+  const draggingGroupIdsRef = useRef([]);
   const lastRoomDragEndAtRef = useRef(0);
   // Resizing from a corner or wall-midpoint handle (the yellow dots) — the
   // opposite side(s) are the fixed anchor for the whole drag, captured once
@@ -353,6 +360,7 @@ export default function RemodelFloorPlan() {
       return;
     }
     setSelectedRoomId(null);
+    setSelectedRoomIds(new Set());
     setSelectedOpeningId(null);
   }
 
@@ -370,12 +378,26 @@ export default function RemodelFloorPlan() {
   function selectRoom(roomId, e) {
     e?.stopPropagation();
     if (tool !== "select") return;
-    setSelectedRoomId(roomId);
     setSelectedOpeningId(null);
+    if (e?.shiftKey) {
+      // Shift-click toggles this room in/out of the highlighted group
+      // without disturbing the rest of the selection.
+      const next = new Set(selectedRoomIds);
+      if (next.has(roomId)) next.delete(roomId);
+      else next.add(roomId);
+      setSelectedRoomIds(next);
+      setSelectedRoomId(next.has(roomId) ? roomId : [...next][0] ?? null);
+      return;
+    }
+    setSelectedRoomId(roomId);
+    setSelectedRoomIds(new Set([roomId]));
   }
 
   // Grabbing a room's center handle (the red dot) and dragging it — lets
-  // rooms be arranged next to each other on the shared canvas.
+  // rooms be arranged next to each other on the shared canvas. If the
+  // grabbed room is part of a multi-room highlight (shift-click selected
+  // more than one), the whole group drags together, each keeping its own
+  // distance from the cursor so they move as one without drifting apart.
   function handleRoomDragPointerDown(room, e) {
     if (tool !== "select") return;
     e.stopPropagation();
@@ -383,15 +405,32 @@ export default function RemodelFloorPlan() {
     const svgEl = svgRef.current;
     if (!svgEl) return;
     const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
-    dragOffsetRef.current = {
-      dxFt: pointFt.xFt - (Number(room.floorplan_x) || 0),
-      dyFt: pointFt.yFt - (Number(room.floorplan_y) || 0),
-    };
-    dragPositionRef.current = {
-      xFt: Number(room.floorplan_x) || 0,
-      yFt: Number(room.floorplan_y) || 0,
-    };
-    setSelectedRoomId(room.id);
+
+    const groupIds =
+      selectedRoomIds.has(room.id) && selectedRoomIds.size > 1 ? [...selectedRoomIds] : [room.id];
+
+    const offsets = {};
+    const positions = {};
+    for (const id of groupIds) {
+      const r = id === room.id ? room : rooms.find((rm) => rm.id === id);
+      if (!r) continue;
+      offsets[id] = {
+        dxFt: pointFt.xFt - (Number(r.floorplan_x) || 0),
+        dyFt: pointFt.yFt - (Number(r.floorplan_y) || 0),
+      };
+      positions[id] = {
+        xFt: Number(r.floorplan_x) || 0,
+        yFt: Number(r.floorplan_y) || 0,
+      };
+    }
+    dragOffsetsRef.current = offsets;
+    dragPositionsRef.current = positions;
+    draggingGroupIdsRef.current = groupIds;
+
+    if (groupIds.length === 1) {
+      setSelectedRoomId(room.id);
+      setSelectedRoomIds(new Set([room.id]));
+    }
     setSelectedOpeningId(null);
     setDraggingRoomId(room.id);
   }
@@ -402,17 +441,28 @@ export default function RemodelFloorPlan() {
       const svgEl = svgRef.current;
       if (!svgEl) return;
       const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
-      const nextX = snapFt(pointFt.xFt - dragOffsetRef.current.dxFt);
-      const nextY = snapFt(pointFt.yFt - dragOffsetRef.current.dyFt);
-      dragPositionRef.current = { xFt: nextX, yFt: nextY };
-      patchRoom(draggingRoomId, { floorplan_x: nextX, floorplan_y: nextY });
+      const offsets = dragOffsetsRef.current;
+      const positions = {};
+      for (const id of draggingGroupIdsRef.current) {
+        const off = offsets[id];
+        if (!off) continue;
+        const nextX = snapFt(pointFt.xFt - off.dxFt);
+        const nextY = snapFt(pointFt.yFt - off.dyFt);
+        positions[id] = { xFt: nextX, yFt: nextY };
+        patchRoom(id, { floorplan_x: nextX, floorplan_y: nextY });
+      }
+      dragPositionsRef.current = positions;
     }
     function handleUp() {
       lastRoomDragEndAtRef.current = Date.now();
-      const { xFt, yFt } = dragPositionRef.current;
-      updateRemodelRoom(draggingRoomId, { floorplan_x: xFt, floorplan_y: yFt }).catch((err) =>
-        setError(err.message),
-      );
+      const positions = dragPositionsRef.current;
+      for (const id of draggingGroupIdsRef.current) {
+        const pos = positions[id];
+        if (!pos) continue;
+        updateRemodelRoom(id, { floorplan_x: pos.xFt, floorplan_y: pos.yFt }).catch((err) =>
+          setError(err.message),
+        );
+      }
       setDraggingRoomId(null);
     }
     window.addEventListener("pointermove", handleMove);
@@ -624,6 +674,7 @@ export default function RemodelFloorPlan() {
                 onClick={() => {
                   setTool("select");
                   setSelectedRoomId(r.id);
+                  setSelectedRoomIds(new Set([r.id]));
                   setSelectedOpeningId(null);
                 }}
                 className={`block w-full truncate rounded px-2 py-1.5 text-left text-xs font-semibold ${
@@ -670,7 +721,7 @@ export default function RemodelFloorPlan() {
                 <RoomShape
                   key={room.id}
                   room={room}
-                  selected={selectedRoomId === room.id}
+                  selected={selectedRoomIds.has(room.id)}
                   selectedOpeningId={selectedOpeningId}
                   draggable={tool === "select"}
                   dragging={draggingRoomId === room.id}
@@ -691,7 +742,7 @@ export default function RemodelFloorPlan() {
             {tool === "door" && "Move near a wall and click to attach a door."}
             {tool === "window" && "Move near a wall and click to attach a window."}
             {tool === "select" &&
-              "Click a room or opening to select it. Drag the red dot to move a room, or any yellow dot (corner or wall-middle) to resize it. R = room, D = door, W = window, Esc = select, Delete = remove selection."}
+              "Click a room or opening to select it, or shift-click more rooms to highlight several — drag any of their red dots to move the whole group together. Drag a yellow dot (corner or wall-middle) to resize a room. R = room, D = door, W = window, Esc = select, Delete = remove selection."}
           </p>
         </Card>
 
