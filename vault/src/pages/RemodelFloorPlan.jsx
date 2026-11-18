@@ -394,8 +394,11 @@ export default function RemodelFloorPlan() {
   }
 
   function selectRoom(roomId, e) {
-    e?.stopPropagation();
+    // Only claim the click when we're actually selecting — otherwise (the
+    // door/window/missing-wall tools) let it bubble up to the canvas's own
+    // click handler, since a wall click always lands inside a room's area.
     if (tool !== "select") return;
+    e?.stopPropagation();
     setSelectedOpeningId(null);
     if (e?.shiftKey) {
       // Shift-click toggles this room in/out of the highlighted group
@@ -560,8 +563,8 @@ export default function RemodelFloorPlan() {
   }, [resizingRoom, zoom]);
 
   function selectOpening(roomId, openingId, e) {
-    e?.stopPropagation();
     if (tool !== "select") return;
+    e?.stopPropagation();
     setSelectedRoomId(roomId);
     setSelectedOpeningId(openingId);
   }
