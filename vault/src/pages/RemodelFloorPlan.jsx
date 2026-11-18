@@ -133,6 +133,12 @@ export default function RemodelFloorPlan() {
   const dragOffsetRef = useRef({ dxFt: 0, dyFt: 0 });
   const dragPositionRef = useRef({ xFt: 0, yFt: 0 });
   const lastRoomDragEndAtRef = useRef(0);
+  // Resizing from a corner (the yellow dots) — the opposite corner is the
+  // fixed anchor for the whole drag, captured once at pointerdown so every
+  // pointermove just recomputes the rectangle from that anchor + cursor.
+  const [resizingRoom, setResizingRoom] = useState(null); // { roomId, corner }
+  const resizeAnchorRef = useRef({ x: 0, y: 0 });
+  const resizeResultRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -387,6 +393,75 @@ export default function RemodelFloorPlan() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draggingRoomId, zoom]);
 
+  // Grabbing a room's corner (a yellow dot) and dragging it to resize the
+  // room — the opposite corner stays put; this one, and the two sides
+  // touching it, move with the cursor.
+  function handleResizePointerDown(room, corner, e) {
+    if (tool !== "select") return;
+    e.stopPropagation();
+    e.preventDefault();
+    const x0 = Number(room.floorplan_x) || 0;
+    const y0 = Number(room.floorplan_y) || 0;
+    const w0 = Number(room.width_ft) || 0;
+    const l0 = Number(room.length_ft) || 0;
+    resizeAnchorRef.current = {
+      x: corner === "NW" || corner === "SW" ? x0 + w0 : x0,
+      y: corner === "NW" || corner === "NE" ? y0 + l0 : y0,
+    };
+    resizeResultRef.current = { floorplan_x: x0, floorplan_y: y0, width_ft: w0, length_ft: l0 };
+    setSelectedRoomId(room.id);
+    setSelectedOpeningId(null);
+    setResizingRoom({ roomId: room.id, corner });
+  }
+
+  useEffect(() => {
+    if (!resizingRoom) return;
+    const MIN_ROOM_FT = 2;
+    function handleMove(e) {
+      const svgEl = svgRef.current;
+      if (!svgEl) return;
+      const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
+      const anchor = resizeAnchorRef.current;
+      const { corner } = resizingRoom;
+      let left = corner === "NW" || corner === "SW" ? pointFt.xFt : anchor.x;
+      let right = corner === "NE" || corner === "SE" ? pointFt.xFt : anchor.x;
+      let top = corner === "NW" || corner === "NE" ? pointFt.yFt : anchor.y;
+      let bottom = corner === "SW" || corner === "SE" ? pointFt.yFt : anchor.y;
+
+      if (right - left < MIN_ROOM_FT) {
+        if (corner === "NW" || corner === "SW") left = right - MIN_ROOM_FT;
+        else right = left + MIN_ROOM_FT;
+      }
+      if (bottom - top < MIN_ROOM_FT) {
+        if (corner === "NW" || corner === "NE") top = bottom - MIN_ROOM_FT;
+        else bottom = top + MIN_ROOM_FT;
+      }
+
+      const result = {
+        floorplan_x: snapFt(left),
+        floorplan_y: snapFt(top),
+        width_ft: snapFt(right - left),
+        length_ft: snapFt(bottom - top),
+      };
+      resizeResultRef.current = result;
+      patchRoom(resizingRoom.roomId, result);
+    }
+    function handleUp() {
+      lastRoomDragEndAtRef.current = Date.now();
+      updateRemodelRoom(resizingRoom.roomId, resizeResultRef.current).catch((err) =>
+        setError(err.message),
+      );
+      setResizingRoom(null);
+    }
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resizingRoom, zoom]);
+
   function selectOpening(roomId, openingId, e) {
     e?.stopPropagation();
     if (tool !== "select") return;
@@ -570,9 +645,11 @@ export default function RemodelFloorPlan() {
                   selectedOpeningId={selectedOpeningId}
                   draggable={tool === "select"}
                   dragging={draggingRoomId === room.id}
+                  resizingCorner={resizingRoom?.roomId === room.id ? resizingRoom.corner : null}
                   onSelectRoom={(e) => selectRoom(room.id, e)}
                   onSelectOpening={(openingId, e) => selectOpening(room.id, openingId, e)}
                   onDragPointerDown={(e) => handleRoomDragPointerDown(room, e)}
+                  onResizePointerDown={(corner, e) => handleResizePointerDown(room, corner, e)}
                 />
               ))}
               {hoverWall && (
@@ -585,7 +662,7 @@ export default function RemodelFloorPlan() {
             {tool === "door" && "Move near a wall and click to attach a door."}
             {tool === "window" && "Move near a wall and click to attach a window."}
             {tool === "select" &&
-              "Click a room or opening to select it, or drag a room's red dot to move it. R = room, D = door, W = window, Esc = select, Delete = remove selection."}
+              "Click a room or opening to select it. Drag the red dot to move a room, or a yellow corner dot to resize it. R = room, D = door, W = window, Esc = select, Delete = remove selection."}
           </p>
         </Card>
 
@@ -620,15 +697,24 @@ export default function RemodelFloorPlan() {
   );
 }
 
+const CORNER_CURSOR = {
+  NW: "cursor-nwse-resize",
+  SE: "cursor-nwse-resize",
+  NE: "cursor-nesw-resize",
+  SW: "cursor-nesw-resize",
+};
+
 function RoomShape({
   room,
   selected,
   selectedOpeningId,
   draggable,
   dragging,
+  resizingCorner,
   onSelectRoom,
   onSelectOpening,
   onDragPointerDown,
+  onResizePointerDown,
 }) {
   const x = (Number(room.floorplan_x) || 0) * PX_PER_FT;
   const y = (Number(room.floorplan_y) || 0) * PX_PER_FT;
@@ -704,6 +790,27 @@ function RoomShape({
           </text>
         </g>
       )}
+      {/* Resize handles — grab a corner to enlarge or shrink the room. */}
+      {draggable &&
+        ["NW", "NE", "SW", "SE"].map((corner) => {
+          const cx = corner === "NW" || corner === "SW" ? x : x + w;
+          const cy = corner === "NW" || corner === "NE" ? y : y + l;
+          const active = resizingCorner === corner;
+          return (
+            <circle
+              key={corner}
+              cx={cx}
+              cy={cy}
+              r={active ? 13 : 10}
+              fill="#eab308"
+              stroke="#fff"
+              strokeWidth={active ? 3 : 2}
+              className={CORNER_CURSOR[corner]}
+              style={{ touchAction: "none" }}
+              onPointerDown={(e) => onResizePointerDown(corner, e)}
+            />
+          );
+        })}
     </g>
   );
 }
