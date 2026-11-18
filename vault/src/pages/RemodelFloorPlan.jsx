@@ -678,17 +678,31 @@ function RoomShape({
       </text>
       {/* Drag handle — grab and drag to move this room next to another one. */}
       {draggable && (
-        <circle
-          cx={x + w / 2}
-          cy={y + 16}
-          r={dragging ? 9 : 7}
-          fill="#ef4444"
-          stroke="#fff"
-          strokeWidth={dragging ? 2.5 : 1.5}
+        <g
           className="cursor-move"
           style={{ touchAction: "none" }}
           onPointerDown={onDragPointerDown}
-        />
+        >
+          <circle
+            cx={x + w / 2}
+            cy={y + 26}
+            r={dragging ? 20 : 16}
+            fill="#ef4444"
+            stroke="#fff"
+            strokeWidth={dragging ? 3 : 2}
+          />
+          <text
+            x={x + w / 2}
+            y={y + 26}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize="16"
+            fill="#fff"
+            style={{ pointerEvents: "none" }}
+          >
+            ✥
+          </text>
+        </g>
       )}
     </g>
   );
