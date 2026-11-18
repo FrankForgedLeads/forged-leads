@@ -40,9 +40,10 @@ import { Field, Input, Select } from "../components/ui/Field.jsx";
 import CatalogItemProvenance from "../components/remodel/CatalogItemProvenance.jsx";
 
 const PX_PER_FT = 24;
-const VIEW_W = 1100;
-const VIEW_H = 640;
+const VIEW_W = 1400;
+const VIEW_H = 860;
 const WALL_HIT_THRESHOLD_FT = 1.5;
+const ROOM_DRAG_COOLDOWN_MS = 300;
 
 const TOOLS = [
   { id: "select", key: "Esc", label: "Select", icon: "↖" },
@@ -124,6 +125,14 @@ export default function RemodelFloorPlan() {
   const [selectedOpeningId, setSelectedOpeningId] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [hoverWall, setHoverWall] = useState(null);
+  // Dragging an already-placed room by its center handle (the red dot) —
+  // the offset keeps the grab point fixed under the cursor instead of the
+  // room snapping its corner there; the ref mirrors the live position so
+  // pointerup can persist the final spot without waiting on state timing.
+  const [draggingRoomId, setDraggingRoomId] = useState(null);
+  const dragOffsetRef = useRef({ dxFt: 0, dyFt: 0 });
+  const dragPositionRef = useRef({ xFt: 0, yFt: 0 });
+  const lastRoomDragEndAtRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -290,6 +299,9 @@ export default function RemodelFloorPlan() {
   }
 
   function handleCanvasClick(e) {
+    // A room drag ends with a pointerup wherever the cursor is, which this
+    // same click would otherwise read as "place/select something there."
+    if (Date.now() - lastRoomDragEndAtRef.current < ROOM_DRAG_COOLDOWN_MS) return;
     const svgEl = svgRef.current;
     if (!svgEl) return;
     const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
@@ -324,6 +336,56 @@ export default function RemodelFloorPlan() {
     setSelectedRoomId(roomId);
     setSelectedOpeningId(null);
   }
+
+  // Grabbing a room's center handle (the red dot) and dragging it — lets
+  // rooms be arranged next to each other on the shared canvas.
+  function handleRoomDragPointerDown(room, e) {
+    if (tool !== "select") return;
+    e.stopPropagation();
+    e.preventDefault();
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+    const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
+    dragOffsetRef.current = {
+      dxFt: pointFt.xFt - (Number(room.floorplan_x) || 0),
+      dyFt: pointFt.yFt - (Number(room.floorplan_y) || 0),
+    };
+    dragPositionRef.current = {
+      xFt: Number(room.floorplan_x) || 0,
+      yFt: Number(room.floorplan_y) || 0,
+    };
+    setSelectedRoomId(room.id);
+    setSelectedOpeningId(null);
+    setDraggingRoomId(room.id);
+  }
+
+  useEffect(() => {
+    if (!draggingRoomId) return;
+    function handleMove(e) {
+      const svgEl = svgRef.current;
+      if (!svgEl) return;
+      const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
+      const nextX = snapFt(pointFt.xFt - dragOffsetRef.current.dxFt);
+      const nextY = snapFt(pointFt.yFt - dragOffsetRef.current.dyFt);
+      dragPositionRef.current = { xFt: nextX, yFt: nextY };
+      patchRoom(draggingRoomId, { floorplan_x: nextX, floorplan_y: nextY });
+    }
+    function handleUp() {
+      lastRoomDragEndAtRef.current = Date.now();
+      const { xFt, yFt } = dragPositionRef.current;
+      updateRemodelRoom(draggingRoomId, { floorplan_x: xFt, floorplan_y: yFt }).catch((err) =>
+        setError(err.message),
+      );
+      setDraggingRoomId(null);
+    }
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draggingRoomId, zoom]);
 
   function selectOpening(roomId, openingId, e) {
     e?.stopPropagation();
@@ -385,7 +447,7 @@ export default function RemodelFloorPlan() {
     return <div className="container-vault py-10 font-semibold text-red-400">{error}</div>;
 
   return (
-    <div className="container-vault max-w-[1400px] py-8">
+    <div className="container-vault max-w-[1700px] py-8">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy-600/60 bg-navy-900/60 px-4 py-3">
         <div>
           <h1 className="text-xl font-extrabold text-white">
@@ -406,7 +468,7 @@ export default function RemodelFloorPlan() {
 
       {error && <p className="mt-3 text-sm font-semibold text-red-400">{error}</p>}
 
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[180px_1fr_300px]">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[160px_1fr_280px]">
         {/* LEFT: tools + room list */}
         <Card className="!p-3">
           <div className="text-xs font-bold uppercase tracking-wide text-white/40">Tools</div>
@@ -506,8 +568,11 @@ export default function RemodelFloorPlan() {
                   room={room}
                   selected={selectedRoomId === room.id}
                   selectedOpeningId={selectedOpeningId}
+                  draggable={tool === "select"}
+                  dragging={draggingRoomId === room.id}
                   onSelectRoom={(e) => selectRoom(room.id, e)}
                   onSelectOpening={(openingId, e) => selectOpening(room.id, openingId, e)}
+                  onDragPointerDown={(e) => handleRoomDragPointerDown(room, e)}
                 />
               ))}
               {hoverWall && (
@@ -520,7 +585,7 @@ export default function RemodelFloorPlan() {
             {tool === "door" && "Move near a wall and click to attach a door."}
             {tool === "window" && "Move near a wall and click to attach a window."}
             {tool === "select" &&
-              "Click a room or opening to select it. R = room, D = door, W = window, Esc = select, Delete = remove selection."}
+              "Click a room or opening to select it, or drag a room's red dot to move it. R = room, D = door, W = window, Esc = select, Delete = remove selection."}
           </p>
         </Card>
 
@@ -555,7 +620,16 @@ export default function RemodelFloorPlan() {
   );
 }
 
-function RoomShape({ room, selected, selectedOpeningId, onSelectRoom, onSelectOpening }) {
+function RoomShape({
+  room,
+  selected,
+  selectedOpeningId,
+  draggable,
+  dragging,
+  onSelectRoom,
+  onSelectOpening,
+  onDragPointerDown,
+}) {
   const x = (Number(room.floorplan_x) || 0) * PX_PER_FT;
   const y = (Number(room.floorplan_y) || 0) * PX_PER_FT;
   const w = (Number(room.width_ft) || 0) * PX_PER_FT;
@@ -602,6 +676,20 @@ function RoomShape({ room, selected, selectedOpeningId, onSelectRoom, onSelectOp
       <text x={x + w / 2} y={y + l / 2 + 12} textAnchor="middle" fontSize="11" fill="#eab308">
         {geometry.floorAreaSF.toFixed(0)} SF
       </text>
+      {/* Drag handle — grab and drag to move this room next to another one. */}
+      {draggable && (
+        <circle
+          cx={x + w / 2}
+          cy={y + 16}
+          r={dragging ? 9 : 7}
+          fill="#ef4444"
+          stroke="#fff"
+          strokeWidth={dragging ? 2.5 : 1.5}
+          className="cursor-move"
+          style={{ touchAction: "none" }}
+          onPointerDown={onDragPointerDown}
+        />
+      )}
     </g>
   );
 }
