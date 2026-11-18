@@ -170,6 +170,14 @@ export default function RemodelFloorPlan() {
   // includes selectedRoomId when non-empty. Grabbing any one of these
   // rooms' drag handles moves the whole group together.
   const [selectedRoomIds, setSelectedRoomIds] = useState(() => new Set());
+  // Click-and-drag a box over empty canvas to highlight every room it
+  // touches — the familiar "select multiple icons" gesture, as an
+  // alternative to shift-clicking rooms one at a time. marqueeOn gates the
+  // drag effect; marqueeRect (ft) is only for drawing the live box.
+  const [marqueeOn, setMarqueeOn] = useState(false);
+  const [marqueeRect, setMarqueeRect] = useState(null);
+  const marqueeRectRef = useRef(null);
+  const marqueeAdditiveRef = useRef(false);
   const [selectedOpeningId, setSelectedOpeningId] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [hoverWall, setHoverWall] = useState(null);
@@ -413,6 +421,73 @@ export default function RemodelFloorPlan() {
     setSelectedRoomId(roomId);
     setSelectedRoomIds(new Set([roomId]));
   }
+
+  // Click-and-drag a box over empty canvas (not on any room) to highlight
+  // every room the box touches. Only fires on the background grid rect
+  // itself — a press that lands on a room is a different DOM element, so
+  // this never fights with selecting/dragging a room.
+  function handleMarqueePointerDown(e) {
+    if (tool !== "select") return;
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+    const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
+    const rect = { x0: pointFt.xFt, y0: pointFt.yFt, x1: pointFt.xFt, y1: pointFt.yFt };
+    marqueeRectRef.current = rect;
+    marqueeAdditiveRef.current = e.shiftKey;
+    setMarqueeRect(rect);
+    setMarqueeOn(true);
+  }
+
+  useEffect(() => {
+    if (!marqueeOn) return;
+    function handleMove(e) {
+      const svgEl = svgRef.current;
+      if (!svgEl) return;
+      const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
+      const next = { ...marqueeRectRef.current, x1: pointFt.xFt, y1: pointFt.yFt };
+      marqueeRectRef.current = next;
+      setMarqueeRect(next);
+    }
+    function handleUp() {
+      const r = marqueeRectRef.current;
+      setMarqueeOn(false);
+      setMarqueeRect(null);
+      marqueeRectRef.current = null;
+      if (!r) return;
+      const left = Math.min(r.x0, r.x1);
+      const right = Math.max(r.x0, r.x1);
+      const top = Math.min(r.y0, r.y1);
+      const bottom = Math.max(r.y0, r.y1);
+      // Too small to be a real drag — treat it like the plain click it is
+      // (the canvas's own click handler clears the selection separately).
+      if (right - left < 0.5 && bottom - top < 0.5) return;
+      const hitIds = rooms
+        .filter((room) => {
+          const rx = Number(room.floorplan_x) || 0;
+          const ry = Number(room.floorplan_y) || 0;
+          const rw = Number(room.width_ft) || 0;
+          const rl = Number(room.length_ft) || 0;
+          return rx < right && rx + rw > left && ry < bottom && ry + rl > top;
+        })
+        .map((room) => room.id);
+      if (hitIds.length === 0) return;
+      if (marqueeAdditiveRef.current) {
+        setSelectedRoomIds((prev) => new Set([...prev, ...hitIds]));
+      } else {
+        setSelectedRoomIds(new Set(hitIds));
+      }
+      setSelectedRoomId(hitIds[hitIds.length - 1]);
+      setSelectedOpeningId(null);
+      lastRoomDragEndAtRef.current = Date.now();
+    }
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marqueeOn, zoom]);
 
   // Grabbing a room's center handle (the red dot) and dragging it — lets
   // rooms be arranged next to each other on the shared canvas. If the
@@ -735,7 +810,13 @@ export default function RemodelFloorPlan() {
                 />
               </pattern>
             </defs>
-            <rect width={VIEW_W} height={VIEW_H} fill="url(#fpgrid)" />
+            <rect
+              width={VIEW_W}
+              height={VIEW_H}
+              fill="url(#fpgrid)"
+              style={{ touchAction: "none" }}
+              onPointerDown={handleMarqueePointerDown}
+            />
 
             <g transform={`scale(${zoom})`}>
               {rooms.map((room) => (
@@ -759,6 +840,18 @@ export default function RemodelFloorPlan() {
                   color={tool === "door" ? "#eab308" : tool === "missing" ? "#ef4444" : "#38bdf8"}
                 />
               )}
+              {marqueeRect && (
+                <rect
+                  x={Math.min(marqueeRect.x0, marqueeRect.x1) * PX_PER_FT}
+                  y={Math.min(marqueeRect.y0, marqueeRect.y1) * PX_PER_FT}
+                  width={Math.abs(marqueeRect.x1 - marqueeRect.x0) * PX_PER_FT}
+                  height={Math.abs(marqueeRect.y1 - marqueeRect.y0) * PX_PER_FT}
+                  fill="rgba(56,189,248,0.12)"
+                  stroke="#38bdf8"
+                  strokeDasharray="4,3"
+                  strokeWidth="1.5"
+                />
+              )}
             </g>
           </svg>
           <p className="mt-2 text-xs text-white/40">
@@ -768,7 +861,7 @@ export default function RemodelFloorPlan() {
             {tool === "missing" &&
               "Move near a wall and click to mark part of it missing, then set the exact feet and pick \"No wall\" or \"Half wall\" on the right."}
             {tool === "select" &&
-              "Click a room or opening to select it, or shift-click more rooms to highlight several — drag any of their red dots to move the whole group together. Drag a yellow dot (corner or wall-middle) to resize a room. R = room, D = door, W = window, M = missing wall, Esc = select, Delete = remove selection."}
+              "Click a room to select it. Drag a box over empty space (or shift-click rooms one by one) to highlight several, then drag any of their red dots to move the whole group together. Drag a yellow dot (corner or wall-middle) to resize a room. R = room, D = door, W = window, M = missing wall, Esc = select, Delete = remove selection."}
           </p>
         </Card>
 
