@@ -731,6 +731,7 @@ const MACRO_MODE_TO_SOURCE = {
 function MacroPicker({ roomId, room, macros, onItemsAdded }) {
   const [macroId, setMacroId] = useState("");
   const [userPicked, setUserPicked] = useState(false);
+  const [showAllMacros, setShowAllMacros] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -745,8 +746,8 @@ function MacroPicker({ roomId, room, macros, onItemsAdded }) {
 
   if (!macros.length) return null;
 
-  async function handleApply() {
-    const macro = macros.find((m) => m.id === macroId);
+  async function applyMacroById(idToApply) {
+    const macro = macros.find((m) => m.id === idToApply);
     if (!macro) return;
     setBusy(true);
     setError("");
@@ -783,50 +784,78 @@ function MacroPicker({ roomId, room, macros, onItemsAdded }) {
     }
   }
 
+  const showSuggestedOnly = suggested && !userPicked && !showAllMacros;
+
   return (
     <div className="mt-4 rounded-lg border border-gold-500/40 bg-gold-500/5 p-3">
       <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gold-400">
         ⚡ Macros — add a whole job's items in one click
       </div>
-      {suggested && !userPicked && (
-        <p className="mb-2 text-xs text-white/50">
-          Matched to this room's name: <strong className="text-white/80">{suggested.name}</strong>{" "}
-          — change it below if that's not right.
-        </p>
-      )}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-[220px] flex-1">
-          <Field label="Macro">
-            <Select
-              value={macroId}
-              onChange={(e) => {
-                setMacroId(e.target.value);
-                setUserPicked(true);
-              }}
-            >
-              <option value="">Select a macro…</option>
-              {macros.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
+
+      {showSuggestedOnly ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex-1">
+            <p className="text-sm text-white">
+              Matched to this room's name: <strong>{suggested.name}</strong>
+            </p>
+            {suggested.description && (
+              <p className="text-xs text-white/50">{suggested.description}</p>
+            )}
+          </div>
+          <Button
+            as="button"
+            type="button"
+            onClick={() => applyMacroById(suggested.id)}
+            disabled={busy}
+            className="px-4 py-3.5"
+          >
+            {busy ? "Adding…" : `Apply: ${suggested.name}`}
+          </Button>
+          <button
+            type="button"
+            onClick={() => setShowAllMacros(true)}
+            className="text-xs font-semibold text-white/50 hover:text-white/80 hover:underline"
+          >
+            Not this one — choose a different macro
+          </button>
         </div>
-        <Button
-          as="button"
-          type="button"
-          onClick={handleApply}
-          disabled={!macroId || busy}
-          className="px-4 py-3.5"
-        >
-          {busy ? "Adding…" : "Apply macro"}
-        </Button>
-      </div>
-      {macroId && macros.find((m) => m.id === macroId)?.description && (
-        <p className="mt-2 text-xs text-white/50">
-          {macros.find((m) => m.id === macroId).description}
-        </p>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[220px] flex-1">
+              <Field label="Macro">
+                <Select
+                  value={macroId}
+                  onChange={(e) => {
+                    setMacroId(e.target.value);
+                    setUserPicked(true);
+                  }}
+                >
+                  <option value="">Select a macro…</option>
+                  {macros.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+            <Button
+              as="button"
+              type="button"
+              onClick={() => applyMacroById(macroId)}
+              disabled={!macroId || busy}
+              className="px-4 py-3.5"
+            >
+              {busy ? "Adding…" : "Apply macro"}
+            </Button>
+          </div>
+          {macroId && macros.find((m) => m.id === macroId)?.description && (
+            <p className="mt-2 text-xs text-white/50">
+              {macros.find((m) => m.id === macroId).description}
+            </p>
+          )}
+        </>
       )}
       {error && <p className="mt-2 text-xs font-semibold text-red-400">{error}</p>}
     </div>

@@ -70,6 +70,14 @@ export default function RemodelRoomSketch() {
   const { estimateId, roomId } = useParams();
   const navigate = useNavigate();
   const svgRef = useRef(null);
+  // A corner drag ends with a pointerup wherever the cursor happens to be —
+  // almost never still over that corner — so the SVG's own onClick (whose
+  // job is "place the next point") fires right after and plants a stray
+  // extra point at the release spot. Ignoring any click in the brief window
+  // right after a drag ends swallows that one spurious click without
+  // needing to know whether it actually reached this handler or was
+  // stopped earlier (e.g. by landing back on the corner itself).
+  const lastDragEndAtRef = useRef(0);
 
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -148,6 +156,7 @@ export default function RemodelRoomSketch() {
   }, [closed, points, walls, ceilingHeight]);
 
   function handleSvgClick(e) {
+    if (Date.now() - lastDragEndAtRef.current < 300) return;
     if (closed) return;
     const svgEl = svgRef.current;
     if (!svgEl) return;
@@ -204,6 +213,7 @@ export default function RemodelRoomSketch() {
       });
     }
     function handleUp() {
+      lastDragEndAtRef.current = Date.now();
       setDraggingIndex(null);
     }
     window.addEventListener("pointermove", handleMove);
