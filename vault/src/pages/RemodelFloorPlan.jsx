@@ -278,9 +278,9 @@ export default function RemodelFloorPlan() {
       }
       if (e.key === "Delete" || e.key === "Backspace") {
         if (selectedOpeningId) {
-          handleDeleteOpening(selectedOpeningId);
+          handleDeleteOpening(selectedOpeningId).catch((err) => setError(err.message));
         } else if (selectedRoomId) {
-          handleDeleteRoom(selectedRoomId);
+          handleDeleteRoom(selectedRoomId).catch((err) => setError(err.message));
         }
         return;
       }
@@ -344,12 +344,12 @@ export default function RemodelFloorPlan() {
     const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
 
     if (tool === "room") {
-      handleCreateRoomAt(pointFt);
+      handleCreateRoomAt(pointFt).catch((err) => setError(err.message));
       return;
     }
     if (tool === "door" || tool === "window") {
       const hit = findNearestWall(pointFt, rooms);
-      if (hit) handleAttachOpening(hit, tool);
+      if (hit) handleAttachOpening(hit, tool).catch((err) => setError(err.message));
       return;
     }
     setSelectedRoomId(null);
@@ -701,14 +701,22 @@ export default function RemodelFloorPlan() {
             <OpeningProperties
               opening={selectedOpening}
               room={selectedRoom}
-              onChange={(fields) => handleOpeningFieldChange(selectedOpening.id, fields)}
-              onDelete={() => handleDeleteOpening(selectedOpening.id)}
+              onChange={(fields) =>
+                handleOpeningFieldChange(selectedOpening.id, fields).catch((err) => setError(err.message))
+              }
+              onDelete={() =>
+                handleDeleteOpening(selectedOpening.id).catch((err) => setError(err.message))
+              }
             />
           ) : selectedRoom ? (
             <RoomProperties
               room={selectedRoom}
-              onChange={(fields) => handleRoomFieldChange(selectedRoom.id, fields)}
-              onDelete={() => handleDeleteRoom(selectedRoom.id)}
+              onChange={(fields) =>
+                handleRoomFieldChange(selectedRoom.id, fields).catch((err) => setError(err.message))
+              }
+              onDelete={() =>
+                handleDeleteRoom(selectedRoom.id).catch((err) => setError(err.message))
+              }
             />
           ) : (
             <p className="text-sm text-white/40">
