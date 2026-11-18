@@ -40,9 +40,23 @@ import { Field, Input, Select } from "../components/ui/Field.jsx";
 import CatalogItemProvenance from "../components/remodel/CatalogItemProvenance.jsx";
 
 const PX_PER_FT = 24;
-const VIEW_W = 1400;
-const VIEW_H = 860;
+const VIEW_W = 2000;
+const VIEW_H = 1220;
 const WALL_HIT_THRESHOLD_FT = 1.5;
+
+// Which edges each resize handle controls — the 4 corners move two edges
+// at once (both dimensions); the 4 wall-midpoint handles move just the one
+// edge they sit on, resizing a single dimension without touching the other.
+const RESIZE_HANDLE_EDGES = {
+  NW: { left: true, top: true },
+  NE: { right: true, top: true },
+  SW: { left: true, bottom: true },
+  SE: { right: true, bottom: true },
+  N: { top: true },
+  S: { bottom: true },
+  W: { left: true },
+  E: { right: true },
+};
 const ROOM_DRAG_COOLDOWN_MS = 300;
 
 const TOOLS = [
@@ -93,13 +107,29 @@ function wallSegmentFt(room, side) {
   }
 }
 
+// Finds the wall a door/window click is for. Anywhere at or inside a
+// room (plus a little padding past its edge) picks that room's own
+// nearest wall outright — click anywhere "on the box," not just right on
+// the wall line. The threshold only matters for telling rooms apart when
+// a click is genuinely in open space between them.
 function findNearestWall(pointFt, rooms) {
   let best = null;
   for (const room of rooms) {
+    const x0 = Number(room.floorplan_x) || 0;
+    const y0 = Number(room.floorplan_y) || 0;
+    const w0 = Number(room.width_ft) || 0;
+    const l0 = Number(room.length_ft) || 0;
+    const nearThisRoom =
+      pointFt.xFt >= x0 - WALL_HIT_THRESHOLD_FT &&
+      pointFt.xFt <= x0 + w0 + WALL_HIT_THRESHOLD_FT &&
+      pointFt.yFt >= y0 - WALL_HIT_THRESHOLD_FT &&
+      pointFt.yFt <= y0 + l0 + WALL_HIT_THRESHOLD_FT;
+    if (!nearThisRoom) continue;
+
     for (const side of ["N", "E", "S", "W"]) {
       const { a, b } = wallSegmentFt(room, side);
       const { dist, t } = distToSegment(pointFt, a, b);
-      if (dist < WALL_HIT_THRESHOLD_FT && (!best || dist < best.dist)) {
+      if (!best || dist < best.dist) {
         const wallLenFt = wallSideLengthFt(side, room.width_ft, room.length_ft);
         best = { dist, room, side, offsetFt: t * wallLenFt };
       }
@@ -133,11 +163,12 @@ export default function RemodelFloorPlan() {
   const dragOffsetRef = useRef({ dxFt: 0, dyFt: 0 });
   const dragPositionRef = useRef({ xFt: 0, yFt: 0 });
   const lastRoomDragEndAtRef = useRef(0);
-  // Resizing from a corner (the yellow dots) — the opposite corner is the
-  // fixed anchor for the whole drag, captured once at pointerdown so every
-  // pointermove just recomputes the rectangle from that anchor + cursor.
-  const [resizingRoom, setResizingRoom] = useState(null); // { roomId, corner }
-  const resizeAnchorRef = useRef({ x: 0, y: 0 });
+  // Resizing from a corner or wall-midpoint handle (the yellow dots) — the
+  // opposite side(s) are the fixed anchor for the whole drag, captured once
+  // at pointerdown so every pointermove just recomputes the rectangle from
+  // that anchor + cursor.
+  const [resizingRoom, setResizingRoom] = useState(null); // { roomId, handle }
+  const resizeAnchorRef = useRef({ left: 0, top: 0, right: 0, bottom: 0 });
   const resizeResultRef = useRef(null);
 
   useEffect(() => {
@@ -396,7 +427,7 @@ export default function RemodelFloorPlan() {
   // Grabbing a room's corner (a yellow dot) and dragging it to resize the
   // room — the opposite corner stays put; this one, and the two sides
   // touching it, move with the cursor.
-  function handleResizePointerDown(room, corner, e) {
+  function handleResizePointerDown(room, handle, e) {
     if (tool !== "select") return;
     e.stopPropagation();
     e.preventDefault();
@@ -404,36 +435,34 @@ export default function RemodelFloorPlan() {
     const y0 = Number(room.floorplan_y) || 0;
     const w0 = Number(room.width_ft) || 0;
     const l0 = Number(room.length_ft) || 0;
-    resizeAnchorRef.current = {
-      x: corner === "NW" || corner === "SW" ? x0 + w0 : x0,
-      y: corner === "NW" || corner === "NE" ? y0 + l0 : y0,
-    };
+    resizeAnchorRef.current = { left: x0, top: y0, right: x0 + w0, bottom: y0 + l0 };
     resizeResultRef.current = { floorplan_x: x0, floorplan_y: y0, width_ft: w0, length_ft: l0 };
     setSelectedRoomId(room.id);
     setSelectedOpeningId(null);
-    setResizingRoom({ roomId: room.id, corner });
+    setResizingRoom({ roomId: room.id, handle });
   }
 
   useEffect(() => {
     if (!resizingRoom) return;
     const MIN_ROOM_FT = 2;
+    const edges = RESIZE_HANDLE_EDGES[resizingRoom.handle];
     function handleMove(e) {
       const svgEl = svgRef.current;
       if (!svgEl) return;
       const pointFt = clientToFeet(svgEl, e.clientX, e.clientY, zoom);
       const anchor = resizeAnchorRef.current;
-      const { corner } = resizingRoom;
-      let left = corner === "NW" || corner === "SW" ? pointFt.xFt : anchor.x;
-      let right = corner === "NE" || corner === "SE" ? pointFt.xFt : anchor.x;
-      let top = corner === "NW" || corner === "NE" ? pointFt.yFt : anchor.y;
-      let bottom = corner === "SW" || corner === "SE" ? pointFt.yFt : anchor.y;
+      let { left, top, right, bottom } = anchor;
+      if (edges.left) left = pointFt.xFt;
+      if (edges.right) right = pointFt.xFt;
+      if (edges.top) top = pointFt.yFt;
+      if (edges.bottom) bottom = pointFt.yFt;
 
       if (right - left < MIN_ROOM_FT) {
-        if (corner === "NW" || corner === "SW") left = right - MIN_ROOM_FT;
+        if (edges.left) left = right - MIN_ROOM_FT;
         else right = left + MIN_ROOM_FT;
       }
       if (bottom - top < MIN_ROOM_FT) {
-        if (corner === "NW" || corner === "NE") top = bottom - MIN_ROOM_FT;
+        if (edges.top) top = bottom - MIN_ROOM_FT;
         else bottom = top + MIN_ROOM_FT;
       }
 
@@ -522,7 +551,7 @@ export default function RemodelFloorPlan() {
     return <div className="container-vault py-10 font-semibold text-red-400">{error}</div>;
 
   return (
-    <div className="container-vault max-w-[1700px] py-8">
+    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy-600/60 bg-navy-900/60 px-4 py-3">
         <div>
           <h1 className="text-xl font-extrabold text-white">
@@ -543,7 +572,7 @@ export default function RemodelFloorPlan() {
 
       {error && <p className="mt-3 text-sm font-semibold text-red-400">{error}</p>}
 
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[160px_1fr_280px]">
+      <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[130px_1fr_240px]">
         {/* LEFT: tools + room list */}
         <Card className="!p-3">
           <div className="text-xs font-bold uppercase tracking-wide text-white/40">Tools</div>
@@ -645,7 +674,7 @@ export default function RemodelFloorPlan() {
                   selectedOpeningId={selectedOpeningId}
                   draggable={tool === "select"}
                   dragging={draggingRoomId === room.id}
-                  resizingCorner={resizingRoom?.roomId === room.id ? resizingRoom.corner : null}
+                  resizingHandle={resizingRoom?.roomId === room.id ? resizingRoom.handle : null}
                   onSelectRoom={(e) => selectRoom(room.id, e)}
                   onSelectOpening={(openingId, e) => selectOpening(room.id, openingId, e)}
                   onDragPointerDown={(e) => handleRoomDragPointerDown(room, e)}
@@ -662,7 +691,7 @@ export default function RemodelFloorPlan() {
             {tool === "door" && "Move near a wall and click to attach a door."}
             {tool === "window" && "Move near a wall and click to attach a window."}
             {tool === "select" &&
-              "Click a room or opening to select it. Drag the red dot to move a room, or a yellow corner dot to resize it. R = room, D = door, W = window, Esc = select, Delete = remove selection."}
+              "Click a room or opening to select it. Drag the red dot to move a room, or any yellow dot (corner or wall-middle) to resize it. R = room, D = door, W = window, Esc = select, Delete = remove selection."}
           </p>
         </Card>
 
@@ -697,12 +726,20 @@ export default function RemodelFloorPlan() {
   );
 }
 
-const CORNER_CURSOR = {
-  NW: "cursor-nwse-resize",
-  SE: "cursor-nwse-resize",
-  NE: "cursor-nesw-resize",
-  SW: "cursor-nesw-resize",
-};
+// Position (as a fraction of the room's box) and cursor for all 8 resize
+// handles — the 4 corners (resize both dimensions) plus the 4 wall
+// midpoints (resize just that one side, requested so a handle sits right
+// on the middle of each wall line instead of only at the corners).
+const RESIZE_HANDLES = [
+  { id: "NW", fx: 0, fy: 0, cursor: "cursor-nwse-resize" },
+  { id: "NE", fx: 1, fy: 0, cursor: "cursor-nesw-resize" },
+  { id: "SW", fx: 0, fy: 1, cursor: "cursor-nesw-resize" },
+  { id: "SE", fx: 1, fy: 1, cursor: "cursor-nwse-resize" },
+  { id: "N", fx: 0.5, fy: 0, cursor: "cursor-ns-resize" },
+  { id: "S", fx: 0.5, fy: 1, cursor: "cursor-ns-resize" },
+  { id: "W", fx: 0, fy: 0.5, cursor: "cursor-ew-resize" },
+  { id: "E", fx: 1, fy: 0.5, cursor: "cursor-ew-resize" },
+];
 
 function RoomShape({
   room,
@@ -710,7 +747,7 @@ function RoomShape({
   selectedOpeningId,
   draggable,
   dragging,
-  resizingCorner,
+  resizingHandle,
   onSelectRoom,
   onSelectOpening,
   onDragPointerDown,
@@ -790,24 +827,26 @@ function RoomShape({
           </text>
         </g>
       )}
-      {/* Resize handles — grab a corner to enlarge or shrink the room. */}
+      {/* Resize handles — 4 corners (resize both dimensions) plus 4 wall
+          midpoints (resize just that one side), so a yellow dot sits right
+          on the middle of each wall line, not only at the corners. */}
       {draggable &&
-        ["NW", "NE", "SW", "SE"].map((corner) => {
-          const cx = corner === "NW" || corner === "SW" ? x : x + w;
-          const cy = corner === "NW" || corner === "NE" ? y : y + l;
-          const active = resizingCorner === corner;
+        RESIZE_HANDLES.map(({ id, fx, fy, cursor }) => {
+          const cx = x + fx * w;
+          const cy = y + fy * l;
+          const active = resizingHandle === id;
           return (
             <circle
-              key={corner}
+              key={id}
               cx={cx}
               cy={cy}
               r={active ? 13 : 10}
               fill="#eab308"
               stroke="#fff"
               strokeWidth={active ? 3 : 2}
-              className={CORNER_CURSOR[corner]}
+              className={cursor}
               style={{ touchAction: "none" }}
-              onPointerDown={(e) => onResizePointerDown(corner, e)}
+              onPointerDown={(e) => onResizePointerDown(id, e)}
             />
           );
         })}
