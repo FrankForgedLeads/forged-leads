@@ -110,11 +110,11 @@ function getRoomSketchCalc(room) {
   return computeSketchMeasurements({
     points: sd.points,
     walls: sd.walls.map((w) => ({
-      lengthFt: w.lengthFt,
       heightFt: w.heightFt,
       openings: w.openings || [],
       floodCut: w.floodCut,
     })),
+    pixelsPerFoot: sd.pixelsPerFoot,
     ceilingHeightFt: room.ceiling_height_ft || 8,
   });
 }

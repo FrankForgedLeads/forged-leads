@@ -3,12 +3,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fetchRemodelRoom, updateRemodelRoom } from "../lib/api/remodelEstimates.js";
 import {
   parseFeetInches,
+  formatFeetInches,
   computeSketchMeasurements,
   upgradeLegacySketchData,
   newOpening,
   openingAreaSF,
   wallMeasurements,
+  wallLengthFt,
+  snapPointToExactLength,
   OPENING_TYPES,
+  GRID_PX,
+  DEFAULT_PIXELS_PER_FOOT,
 } from "../lib/remodel/sketch.js";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
@@ -27,7 +32,7 @@ function clientToSvgPoint(svgEl, clientX, clientY) {
   return { x, y };
 }
 
-function snapPoint(from, to) {
+function snapAngle(from, to) {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const dist = Math.hypot(dx, dy);
@@ -43,21 +48,14 @@ function midpoint(a, b) {
 }
 
 function blankWall() {
-  return {
-    lengthInput: "",
-    heightInput: "",
-    openings: [],
-    demo: false,
-    replace: false,
-    floodCut: null,
-    notes: "",
-  };
+  return { heightInput: "", openings: [], demo: false, replace: false, floodCut: null, notes: "" };
 }
 
-// Bridges a wall's typed strings to the plain-number shape sketch.js expects.
+// Bridges a wall's typed UI strings (height override, flood-cut height) to
+// the plain-number shape sketch.js expects. Length is never stored here —
+// it's always read live from the drawing itself.
 function wallForCalc(w) {
   return {
-    lengthFt: parseFeetInches(w.lengthInput) || 0,
     heightFt: w.heightInput ? parseFeetInches(w.heightInput) : null,
     openings: w.openings || [],
     floodCut: w.floodCut?.enabled
@@ -92,6 +90,16 @@ export default function RemodelRoomSketch() {
   const [ceilingHeight, setCeilingHeight] = useState("8");
   const [draggingIndex, setDraggingIndex] = useState(null);
   const [expandedWalls, setExpandedWalls] = useState(new Set());
+  // "1 grid square = this many feet" — the sketch's scale, like graph
+  // paper. Every length is read straight from the drawing at this scale,
+  // live, with no separate typed-length step needed.
+  const [scaleFtPerSquare, setScaleFtPerSquare] = useState("1");
+  // While typing an exact length into a wall's box, show what's being
+  // typed instead of the live value — committed (blur/Enter) snaps the
+  // wall's far corner to exactly that length.
+  const [lengthDrafts, setLengthDrafts] = useState({});
+
+  const pixelsPerFoot = (GRID_PX / (Number(scaleFtPerSquare) || 1)) || DEFAULT_PIXELS_PER_FOOT;
 
   useEffect(() => {
     let cancelled = false;
@@ -109,9 +117,9 @@ export default function RemodelRoomSketch() {
         if (sd && Array.isArray(sd.points) && sd.points.length >= 3) {
           setPoints(sd.points);
           setClosed(true);
+          setScaleFtPerSquare(String(GRID_PX / (sd.pixelsPerFoot || DEFAULT_PIXELS_PER_FOOT)));
           setWalls(
             (sd.walls || []).map((w) => ({
-              lengthInput: w.lengthInput ?? (w.lengthFt ? String(w.lengthFt) : ""),
               heightInput: w.heightInput ?? (w.heightFt ? String(w.heightFt) : ""),
               openings: w.openings || [],
               demo: !!w.demo,
@@ -151,9 +159,10 @@ export default function RemodelRoomSketch() {
     return computeSketchMeasurements({
       points,
       walls: walls.map(wallForCalc),
+      pixelsPerFoot,
       ceilingHeightFt: parseFeetInches(ceilingHeight) || 8,
     });
-  }, [closed, points, walls, ceilingHeight]);
+  }, [closed, points, walls, pixelsPerFoot, ceilingHeight]);
 
   function handleSvgClick(e) {
     if (Date.now() - lastDragEndAtRef.current < 300) return;
@@ -174,10 +183,10 @@ export default function RemodelRoomSketch() {
     }
 
     const last = points[points.length - 1];
-    const next = last ? snapPoint(last, raw) : raw;
+    const next = last ? snapAngle(last, raw) : raw;
     setPoints((p) => [...p, next]);
     // Every point after the first completes a new wall segment — add its
-    // editor slot right away so it can be typed in live, on the canvas.
+    // editor slot right away.
     if (points.length > 0) {
       setWalls((w) => [...w, blankWall()]);
     }
@@ -189,11 +198,13 @@ export default function RemodelRoomSketch() {
     if (!svgEl) return;
     const raw = clientToSvgPoint(svgEl, e.clientX, e.clientY);
     const last = points[points.length - 1];
-    setCursor(snapPoint(last, raw));
+    setCursor(snapAngle(last, raw));
   }
 
   // Lets a corner be dragged to fix an imprecise shape, before or after
   // closing it — no snapping here, since the whole point is a free nudge.
+  // The length boxes on every wall touching this corner update live as it
+  // moves, straight from the drawing's own scale.
   function handleCornerPointerDown(index, e) {
     e.stopPropagation();
     e.preventDefault();
@@ -236,6 +247,40 @@ export default function RemodelRoomSketch() {
     setCursor(null);
     setWalls([]);
     setExpandedWalls(new Set());
+    setLengthDrafts({});
+  }
+
+  // Live length (read straight from the drawing) unless the user is
+  // actively typing an override into that wall's box.
+  function lengthDisplayValue(i) {
+    if (lengthDrafts[i] !== undefined) return lengthDrafts[i];
+    return formatFeetInches(wallLengthFt(points, i, pixelsPerFoot));
+  }
+
+  function handleLengthFocus(i) {
+    setLengthDrafts((d) => ({ ...d, [i]: formatFeetInches(wallLengthFt(points, i, pixelsPerFoot)) }));
+    setExpandedWalls((prev) => new Set(prev).add(i));
+  }
+
+  function handleLengthDraftChange(i, value) {
+    setLengthDrafts((d) => ({ ...d, [i]: value }));
+  }
+
+  // Commits a typed length: snaps that wall's far corner to exactly that
+  // distance, along whichever direction it's currently drawn in.
+  function commitLength(i) {
+    setLengthDrafts((d) => {
+      const text = d[i];
+      if (text !== undefined) {
+        const parsed = parseFeetInches(text);
+        if (parsed && parsed > 0) {
+          setPoints((pts) => snapPointToExactLength(pts, i, parsed, pixelsPerFoot));
+        }
+      }
+      const next = { ...d };
+      delete next[i];
+      return next;
+    });
   }
 
   function setWallField(index, field, value) {
@@ -287,7 +332,7 @@ export default function RemodelRoomSketch() {
   }
 
   function setFloodCutEnabled(wallIndex, enabled) {
-    setWallField(wallIndex, "floodCut", enabled ? { enabled: true, heightInput: "24\"" } : null);
+    setWallField(wallIndex, "floodCut", enabled ? { enabled: true, heightInput: `24"` } : null);
   }
 
   async function handleSave() {
@@ -297,8 +342,6 @@ export default function RemodelRoomSketch() {
     try {
       const heightFt = parseFeetInches(ceilingHeight) || 8;
       const wallsForSave = walls.map((w) => ({
-        lengthFt: parseFeetInches(w.lengthInput) || 0,
-        lengthInput: w.lengthInput,
         heightFt: w.heightInput ? parseFeetInches(w.heightInput) : null,
         heightInput: w.heightInput,
         openings: w.openings,
@@ -316,7 +359,7 @@ export default function RemodelRoomSketch() {
       const updated = await updateRemodelRoom(roomId, {
         name: roomName.trim() || room?.name || "Untitled room",
         ceiling_height_ft: heightFt,
-        sketch_data: { points, walls: wallsForSave },
+        sketch_data: { points, pixelsPerFoot, walls: wallsForSave },
         sketch_floor_area_sf: measurements.floorAreaSF,
         sketch_ceiling_area_sf: measurements.ceilingAreaSF,
         sketch_wall_area_sf: measurements.wallAreaSF,
@@ -359,8 +402,8 @@ export default function RemodelRoomSketch() {
     return <div className="container-vault py-10 font-semibold text-red-400">{error}</div>;
 
   const previewLine = !closed && points.length > 0 && cursor;
-  const allWallsHaveLengths =
-    closed && walls.length > 0 && walls.every((w) => (parseFeetInches(w.lengthInput) || 0) > 0);
+  const allWallsValid =
+    closed && points.length >= 3 && points.every((_, i) => wallLengthFt(points, i, pixelsPerFoot) > 0);
 
   return (
     <div className="container-vault max-w-3xl py-10">
@@ -371,8 +414,8 @@ export default function RemodelRoomSketch() {
           </h1>
           <p className="text-sm text-white/50">
             {!closed
-              ? "Click to place each corner — type each wall's real length right on the drawing as you go. Click back near the first point to close the shape. Drag any corner any time to fix it."
-              : "Drag any corner to fix the shape. Open a wall's details to add real doors/windows, a flood cut, or mark it for demo."}
+              ? "Click to place each corner — the length box on each wall updates live as you draw. Click back near the first point to close the shape. Drag any corner any time to fix it."
+              : "Drag any corner to fix the shape — the length boxes update live while you drag. Type an exact number into a wall's box to snap it to that length."}
           </p>
         </div>
         <Button variant="ghost" onClick={() => navigate(`/remodel/${estimateId}`)}>
@@ -383,7 +426,7 @@ export default function RemodelRoomSketch() {
       {error && <p className="mt-3 text-sm font-semibold text-red-400">{error}</p>}
 
       <Card className="mt-6">
-        <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
+        <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
           <Field label="Room name (saves to this room everywhere — the estimate, the macro picker, the PDF)">
             <Input
               value={roomName}
@@ -398,7 +441,20 @@ export default function RemodelRoomSketch() {
               placeholder="default 8"
             />
           </Field>
+          <Field label="Scale — 1 grid square = ___ ft">
+            <Input
+              type="number"
+              step="0.5"
+              min="0.1"
+              value={scaleFtPerSquare}
+              onChange={(e) => setScaleFtPerSquare(e.target.value)}
+            />
+          </Field>
         </div>
+        <p className="mt-2 text-xs text-white/40">
+          Bump the scale up if a big room won't fit on the grid — it just makes each square count
+          for more feet; it doesn't move anything you've already drawn.
+        </p>
       </Card>
 
       <Card className="mt-4">
@@ -412,8 +468,8 @@ export default function RemodelRoomSketch() {
             style={{ aspectRatio: `${VIEW_W} / ${VIEW_H}` }}
           >
             <defs>
-              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e2a44" strokeWidth="1" />
+              <pattern id="grid" width={GRID_PX} height={GRID_PX} patternUnits="userSpaceOnUse">
+                <path d={`M ${GRID_PX} 0 L 0 0 0 ${GRID_PX}`} fill="none" stroke="#1e2a44" strokeWidth="1" />
               </pattern>
             </defs>
             <rect width={VIEW_W} height={VIEW_H} fill="url(#grid)" />
@@ -459,17 +515,29 @@ export default function RemodelRoomSketch() {
           </svg>
 
           {wallSegmentMidpoints.map(({ index, mid }) => {
-            const hasLen = (parseFeetInches(walls[index]?.lengthInput) || 0) > 0;
+            const liveLengthFt = wallLengthFt(points, index, pixelsPerFoot);
+            const isDraft = lengthDrafts[index] !== undefined;
+            const isTouchedByDrag = draggingIndex === index || draggingIndex === (index + 1) % points.length;
             return (
               <input
                 key={index}
-                value={walls[index]?.lengthInput ?? ""}
-                onChange={(e) => setWallField(index, "lengthInput", e.target.value)}
-                onFocus={() => setExpandedWalls((prev) => new Set(prev).add(index))}
+                value={lengthDisplayValue(index)}
+                onChange={(e) => handleLengthDraftChange(index, e.target.value)}
+                onFocus={() => handleLengthFocus(index)}
+                onBlur={() => commitLength(index)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") e.currentTarget.blur();
+                }}
                 placeholder="ft"
-                title={`Wall ${index + 1} length`}
-                className={`absolute w-14 -translate-x-1/2 -translate-y-1/2 rounded border bg-navy-950/95 px-1 py-0.5 text-center text-xs font-bold focus:outline-none ${
-                  hasLen ? "border-green-500 text-green-300" : "border-red-400 text-red-300"
+                title={`Wall ${index + 1} length — type a number to snap it exactly`}
+                className={`absolute w-16 -translate-x-1/2 -translate-y-1/2 rounded border bg-navy-950/95 px-1 py-0.5 text-center text-xs font-bold focus:outline-none ${
+                  isDraft
+                    ? "border-gold-400 text-gold-300"
+                    : isTouchedByDrag
+                      ? "border-white text-white"
+                      : liveLengthFt > 0
+                        ? "border-green-500 text-green-300"
+                        : "border-red-400 text-red-300"
                 }`}
                 style={{ left: `${(mid.x / VIEW_W) * 100}%`, top: `${(mid.y / VIEW_H) * 100}%` }}
               />
@@ -494,7 +562,8 @@ export default function RemodelRoomSketch() {
           <h2 className="text-sm font-bold uppercase tracking-wide text-white/60">Walls</h2>
           <div className="mt-3 space-y-2">
             {walls.map((wall, i) => {
-              const calc = wallMeasurements(wallForCalc(wall), parseFeetInches(ceilingHeight) || 8);
+              const lengthFt = wallLengthFt(points, i, pixelsPerFoot);
+              const calc = wallMeasurements(wallForCalc(wall), lengthFt, parseFeetInches(ceilingHeight) || 8);
               const expanded = expandedWalls.has(i);
               return (
                 <div key={i} className="rounded-lg bg-navy-900/60 p-2">
@@ -502,8 +571,13 @@ export default function RemodelRoomSketch() {
                     <span className="col-span-2 text-sm font-semibold text-white/70">Wall {i + 1}</span>
                     <div className="col-span-3">
                       <Input
-                        value={wall.lengthInput ?? ""}
-                        onChange={(e) => setWallField(i, "lengthInput", e.target.value)}
+                        value={lengthDisplayValue(i)}
+                        onChange={(e) => handleLengthDraftChange(i, e.target.value)}
+                        onFocus={() => handleLengthFocus(i)}
+                        onBlur={() => commitLength(i)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") e.currentTarget.blur();
+                        }}
                         placeholder={`e.g. 7'9" or 7.75`}
                         className="!py-2 text-sm"
                       />
@@ -740,7 +814,7 @@ export default function RemodelRoomSketch() {
           )}
 
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button onClick={handleSave} disabled={!allWallsHaveLengths || saving}>
+            <Button onClick={handleSave} disabled={!allWallsValid || saving}>
               {saving ? "Saving…" : "Save measurements"}
             </Button>
             <Button variant="ghost" onClick={handleStartOver} disabled={saving}>
@@ -752,10 +826,10 @@ export default function RemodelRoomSketch() {
               </Button>
             )}
           </div>
-          {!allWallsHaveLengths && (
+          {!allWallsValid && (
             <p className="mt-2 text-xs text-white/40">
-              Type a length for every wall — on the drawing above or in the list here (the
-              red-bordered boxes on the drawing mark the ones still missing) — before saving.
+              Every wall needs real length (the red-bordered boxes mark ones at zero — usually two
+              corners placed on top of each other) before saving.
             </p>
           )}
         </Card>

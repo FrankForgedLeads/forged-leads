@@ -4,13 +4,15 @@ import {
   formatFeetInches,
   polygonPixelArea,
   pixelWallLengths,
-  reconstructRealPoints,
+  wallLengthFt,
+  snapPointToExactLength,
   openingAreaSF,
   wallMeasurements,
   computeSketchMeasurements,
   upgradeLegacySketchData,
   newOpening,
   OPENING_TYPES,
+  DEFAULT_PIXELS_PER_FOOT,
 } from "../sketch.js";
 
 describe("parseFeetInches", () => {
@@ -86,22 +88,39 @@ describe("pixelWallLengths", () => {
   });
 });
 
-describe("reconstructRealPoints", () => {
-  it("rebuilds an exact rectangle from typed lengths and drawn right angles", () => {
-    // Drawn as a 100x100 px square, typed as a real 12x10 ft room.
-    const square = [
+describe("wallLengthFt", () => {
+  it("is the pixel distance divided by the sketch's scale", () => {
+    const points = [
+      { x: 0, y: 0 },
+      { x: 240, y: 0 }, // 240px at 20px/ft = 12 ft
+    ];
+    expect(wallLengthFt(points, 0, 20)).toBe(12);
+  });
+});
+
+describe("snapPointToExactLength", () => {
+  it("moves the far corner to exactly the typed length, keeping the drawn direction", () => {
+    const points = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 }, // drawn at 5ft (100px / 20px/ft), pointing +x
+      { x: 100, y: 100 },
+    ];
+    const next = snapPointToExactLength(points, 0, 12, 20); // snap wall 0 to 12 ft
+    expect(next[1]).toEqual({ x: 240, y: 0 });
+    expect(next[0]).toEqual(points[0]); // near corner unchanged
+    expect(next[2]).toEqual(points[2]); // unrelated corner unchanged
+  });
+
+  it("wraps to the first point for the closing wall", () => {
+    const points = [
       { x: 0, y: 0 },
       { x: 100, y: 0 },
       { x: 100, y: 100 },
       { x: 0, y: 100 },
     ];
-    const real = reconstructRealPoints(square, [12, 10, 12, 10]);
-    expect(real).toEqual([
-      { x: 0, y: 0 },
-      { x: 12, y: 0 },
-      { x: 12, y: 10 },
-      { x: 0, y: 10 },
-    ]);
+    // Wall 3 runs from points[3] back to points[0] (straight up, in -y).
+    const next = snapPointToExactLength(points, 3, 10, 20);
+    expect(next[0]).toEqual({ x: 0, y: -100 });
   });
 });
 
@@ -125,7 +144,7 @@ describe("newOpening", () => {
 
 describe("wallMeasurements", () => {
   it("computes gross/net SF and baseboard LF for a plain wall (no openings)", () => {
-    const result = wallMeasurements({ lengthFt: 12, heightFt: null, openings: [] }, 8);
+    const result = wallMeasurements({ heightFt: null, openings: [] }, 12, 8);
     expect(result.grossSF).toBe(96);
     expect(result.netSF).toBe(96);
     expect(result.baseboardLF).toBe(12);
@@ -134,14 +153,13 @@ describe("wallMeasurements", () => {
   it("deducts a real door and window from net SF (test scenario from the spec)", () => {
     // 12 LF wall, 8' tall -> 96 gross. A 3x7 door (21 SF) and a 4x3 window (12 SF).
     const wall = {
-      lengthFt: 12,
       heightFt: null,
       openings: [
         { widthFt: 3, heightFt: 7, qty: 1, startsAtFloor: true },
         { widthFt: 4, heightFt: 3, qty: 1, startsAtFloor: false },
       ],
     };
-    const result = wallMeasurements(wall, 8);
+    const result = wallMeasurements(wall, 12, 8);
     expect(result.grossSF).toBe(96);
     expect(result.openingsSF).toBe(33); // 21 + 12
     expect(result.netSF).toBe(63); // 96 - 33
@@ -150,44 +168,46 @@ describe("wallMeasurements", () => {
   });
 
   it("uses a per-wall height override instead of the room's ceiling height", () => {
-    const result = wallMeasurements({ lengthFt: 10, heightFt: 10, openings: [] }, 8);
+    const result = wallMeasurements({ heightFt: 10, openings: [] }, 10, 8);
     expect(result.grossSF).toBe(100);
   });
 
   it("computes a flood-cut SF, exempting floor-starting openings' width", () => {
     const wall = {
-      lengthFt: 12,
       heightFt: 8,
       openings: [{ widthFt: 3, heightFt: 7, qty: 1, startsAtFloor: true }],
       floodCut: { enabled: true, heightFt: 2 },
     };
-    const result = wallMeasurements(wall, 8);
+    const result = wallMeasurements(wall, 12, 8);
     // (12 - 3) exempt door width * 2 ft cut = 18 SF
     expect(result.floodCutSF).toBe(18);
   });
 
   it("gives a 12 LF wall at a 2 ft flood cut = 24 SF with no openings (spec example)", () => {
-    const result = wallMeasurements({ lengthFt: 12, floodCut: { enabled: true, heightFt: 2 } }, 8);
+    const result = wallMeasurements({ floodCut: { enabled: true, heightFt: 2 } }, 12, 8);
     expect(result.floodCutSF).toBe(24);
   });
 });
 
 describe("computeSketchMeasurements", () => {
-  const squarePoints = [
+  // Drawn at the default scale (20px = 1ft): a 240x200px rectangle is
+  // exactly a real 12x10 ft room — no separate typed-length step at all.
+  const rectPoints = [
     { x: 0, y: 0 },
-    { x: 100, y: 0 },
-    { x: 100, y: 100 },
-    { x: 0, y: 100 },
+    { x: 240, y: 0 },
+    { x: 240, y: 200 },
+    { x: 0, y: 200 },
   ];
 
-  function wallsOf(lengths) {
-    return lengths.map((lengthFt) => ({ lengthFt, heightFt: null, openings: [] }));
+  function blankWalls(n) {
+    return Array.from({ length: n }, () => ({ heightFt: null, openings: [] }));
   }
 
-  it("computes the exact floor/ceiling/wall/perimeter for a precisely-drawn rectangle (spec Test 1)", () => {
+  it("computes the exact floor/ceiling/wall/perimeter straight from the drawing (spec Test 1)", () => {
     const result = computeSketchMeasurements({
-      points: squarePoints,
-      walls: wallsOf([12, 10, 12, 10]),
+      points: rectPoints,
+      walls: blankWalls(4),
+      pixelsPerFoot: DEFAULT_PIXELS_PER_FOOT,
       ceilingHeightFt: 8,
     });
     expect(result.floorAreaSF).toBe(120);
@@ -198,13 +218,14 @@ describe("computeSketchMeasurements", () => {
   });
 
   it("nets out real door/window openings on specific walls (spec Test 2)", () => {
-    const walls = wallsOf([12, 10, 12, 10]);
+    const walls = blankWalls(4);
     walls[0].openings = [{ widthFt: 3, heightFt: 7, qty: 1, startsAtFloor: true }]; // door, 21 SF
     walls[1].openings = [{ widthFt: 4, heightFt: 3, qty: 1, startsAtFloor: false }]; // window, 12 SF
 
     const result = computeSketchMeasurements({
-      points: squarePoints,
+      points: rectPoints,
       walls,
+      pixelsPerFoot: DEFAULT_PIXELS_PER_FOOT,
       ceilingHeightFt: 8,
     });
     expect(result.wallGrossAreaSF).toBe(352);
@@ -212,36 +233,56 @@ describe("computeSketchMeasurements", () => {
     expect(result.wallAreaSF).toBe(319);
   });
 
-  it("still gives a real (if imperfect) area when drawn angles aren't quite square", () => {
-    // A lopsided drawn quadrilateral, but the same typed 10x10 real room.
-    const unevenPoints = [
+  it("gives the exact area of an irregular (non-rectangular) room too", () => {
+    // An L-shape, 240x200px at 20px/ft: a 12x10 rectangle minus a 4x5 bite.
+    const lShape = [
       { x: 0, y: 0 },
-      { x: 90, y: 5 },
-      { x: 95, y: 100 },
-      { x: 5, y: 95 },
+      { x: 240, y: 0 },
+      { x: 240, y: 100 },
+      { x: 160, y: 100 },
+      { x: 160, y: 200 },
+      { x: 0, y: 200 },
     ];
     const result = computeSketchMeasurements({
-      points: unevenPoints,
-      walls: wallsOf([10, 10, 10, 10]),
+      points: lShape,
+      walls: blankWalls(6),
+      pixelsPerFoot: DEFAULT_PIXELS_PER_FOOT,
       ceilingHeightFt: 8,
     });
-    expect(result.perimeterLF).toBe(40);
-    expect(result.floorAreaSF).toBeGreaterThan(70);
-    expect(result.floorAreaSF).toBeLessThan(130);
+    // 12x10 (120) minus the 4x5 notch (20) = 100 SF, exactly.
+    expect(result.floorAreaSF).toBe(100);
+  });
+
+  it("respects a different scale (e.g. 1 grid square = 2 ft for a bigger room)", () => {
+    const result = computeSketchMeasurements({
+      points: rectPoints,
+      walls: blankWalls(4),
+      pixelsPerFoot: 10, // 20px grid square / 2 ft
+      ceilingHeightFt: 8,
+    });
+    // Same pixel rectangle, half the scale -> double the real dimensions.
+    expect(result.perimeterLF).toBe(88);
+    expect(result.floorAreaSF).toBe(480);
   });
 
   it("computes baseboard LF netting out door widths only, not windows", () => {
-    const walls = wallsOf([12, 10, 12, 10]);
+    const walls = blankWalls(4);
     walls[0].openings = [{ widthFt: 3, heightFt: 7, qty: 1, startsAtFloor: true }];
     walls[1].openings = [{ widthFt: 4, heightFt: 3, qty: 1, startsAtFloor: false }];
-    const result = computeSketchMeasurements({ points: squarePoints, walls, ceilingHeightFt: 8 });
+    const result = computeSketchMeasurements({
+      points: rectPoints,
+      walls,
+      pixelsPerFoot: DEFAULT_PIXELS_PER_FOOT,
+      ceilingHeightFt: 8,
+    });
     expect(result.baseboardLF).toBe(41); // 44 - 3 (door only)
   });
 
   it("computes room volume from floor area and average wall height", () => {
     const result = computeSketchMeasurements({
-      points: squarePoints,
-      walls: wallsOf([12, 10, 12, 10]),
+      points: rectPoints,
+      walls: blankWalls(4),
+      pixelsPerFoot: DEFAULT_PIXELS_PER_FOOT,
       ceilingHeightFt: 8,
     });
     expect(result.roomVolumeCF).toBe(960); // 120 SF * 8'
@@ -249,7 +290,7 @@ describe("computeSketchMeasurements", () => {
 });
 
 describe("upgradeLegacySketchData", () => {
-  it("converts the old parallel-array shape into per-wall objects", () => {
+  it("fits a scale from the oldest shape (parallel wallLengths/doorWalls/windowWalls)", () => {
     const legacy = {
       points: [
         { x: 0, y: 0 },
@@ -262,15 +303,38 @@ describe("upgradeLegacySketchData", () => {
       windowWalls: [1],
     };
     const upgraded = upgradeLegacySketchData(legacy);
+    expect(upgraded.pixelsPerFoot).toBeGreaterThan(0);
     expect(upgraded.walls).toHaveLength(4);
-    expect(upgraded.walls[0].lengthFt).toBe(12);
     expect(upgraded.walls[0].openings[0].type).toBe("door");
     expect(upgraded.walls[1].openings[0].type).toBe("window");
     expect(upgraded.walls[2].openings).toEqual([]);
+    // The fitted scale should reproduce roughly the same real perimeter.
+    const lengths = upgraded.points.map((_, i) => wallLengthFt(upgraded.points, i, upgraded.pixelsPerFoot));
+    expect(lengths.reduce((s, l) => s + l, 0)).toBeCloseTo(44, 1);
+  });
+
+  it("fits a scale from the mid shape (per-wall lengthFt, no shared scale yet)", () => {
+    const mid = {
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+        { x: 100, y: 100 },
+        { x: 0, y: 100 },
+      ],
+      walls: [
+        { lengthFt: 12, openings: [], demo: false, replace: false, floodCut: null, notes: "" },
+        { lengthFt: 10, openings: [], demo: false, replace: false, floodCut: null, notes: "" },
+        { lengthFt: 12, openings: [], demo: false, replace: false, floodCut: null, notes: "" },
+        { lengthFt: 10, openings: [], demo: false, replace: false, floodCut: null, notes: "" },
+      ],
+    };
+    const upgraded = upgradeLegacySketchData(mid);
+    expect(upgraded.pixelsPerFoot).toBeGreaterThan(0);
+    expect(upgraded.walls[0]).not.toHaveProperty("lengthFt");
   });
 
   it("passes through data that's already in the current shape", () => {
-    const current = { points: [], walls: [{ lengthFt: 5, openings: [] }] };
+    const current = { points: [], pixelsPerFoot: 20, walls: [{ openings: [] }] };
     expect(upgradeLegacySketchData(current)).toBe(current);
   });
 

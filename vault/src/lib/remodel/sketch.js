@@ -1,17 +1,26 @@
 // Pure math only — no fetching, no React.
 //
-// A sketched room is a rough-drawn polygon (click to place corners), where
-// each wall carries its own typed real-world length, optional height
-// override, openings (doors/windows/etc. with real width x height), a
-// demo/replace flag, an optional flood-cut height, and notes — this is the
-// "wall-by-wall" data a water-mitigation or reconstruction estimate needs.
+// A sketched room is drawn on a fixed-scale grid — like graph paper, same
+// idea as Xactimate's sketch canvas: one grid square equals a real number
+// of feet (DEFAULT_PIXELS_PER_FOOT px = 1 ft by default, adjustable per
+// sketch). Because every point on the canvas already sits at a known
+// real-world position, every length, area, and perimeter is exact and
+// LIVE the moment you draw or drag — there's no separate "now type the
+// real length" step and no approximation to reconcile against the drawing.
 //
-// Floor/ceiling area used to be an approximation (the drawn shape scaled by
-// one average pixel-to-foot ratio). It's now exact for a precisely-drawn
-// shape: each wall's pixel DIRECTION is kept, but its length is replaced by
-// the typed real-world length before running the shoelace formula — so a
-// room drawn with right angles and accurate tape measurements comes out to
-// the exact SF, not a rough scale-up.
+// Typing an exact number into a wall's length box still works — it snaps
+// that wall's far corner to exactly that distance, along whatever
+// direction it's currently drawn in (lib/remodel/sketch.js's
+// snapPointToExactLength) — the same "draw it roughly, then dial in the
+// precise number" flow Xactimate's dimension entry gives you.
+//
+// Each wall ALSO carries its own non-geometric data: a height override,
+// real-dimension openings (doors/windows/etc.), a demo/replace flag, an
+// optional flood-cut height, and notes — the "wall-by-wall" detail a
+// water-mitigation or reconstruction estimate needs.
+
+export const GRID_PX = 20; // the background grid's cell size, in canvas px
+export const DEFAULT_PIXELS_PER_FOOT = GRID_PX; // 1 grid square = 1 ft by default
 
 // Accepts "7'9\"", "7' 9", "7ft 9in", "7.75", "93\"", "7" -> decimal feet.
 // Returns null if it can't make sense of the input.
@@ -54,7 +63,6 @@ function dist(a, b) {
 }
 
 // Shoelace formula — signed area of a closed polygon from its vertices.
-// Unit-agnostic: works the same on raw pixel points or real-feet points.
 export function polygonPixelArea(points) {
   if (!points || points.length < 3) return 0;
   let sum = 0;
@@ -71,29 +79,34 @@ export function pixelWallLengths(points) {
   return points.map((p, i) => dist(p, points[(i + 1) % points.length]));
 }
 
-// Rebuilds the room's shape in real feet: each wall keeps the DIRECTION it
-// was drawn in, but its length becomes the typed real-world length instead
-// of the pixel distance. A right-angle room typed accurately closes back on
-// itself and gives an exact area; an imprecisely-drawn or genuinely
-// non-square room gives a reasonable near-closed polygon either way.
-export function reconstructRealPoints(pixelPoints, lengthsFt) {
-  if (!pixelPoints || pixelPoints.length < 2) return [];
-  const real = [{ x: 0, y: 0 }];
-  for (let i = 0; i < pixelPoints.length; i++) {
-    const a = pixelPoints[i];
-    const b = pixelPoints[(i + 1) % pixelPoints.length];
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const pxLen = Math.hypot(dx, dy);
-    const lenFt = Number(lengthsFt[i]) || 0;
-    const ux = pxLen > 0 ? dx / pxLen : 0;
-    const uy = pxLen > 0 ? dy / pxLen : 0;
-    if (i < pixelPoints.length - 1) {
-      const prev = real[real.length - 1];
-      real.push({ x: prev.x + ux * lenFt, y: prev.y + uy * lenFt });
-    }
-  }
-  return real;
+// Wall i runs from points[i] to points[(i+1) % points.length].
+export function wallLengthFt(points, wallIndex, pixelsPerFoot) {
+  if (!points || points.length < 2 || !pixelsPerFoot) return 0;
+  const a = points[wallIndex];
+  const b = points[(wallIndex + 1) % points.length];
+  if (!a || !b) return 0;
+  return dist(a, b) / pixelsPerFoot;
+}
+
+// Moves wall i's FAR corner (points[(i+1) % length]) so the wall becomes
+// exactly exactFt long, keeping the direction it's currently drawn in and
+// keeping the NEAR corner (points[i]) fixed — the "type the real number"
+// precision fix for a roughly-drawn wall.
+export function snapPointToExactLength(points, wallIndex, exactFt, pixelsPerFoot) {
+  if (!points || points.length < 2) return points;
+  const n = points.length;
+  const a = points[wallIndex];
+  const bIndex = (wallIndex + 1) % n;
+  const b = points[bIndex];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const pxLen = Math.hypot(dx, dy);
+  const ux = pxLen > 0 ? dx / pxLen : 1;
+  const uy = pxLen > 0 ? dy / pxLen : 0;
+  const targetPx = exactFt * pixelsPerFoot;
+  const next = [...points];
+  next[bIndex] = { x: a.x + ux * targetPx, y: a.y + uy * targetPx };
+  return next;
 }
 
 // Generic opening types for the wall editor — our own naming, not any
@@ -149,9 +162,9 @@ function floorOpeningsWidthFt(wall) {
 
 // Per-wall measurements: gross/net SF, baseboard LF, and flood-cut SF if
 // that wall has one enabled. heightFt falls back to the room's ceiling
-// height when the wall has no override of its own.
-export function wallMeasurements(wall, roomHeightFt = 8) {
-  const lengthFt = Number(wall?.lengthFt) || 0;
+// height when the wall has no override of its own. lengthFt is passed in
+// explicitly — it comes from the drawing's scale, not stored on the wall.
+export function wallMeasurements(wall, lengthFt, roomHeightFt = 8) {
   const heightFt = Number(wall?.heightFt) > 0 ? Number(wall.heightFt) : Number(roomHeightFt) || 8;
   const grossSF = lengthFt * heightFt;
   const openingsSF = wallOpeningsSF(wall);
@@ -170,20 +183,26 @@ export function wallMeasurements(wall, roomHeightFt = 8) {
 
 const round1 = (n) => Math.round((Number(n) || 0) * 10) / 10;
 
-// points: the drawn corners (pixel space), one per wall start.
+// points: the drawn corners, already at real scale (pixelsPerFoot px = 1 ft).
 // walls: one entry per wall (same order/count as points), each
-//   { lengthFt, heightFt, openings, demo, replace, floodCut, notes }.
-export function computeSketchMeasurements({ points, walls, ceilingHeightFt = 8 }) {
+//   { heightFt, openings, demo, replace, floodCut, notes } — no lengthFt;
+//   that's always read live from points + pixelsPerFoot.
+export function computeSketchMeasurements({
+  points,
+  walls,
+  pixelsPerFoot = DEFAULT_PIXELS_PER_FOOT,
+  ceilingHeightFt = 8,
+}) {
+  const safePoints = points || [];
   const safeWalls = walls || [];
-  const lengthsFt = safeWalls.map((w) => Number(w.lengthFt) || 0);
+  const lengthsFt = safePoints.map((_, i) => wallLengthFt(safePoints, i, pixelsPerFoot));
   const perimeterLF = lengthsFt.reduce((sum, l) => sum + l, 0);
 
-  const realPoints = reconstructRealPoints(points || [], lengthsFt);
-  const floorAreaSF = polygonPixelArea(realPoints);
+  const floorAreaSF = polygonPixelArea(safePoints) / (pixelsPerFoot * pixelsPerFoot);
   const ceilingAreaSF = floorAreaSF;
 
   const height = Number(ceilingHeightFt) > 0 ? Number(ceilingHeightFt) : 8;
-  const perWall = safeWalls.map((w) => wallMeasurements(w, height));
+  const perWall = safeWalls.map((w, i) => wallMeasurements(w, lengthsFt[i] || 0, height));
 
   const wallGrossAreaSF = perWall.reduce((sum, w) => sum + w.grossSF, 0);
   const wallNetAreaSF = perWall.reduce((sum, w) => sum + w.netSF, 0);
@@ -220,34 +239,56 @@ export function computeSketchMeasurements({ points, walls, ceilingHeightFt = 8 }
   };
 }
 
-// Upgrades a sketch saved under the old shape (parallel wallLengths /
-// doorWalls / windowWalls arrays, one fixed door/window deduction each) into
-// the current per-wall walls[] shape, so a sketch saved before this engine
-// upgrade still opens and measures sensibly instead of breaking.
+// Brings a sketch saved under any earlier shape forward to the current one
+// ({ points, pixelsPerFoot, walls }, walls holding only non-geometric data)
+// without visibly moving the drawing: a sketch saved before the
+// fixed-scale engine fits a pixelsPerFoot from its own typed lengths vs.
+// its drawn pixel perimeter (the same approximation the old engine used,
+// just applied once at upgrade time instead of on every calculation), so
+// the shape you see on reopen looks the same as when you saved it; nothing
+// is lost, and you can true it up further with a drag or a typed length.
 export function upgradeLegacySketchData(sketchData) {
   if (!sketchData) return sketchData;
-  if (Array.isArray(sketchData.walls)) return sketchData; // already current
+  if (sketchData.pixelsPerFoot && Array.isArray(sketchData.walls)) {
+    return sketchData; // already current
+  }
 
   const points = sketchData.points || [];
-  const wallLengths = sketchData.wallLengths || points.map(() => "");
-  const doorSet = new Set(sketchData.doorWalls || []);
-  const windowSet = new Set(sketchData.windowWalls || []);
 
-  const walls = wallLengths.map((len, i) => {
-    const openings = [];
-    if (doorSet.has(i)) openings.push(newOpening("door"));
-    if (windowSet.has(i)) openings.push(newOpening("window"));
-    return {
-      lengthFt: parseFeetInches(len) || 0,
-      lengthInput: len,
-      heightFt: null,
-      openings,
-      demo: false,
-      replace: false,
-      floodCut: null,
-      notes: "",
-    };
-  });
+  // Oldest shape: parallel wallLengths/doorWalls/windowWalls arrays.
+  if (!Array.isArray(sketchData.walls)) {
+    const wallLengths = sketchData.wallLengths || points.map(() => "");
+    const doorSet = new Set(sketchData.doorWalls || []);
+    const windowSet = new Set(sketchData.windowWalls || []);
+    const typedLengthsFt = wallLengths.map((len) => parseFeetInches(len) || 0);
+    const pixelsPerFoot = fitPixelsPerFoot(points, typedLengthsFt);
+    const walls = wallLengths.map((_len, i) => {
+      const openings = [];
+      if (doorSet.has(i)) openings.push(newOpening("door"));
+      if (windowSet.has(i)) openings.push(newOpening("window"));
+      return { heightFt: null, openings, demo: false, replace: false, floodCut: null, notes: "" };
+    });
+    return { points, pixelsPerFoot, walls };
+  }
 
-  return { points, walls };
+  // Mid shape (the brief wall-by-wall release before the fixed-scale
+  // rework): walls[i].lengthFt was typed directly, no shared scale yet.
+  const typedLengthsFt = sketchData.walls.map((w) => Number(w.lengthFt) || 0);
+  const pixelsPerFoot = fitPixelsPerFoot(points, typedLengthsFt);
+  const walls = sketchData.walls.map((w) => ({
+    heightFt: w.heightFt ?? null,
+    openings: w.openings || [],
+    demo: !!w.demo,
+    replace: !!w.replace,
+    floodCut: w.floodCut || null,
+    notes: w.notes || "",
+  }));
+  return { points, pixelsPerFoot, walls };
+}
+
+function fitPixelsPerFoot(points, typedLengthsFt) {
+  const pixelPerimeter = pixelWallLengths(points).reduce((sum, l) => sum + l, 0);
+  const typedPerimeter = typedLengthsFt.reduce((sum, l) => sum + l, 0);
+  if (typedPerimeter > 0 && pixelPerimeter > 0) return pixelPerimeter / typedPerimeter;
+  return DEFAULT_PIXELS_PER_FOOT;
 }
