@@ -210,14 +210,18 @@ export async function addRoomOpening({
   description = "",
   startsAtFloor = true,
 }) {
+  // A not-null numeric column in Postgres rejects NaN/undefined outright
+  // (they serialize to JSON null), so guard against that here regardless
+  // of what the caller computed.
+  const finite = (n, fallback) => (Number.isFinite(n) ? n : fallback);
   const { data, error } = await supabase
     .from("remodel_room_openings")
     .insert({
       room_id: roomId,
       wall_side: wallSide,
-      offset_ft: offsetFt,
-      width_ft: widthFt,
-      height_ft: heightFt,
+      offset_ft: finite(offsetFt, 0),
+      width_ft: finite(widthFt, 3),
+      height_ft: finite(heightFt, 7),
       qty,
       type,
       description: description || null,

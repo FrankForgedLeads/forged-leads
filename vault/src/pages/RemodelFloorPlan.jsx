@@ -346,7 +346,13 @@ export default function RemodelFloorPlan() {
   async function handleAttachOpening(hit, openingType) {
     const def = defaultOpeningFor(openingType);
     const wallLenFt = wallSideLengthFt(hit.side, hit.room.width_ft, hit.room.length_ft);
-    const offsetFt = Math.max(0, Math.min(hit.offsetFt - def.width_ft / 2, Math.max(0, wallLenFt - def.width_ft)));
+    const rawOffsetFt = (Number(hit.offsetFt) || 0) - def.width_ft / 2;
+    let offsetFt = Math.max(0, Math.min(rawOffsetFt, Math.max(0, wallLenFt - def.width_ft)));
+    // A room too narrow for this opening's default width (or any other
+    // unexpected input) can leave this non-finite — Postgres would reject a
+    // NaN/undefined offset_ft outright, so fall back to the start of the
+    // wall rather than losing the whole placement.
+    if (!Number.isFinite(offsetFt)) offsetFt = 0;
     const opening = await addRoomOpening({
       roomId: hit.room.id,
       wallSide: hit.side,
