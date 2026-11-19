@@ -20,6 +20,7 @@ import {
   fitRectangleToAreaAndPerimeter,
   defaultOpeningFor,
   wallSideLengthFt,
+  buildRoomHierarchy,
   OPENING_TYPES,
 } from "../lib/remodel/floorplanGeometry.js";
 import {
@@ -65,7 +66,14 @@ const TOOLS = [
   { id: "door", key: "D", label: "Door", icon: "🚪" },
   { id: "window", key: "W", label: "Window", icon: "🪟" },
   { id: "missing", key: "M", label: "Missing Wall", icon: "⬚" },
+  { id: "closet", key: "C", label: "Closet", icon: "▣" },
 ];
+
+// A new closet's default size and where it sits inside its parent room —
+// anchored to the parent's southeast corner, matching the reference
+// example ("Bedroom" with a 6'x5' "Closet" tucked into its corner).
+const DEFAULT_CLOSET_WIDTH_FT = 6;
+const DEFAULT_CLOSET_LENGTH_FT = 5;
 
 // Per-opening-type canvas styling — doors/windows keep their original
 // colors; the two "missing wall" types get a distinct dashed red so a gap
@@ -130,6 +138,23 @@ function wallSegmentFt(room, side) {
 // is always geometrically "close" to a point near the room's center even
 // when the click clearly leans toward a short wall on the other axis, so
 // raw distance kept winning the wrong side on non-square rooms.
+// Which room (if any) a click is literally inside — used for the Closet
+// tool, which attaches its new room to whichever room you clicked into,
+// unlike door/window/missing-wall placement which is forgiving about
+// clicking near a room's edge.
+function findRoomContainingPoint(pointFt, rooms) {
+  for (const room of rooms) {
+    const x0 = Number(room.floorplan_x) || 0;
+    const y0 = Number(room.floorplan_y) || 0;
+    const w0 = Number(room.width_ft) || 0;
+    const l0 = Number(room.length_ft) || 0;
+    if (pointFt.xFt >= x0 && pointFt.xFt <= x0 + w0 && pointFt.yFt >= y0 && pointFt.yFt <= y0 + l0) {
+      return room;
+    }
+  }
+  return null;
+}
+
 function findNearestWall(pointFt, rooms) {
   let bestRoom = null;
   let bestRoomDist = Infinity;
@@ -312,6 +337,7 @@ export default function RemodelFloorPlan() {
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId) || null;
   const selectedOpening =
     selectedRoom?.remodel_room_openings?.find((o) => o.id === selectedOpeningId) || null;
+  const roomTree = buildRoomHierarchy(rooms);
 
   function patchRoom(roomId, patch) {
     setRooms((rs) => rs.map((r) => (r.id === roomId ? { ...r, ...patch } : r)));
@@ -339,6 +365,7 @@ export default function RemodelFloorPlan() {
       else if (key === "d") setTool("door");
       else if (key === "w") setTool("window");
       else if (key === "m") setTool("missing");
+      else if (key === "c") setTool("closet");
       else if (key === "v" || key === "s") setTool("select");
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -360,6 +387,34 @@ export default function RemodelFloorPlan() {
     });
     setRooms((rs) => [...rs, newRoom]);
     setSelectedRoomId(newRoom.id);
+    setSelectedOpeningId(null);
+    setTool("select");
+  }
+
+  // Attaches a new closet (a normal room with parent_room_id set) inside
+  // whichever room was clicked — anchored to that room's southeast
+  // corner, shrunk to fit if the parent is smaller than the default size.
+  async function handleCreateClosetAt(parentRoom) {
+    const px = Number(parentRoom.floorplan_x) || 0;
+    const py = Number(parentRoom.floorplan_y) || 0;
+    const pw = Number(parentRoom.width_ft) || 0;
+    const pl = Number(parentRoom.length_ft) || 0;
+    const closetWidth = Math.min(DEFAULT_CLOSET_WIDTH_FT, pw) || DEFAULT_CLOSET_WIDTH_FT;
+    const closetLength = Math.min(DEFAULT_CLOSET_LENGTH_FT, pl) || DEFAULT_CLOSET_LENGTH_FT;
+    const newRoom = await addRemodelRoom({
+      estimateId,
+      name: "Closet",
+      sortOrder: rooms.length,
+      widthFt: closetWidth,
+      lengthFt: closetLength,
+      ceilingHeightFt: parentRoom.ceiling_height_ft || 8,
+      floorplanX: snapFt(px + pw - closetWidth),
+      floorplanY: snapFt(py + pl - closetLength),
+      parentRoomId: parentRoom.id,
+    });
+    setRooms((rs) => [...rs, newRoom]);
+    setSelectedRoomId(newRoom.id);
+    setSelectedRoomIds(new Set([newRoom.id]));
     setSelectedOpeningId(null);
     setTool("select");
   }
@@ -402,6 +457,15 @@ export default function RemodelFloorPlan() {
 
     if (tool === "room") {
       handleCreateRoomAt(pointFt).catch((err) => setError(err.message));
+      return;
+    }
+    if (tool === "closet") {
+      const parentRoom = findRoomContainingPoint(pointFt, rooms);
+      if (parentRoom) {
+        handleCreateClosetAt(parentRoom).catch((err) => setError(err.message));
+      } else {
+        setError("Click inside a room to attach a closet to it.");
+      }
       return;
     }
     if (tool === "door" || tool === "window" || tool === "missing") {
@@ -790,24 +854,19 @@ export default function RemodelFloorPlan() {
 
           <div className="mt-4 text-xs font-bold uppercase tracking-wide text-white/40">Rooms</div>
           <div className="mt-2 space-y-1">
-            {rooms.map((r) => (
-              <button
+            {roomTree.topLevel.map((r) => (
+              <RoomTreeRow
                 key={r.id}
-                type="button"
-                onClick={() => {
+                room={r}
+                childRooms={roomTree.childrenOf(r.id)}
+                selectedRoomId={selectedRoomId}
+                onSelect={(id) => {
                   setTool("select");
-                  setSelectedRoomId(r.id);
-                  setSelectedRoomIds(new Set([r.id]));
+                  setSelectedRoomId(id);
+                  setSelectedRoomIds(new Set([id]));
                   setSelectedOpeningId(null);
                 }}
-                className={`block w-full truncate rounded px-2 py-1.5 text-left text-xs font-semibold ${
-                  selectedRoomId === r.id
-                    ? "bg-gold-500/15 text-gold-300"
-                    : "text-white/70 hover:bg-navy-800"
-                }`}
-              >
-                {r.name || "Untitled room"}
-              </button>
+              />
             ))}
             {rooms.length === 0 && (
               <p className="text-xs text-white/30">Press R, then click the canvas to place one.</p>
@@ -887,8 +946,9 @@ export default function RemodelFloorPlan() {
             {tool === "window" && "Move near a wall and click to attach a window."}
             {tool === "missing" &&
               "Move near a wall and click to mark part of it missing, then set the exact feet and pick \"No wall\" or \"Half wall\" on the right."}
+            {tool === "closet" && "Click inside a room to attach a closet to it."}
             {tool === "select" &&
-              "Click a room to select it. Drag a box over empty space (or shift-click rooms one by one) to highlight several, then drag any of their red dots to move the whole group together. Drag a yellow dot (corner or wall-middle) to resize a room. R = room, D = door, W = window, M = missing wall, Esc = select, Delete = remove selection."}
+              "Click a room to select it. Drag a box over empty space (or shift-click rooms one by one) to highlight several, then drag any of their red dots to move the whole group together. Drag a yellow dot (corner or wall-middle) to resize a room. R = room, D = door, W = window, M = missing wall, C = closet, Esc = select, Delete = remove selection."}
           </p>
         </Card>
 
@@ -908,6 +968,13 @@ export default function RemodelFloorPlan() {
           ) : selectedRoom ? (
             <RoomProperties
               room={selectedRoom}
+              attachedSpaces={roomTree.childrenOf(selectedRoom.id)}
+              parentRoom={rooms.find((r) => r.id === selectedRoom.parent_room_id) || null}
+              onSelectRoom={(id) => {
+                setSelectedRoomId(id);
+                setSelectedRoomIds(new Set([id]));
+                setSelectedOpeningId(null);
+              }}
               onChange={(fields) =>
                 handleRoomFieldChange(selectedRoom.id, fields).catch((err) => setError(err.message))
               }
@@ -945,6 +1012,42 @@ const RESIZE_HANDLES = [
   { id: "W", fx: 0, fy: 0.5, cursor: "cursor-ew-resize" },
   { id: "E", fx: 1, fy: 0.5, cursor: "cursor-ew-resize" },
 ];
+
+// One row in the Rooms sidebar tree — a top-level room, plus (indented)
+// each closet/subroom attached to it.
+function RoomTreeRow({ room, childRooms, selectedRoomId, onSelect }) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => onSelect(room.id)}
+        className={`block w-full truncate rounded px-2 py-1.5 text-left text-xs font-semibold ${
+          selectedRoomId === room.id ? "bg-gold-500/15 text-gold-300" : "text-white/70 hover:bg-navy-800"
+        }`}
+      >
+        {room.name || "Untitled room"}
+      </button>
+      {childRooms.length > 0 && (
+        <div className="ml-3 space-y-1 border-l border-navy-700 pl-2">
+          {childRooms.map((child) => (
+            <button
+              key={child.id}
+              type="button"
+              onClick={() => onSelect(child.id)}
+              className={`block w-full truncate rounded px-2 py-1 text-left text-xs ${
+                selectedRoomId === child.id
+                  ? "bg-gold-500/15 text-gold-300"
+                  : "text-white/50 hover:bg-navy-800"
+              }`}
+            >
+              ↳ {child.name || "Untitled room"}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function RoomShape({
   room,
@@ -1202,7 +1305,7 @@ function WallHighlight({ hit, color }) {
   );
 }
 
-function RoomProperties({ room, onChange, onDelete }) {
+function RoomProperties({ room, attachedSpaces, parentRoom, onSelectRoom, onChange, onDelete }) {
   const [form, setForm] = useState({
     name: room.name || "",
     width_ft: room.width_ft ?? "",
@@ -1247,6 +1350,15 @@ function RoomProperties({ room, onChange, onDelete }) {
           Delete
         </button>
       </div>
+      {parentRoom && (
+        <button
+          type="button"
+          onClick={() => onSelectRoom(parentRoom.id)}
+          className="mt-1 text-xs font-semibold text-gold-300 hover:underline"
+        >
+          ↑ Part of {parentRoom.name || "Untitled room"}
+        </button>
+      )}
       <div className="mt-3 space-y-3">
         <Field label="Room name">
           <Input value={form.name} onChange={set("name")} onBlur={commit} />
@@ -1292,6 +1404,25 @@ function RoomProperties({ room, onChange, onDelete }) {
             />
           ))}
           <Row label="Total Openings" value={`${geometry.openingsSF.toFixed(2)} SF`} bold />
+        </div>
+      )}
+
+      {attachedSpaces?.length > 0 && (
+        <div className="mt-3 space-y-1 rounded-lg border border-navy-600 bg-navy-950/40 p-3 text-sm">
+          <h3 className="text-xs font-bold uppercase tracking-wide text-white/40">Attached Spaces</h3>
+          {attachedSpaces.map((space) => (
+            <button
+              key={space.id}
+              type="button"
+              onClick={() => onSelectRoom(space.id)}
+              className="flex w-full items-center justify-between rounded px-1 py-1 text-left hover:bg-navy-800"
+            >
+              <span className="text-white/80">{space.name || "Untitled room"}</span>
+              <span className="text-white/40">
+                {space.width_ft}' x {space.length_ft}'
+              </span>
+            </button>
+          ))}
         </div>
       )}
     </div>

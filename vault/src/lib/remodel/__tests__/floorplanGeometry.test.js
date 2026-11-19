@@ -6,6 +6,7 @@ import {
   computeRoomGeometry,
   fitRectangleToAreaAndPerimeter,
   defaultOpeningFor,
+  buildRoomHierarchy,
   OPENING_TYPES,
 } from "../floorplanGeometry.js";
 
@@ -138,5 +139,34 @@ describe("fitRectangleToAreaAndPerimeter", () => {
   it("returns null for a non-positive area or perimeter", () => {
     expect(fitRectangleToAreaAndPerimeter(0, 44)).toBeNull();
     expect(fitRectangleToAreaAndPerimeter(120, 0)).toBeNull();
+  });
+});
+
+describe("buildRoomHierarchy", () => {
+  const bedroom = { id: "bed", name: "Master Bedroom", sort_order: 0 };
+  const closet = { id: "closet", name: "Walk-in Closet", sort_order: 0, parent_room_id: "bed" };
+  const bath = { id: "bath", name: "Master Bath", sort_order: 1, parent_room_id: "bed" };
+  const kitchen = { id: "kitchen", name: "Kitchen", sort_order: 1 };
+
+  it("puts parentless rooms at the top level, in sort order", () => {
+    const tree = buildRoomHierarchy([kitchen, bedroom, closet, bath]);
+    expect(tree.topLevel.map((r) => r.id)).toEqual(["bed", "kitchen"]);
+  });
+
+  it("groups a room's children under it, in sort order", () => {
+    const tree = buildRoomHierarchy([kitchen, bedroom, closet, bath]);
+    expect(tree.childrenOf("bed").map((r) => r.id)).toEqual(["closet", "bath"]);
+    expect(tree.childrenOf("kitchen")).toEqual([]);
+  });
+
+  it("treats a room whose parent no longer exists as top-level", () => {
+    const orphan = { id: "orphan", name: "Orphan", parent_room_id: "does-not-exist" };
+    const tree = buildRoomHierarchy([orphan]);
+    expect(tree.topLevel.map((r) => r.id)).toEqual(["orphan"]);
+  });
+
+  it("handles an empty or missing room list", () => {
+    expect(buildRoomHierarchy([]).topLevel).toEqual([]);
+    expect(buildRoomHierarchy(undefined).topLevel).toEqual([]);
   });
 });

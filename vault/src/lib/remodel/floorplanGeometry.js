@@ -201,3 +201,32 @@ export function fitRectangleToAreaAndPerimeter(areaSF, perimeterLF) {
   const b = (s - root) / 2;
   return { widthFt: round1(Math.max(a, b)), lengthFt: round1(Math.min(a, b)) };
 }
+
+// Groups a flat room list into a parent/children tree for the sidebar and
+// the "Attached Spaces" panel — a closet (or any subroom) has
+// parent_room_id set to its parent's id. Top-level rooms are anything
+// with no parent, or whose stored parent no longer exists (e.g. the
+// parent was deleted, which on delete set null already clears this, but
+// stay defensive against any stale reference). Keeps each room's own
+// sort_order within its level.
+export function buildRoomHierarchy(rooms) {
+  const byId = new Map((rooms || []).map((r) => [r.id, r]));
+  const childrenByParent = new Map();
+  const topLevel = [];
+  const sortRooms = (list) => [...list].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+  for (const room of rooms || []) {
+    const parentId = room.parent_room_id;
+    if (parentId && byId.has(parentId)) {
+      if (!childrenByParent.has(parentId)) childrenByParent.set(parentId, []);
+      childrenByParent.get(parentId).push(room);
+    } else {
+      topLevel.push(room);
+    }
+  }
+
+  return {
+    topLevel: sortRooms(topLevel),
+    childrenOf: (roomId) => sortRooms(childrenByParent.get(roomId) || []),
+  };
+}

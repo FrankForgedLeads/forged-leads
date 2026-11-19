@@ -108,6 +108,7 @@ export async function addRemodelRoom({
   ceilingHeightFt = null,
   floorplanX = null,
   floorplanY = null,
+  parentRoomId = null,
 }) {
   const { data, error } = await supabase
     .from("remodel_rooms")
@@ -120,6 +121,7 @@ export async function addRemodelRoom({
       ceiling_height_ft: ceilingHeightFt,
       floorplan_x: floorplanX,
       floorplan_y: floorplanY,
+      parent_room_id: parentRoomId,
     })
     .select("*, remodel_room_items(*), remodel_room_openings(*)")
     .single();

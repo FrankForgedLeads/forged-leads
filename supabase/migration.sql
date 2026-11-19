@@ -2742,6 +2742,27 @@ end $$;
 alter table public.remodel_room_openings add column if not exists swing_flipped boolean not null default false;
 
 -- ============================================================================
+-- Closets/subrooms — a room attached to a parent room (e.g. a walk-in
+-- closet inside a bedroom). Reuses the plain remodel_rooms model: a
+-- subroom is a normal room with its own dimensions/openings/measurements/
+-- estimate items, just with parent_room_id set, so it keeps everything a
+-- room already does rather than needing a new table. "on delete set null"
+-- so deleting a parent room doesn't cascade-delete its closets, which
+-- then just become ordinary top-level rooms.
+-- ============================================================================
+alter table public.remodel_rooms add column if not exists parent_room_id uuid references public.remodel_rooms(id) on delete set null;
+
+create index if not exists remodel_rooms_parent_room_id_idx on public.remodel_rooms(parent_room_id);
+
+revoke update on public.remodel_rooms from authenticated;
+grant update (
+  name, sort_order, length_ft, width_ft, ceiling_height_ft, door_count, window_count,
+  sketch_data, sketch_floor_area_sf, sketch_ceiling_area_sf, sketch_wall_area_sf,
+  sketch_wall_gross_area_sf, sketch_baseboard_lf, sketch_room_volume_cf, sketch_perimeter_lf,
+  floorplan_x, floorplan_y, parent_room_id
+) on public.remodel_rooms to authenticated;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
