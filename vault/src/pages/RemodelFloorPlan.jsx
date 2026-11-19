@@ -1038,6 +1038,38 @@ function RoomShape({
   );
 }
 
+// Which way is "into the room" from each wall side, and which SVG arc
+// sweep-flag draws the swing arc curving from the hinge through that
+// inward direction to the opening's far end. Derived once geometrically
+// per side; see the commit that introduced this for the full derivation.
+const OPENING_INWARD = {
+  N: { x: 0, y: 1 },
+  S: { x: 0, y: -1 },
+  E: { x: -1, y: 0 },
+  W: { x: 1, y: 0 },
+};
+const DOOR_SWING_SWEEP = { N: 0, E: 0, S: 1, W: 1 };
+
+// A door/double-door/exterior-door symbol: a straight leaf from the hinge
+// (the opening's start point) swung 90° into the room, plus a quarter-
+// circle arc tracing the swing back to the opening's far end — the
+// standard plan-view door symbol, so a door reads as a door at a glance
+// instead of just a colored line sitting on the wall.
+function DoorSwing({ sx, sy, ex, ey, side, color }) {
+  const r = Math.hypot(ex - sx, ey - sy);
+  if (r < 1) return null;
+  const inward = OPENING_INWARD[side];
+  const leafX = sx + inward.x * r;
+  const leafY = sy + inward.y * r;
+  const sweep = DOOR_SWING_SWEEP[side];
+  return (
+    <g style={{ pointerEvents: "none" }}>
+      <line x1={sx} y1={sy} x2={leafX} y2={leafY} stroke={color} strokeWidth="2" />
+      <path d={`M ${leafX} ${leafY} A ${r} ${r} 0 0 ${sweep} ${ex} ${ey}`} fill="none" stroke={color} strokeWidth="1.5" />
+    </g>
+  );
+}
+
 function WallWithOpenings({ room, side, color, selectedOpeningId, onSelectOpening }) {
   const { a, b } = wallSegmentFt(room, side);
   const ax = a.x * PX_PER_FT;
@@ -1059,21 +1091,30 @@ function WallWithOpenings({ room, side, color, selectedOpeningId, onSelectOpenin
         const ex = horizontal ? ax + endFt * PX_PER_FT : ax;
         const ey = horizontal ? ay : ay + endFt * PX_PER_FT;
         const style = openingRenderStyle(o.type);
-        const openingColor = selectedOpeningId === o.id ? "#0f172a" : style.color;
+        const selected = selectedOpeningId === o.id;
+        const openingColor = selected ? "#0f172a" : style.color;
+        const hasSwing = OPENING_TYPES[o.type]?.hasSwing;
         return (
-          <line
-            key={o.id}
-            x1={sx}
-            y1={sy}
-            x2={ex}
-            y2={ey}
-            stroke={openingColor}
-            strokeWidth={style.width}
-            strokeDasharray={selectedOpeningId === o.id ? undefined : style.dash}
-            strokeLinecap="butt"
-            className="cursor-pointer"
-            onClick={(e) => onSelectOpening(o.id, e)}
-          />
+          <g key={o.id} className="cursor-pointer" onClick={(e) => onSelectOpening(o.id, e)}>
+            {/* Mask the solid wall line across the opening's span so it
+                reads as a real break in the wall, not a line drawn on
+                top of one. */}
+            <line x1={sx} y1={sy} x2={ex} y2={ey} stroke="#fff" strokeWidth="7" strokeLinecap="butt" />
+            {hasSwing ? (
+              <DoorSwing sx={sx} sy={sy} ex={ex} ey={ey} side={side} color={openingColor} />
+            ) : (
+              <line
+                x1={sx}
+                y1={sy}
+                x2={ex}
+                y2={ey}
+                stroke={openingColor}
+                strokeWidth={style.width}
+                strokeDasharray={selected ? undefined : style.dash}
+                strokeLinecap="butt"
+              />
+            )}
+          </g>
         );
       })}
     </g>

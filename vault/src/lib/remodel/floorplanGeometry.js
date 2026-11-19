@@ -19,27 +19,68 @@ export const WALL_SIDES = ["N", "E", "S", "W"];
 // third-party product's catalog. startsAtFloor decides whether an
 // opening's width is exempt from that wall's baseboard LF (a doorway has
 // no baseboard; a window usually does).
+// hasSwing marks the types that render a door-leaf + swing-arc symbol on
+// the canvas (WallWithOpenings in RemodelFloorPlan.jsx) instead of a plain
+// line across the gap — sliding/pocket-style and non-door openings don't
+// actually swing, so they keep the plain-line treatment.
 export const OPENING_TYPES = {
-  door: { label: "Door", defaultWidthFt: 3, defaultHeightFt: 7, startsAtFloor: true },
-  double_door: { label: "Double door", defaultWidthFt: 6, defaultHeightFt: 7, startsAtFloor: true },
+  door: { label: "Door", defaultWidthFt: 3, defaultHeightFt: 7, startsAtFloor: true, hasSwing: true },
+  double_door: {
+    label: "Double door",
+    defaultWidthFt: 6,
+    defaultHeightFt: 7,
+    startsAtFloor: true,
+    hasSwing: true,
+  },
   sliding_glass_door: {
     label: "Sliding glass door",
     defaultWidthFt: 6,
     defaultHeightFt: 7,
     startsAtFloor: true,
+    hasSwing: false,
   },
-  exterior_door: { label: "Exterior door", defaultWidthFt: 3, defaultHeightFt: 7, startsAtFloor: true },
-  window: { label: "Window", defaultWidthFt: 3, defaultHeightFt: 4, startsAtFloor: false },
-  large_opening: { label: "Large opening", defaultWidthFt: 6, defaultHeightFt: 8, startsAtFloor: true },
-  pass_through: { label: "Pass-through", defaultWidthFt: 3, defaultHeightFt: 3, startsAtFloor: false },
-  custom: { label: "Custom opening", defaultWidthFt: 3, defaultHeightFt: 3, startsAtFloor: true },
+  exterior_door: {
+    label: "Exterior door",
+    defaultWidthFt: 3,
+    defaultHeightFt: 7,
+    startsAtFloor: true,
+    hasSwing: true,
+  },
+  window: { label: "Window", defaultWidthFt: 3, defaultHeightFt: 4, startsAtFloor: false, hasSwing: false },
+  large_opening: {
+    label: "Large opening",
+    defaultWidthFt: 6,
+    defaultHeightFt: 8,
+    startsAtFloor: true,
+    hasSwing: false,
+  },
+  pass_through: {
+    label: "Pass-through",
+    defaultWidthFt: 3,
+    defaultHeightFt: 3,
+    startsAtFloor: false,
+    hasSwing: false,
+  },
+  custom: { label: "Custom opening", defaultWidthFt: 3, defaultHeightFt: 3, startsAtFloor: true, hasSwing: false },
   // "Missing wall" section — same opening math as a door/window (a width x
   // height area subtracted from that wall), just framed as "this much of
   // the wall isn't there" instead of a fixture. open_no_wall removes the
   // wall entirely (no baseboard, same as a doorway); half_wall leaves the
   // lower portion standing (baseboard still applies, same as a window).
-  open_no_wall: { label: "No wall (fully open)", defaultWidthFt: 4, defaultHeightFt: 8, startsAtFloor: true },
-  half_wall: { label: "Half wall (open above)", defaultWidthFt: 4, defaultHeightFt: 4, startsAtFloor: false },
+  open_no_wall: {
+    label: "No wall (fully open)",
+    defaultWidthFt: 4,
+    defaultHeightFt: 8,
+    startsAtFloor: true,
+    hasSwing: false,
+  },
+  half_wall: {
+    label: "Half wall (open above)",
+    defaultWidthFt: 4,
+    defaultHeightFt: 4,
+    startsAtFloor: false,
+    hasSwing: false,
+  },
 };
 
 export function defaultOpeningFor(type = "door") {
