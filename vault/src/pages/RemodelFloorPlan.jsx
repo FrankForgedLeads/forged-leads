@@ -121,13 +121,18 @@ function wallSegmentFt(room, side) {
   }
 }
 
-// Finds the wall a door/window click is for. Anywhere at or inside a
-// room (plus a little padding past its edge) picks that room's own
-// nearest wall outright — click anywhere "on the box," not just right on
-// the wall line. The threshold only matters for telling rooms apart when
-// a click is genuinely in open space between them.
+// Finds the wall a door/window click is for. First picks which room the
+// click belongs to (closest padded room, or the one it's actually inside),
+// then — within that room — which of its 4 sides the click means, by
+// which edge of the rectangle it leans toward from the center. That's the
+// standard "which wall did you click toward" rule, and reads far more
+// predictably than picking by raw distance-to-wall-segment: a long wall
+// is always geometrically "close" to a point near the room's center even
+// when the click clearly leans toward a short wall on the other axis, so
+// raw distance kept winning the wrong side on non-square rooms.
 function findNearestWall(pointFt, rooms) {
-  let best = null;
+  let bestRoom = null;
+  let bestRoomDist = Infinity;
   for (const room of rooms) {
     const x0 = Number(room.floorplan_x) || 0;
     const y0 = Number(room.floorplan_y) || 0;
@@ -140,16 +145,32 @@ function findNearestWall(pointFt, rooms) {
       pointFt.yFt <= y0 + l0 + WALL_HIT_THRESHOLD_FT;
     if (!nearThisRoom) continue;
 
-    for (const side of ["N", "E", "S", "W"]) {
-      const { a, b } = wallSegmentFt(room, side);
-      const { dist, t } = distToSegment(pointFt, a, b);
-      if (!best || dist < best.dist) {
-        const wallLenFt = wallSideLengthFt(side, room.width_ft, room.length_ft);
-        best = { dist, room, side, offsetFt: t * wallLenFt };
-      }
+    // Distance from the click to this room's own rectangle (0 if the
+    // click is inside it) — picks whichever room the click actually
+    // belongs to when two rooms' padded zones overlap.
+    const dx = Math.max(x0 - pointFt.xFt, 0, pointFt.xFt - (x0 + w0));
+    const dy = Math.max(y0 - pointFt.yFt, 0, pointFt.yFt - (y0 + l0));
+    const roomDist = Math.hypot(dx, dy);
+    if (roomDist < bestRoomDist) {
+      bestRoomDist = roomDist;
+      bestRoom = { room, x0, y0, w0, l0 };
     }
   }
-  return best;
+  if (!bestRoom) return null;
+
+  const { room, x0, y0, w0, l0 } = bestRoom;
+  const cx = x0 + w0 / 2;
+  const cy = y0 + l0 / 2;
+  const px = Math.max(x0, Math.min(x0 + w0, pointFt.xFt));
+  const py = Math.max(y0, Math.min(y0 + l0, pointFt.yFt));
+  const dxNorm = w0 > 0 ? (px - cx) / (w0 / 2) : 0; // -1 (west edge) .. 1 (east edge)
+  const dyNorm = l0 > 0 ? (py - cy) / (l0 / 2) : 0; // -1 (north edge) .. 1 (south edge)
+  const side = Math.abs(dxNorm) > Math.abs(dyNorm) ? (dxNorm > 0 ? "E" : "W") : dyNorm > 0 ? "S" : "N";
+
+  const { a, b } = wallSegmentFt(room, side);
+  const { t } = distToSegment(pointFt, a, b);
+  const wallLenFt = wallSideLengthFt(side, room.width_ft, room.length_ft);
+  return { dist: bestRoomDist, room, side, offsetFt: t * wallLenFt };
 }
 
 export default function RemodelFloorPlan() {
@@ -963,17 +984,19 @@ function RoomShape({
           onSelectOpening={onSelectOpening}
         />
       ))}
-      {/* Dimension labels */}
-      <text x={x + w / 2} y={y - 6} textAnchor="middle" fontSize="11" fill="#475569">
+      {/* Dimension labels — sized to still read while actively dragging or
+          resizing the room, not just once it's settled. */}
+      <text x={x + w / 2} y={y - 10} textAnchor="middle" fontSize="16" fontWeight="bold" fill="#334155">
         {room.width_ft}'
       </text>
       <text
-        x={x - 8}
+        x={x - 14}
         y={y + l / 2}
         textAnchor="middle"
-        fontSize="11"
-        fill="#475569"
-        transform={`rotate(-90 ${x - 8} ${y + l / 2})`}
+        fontSize="16"
+        fontWeight="bold"
+        fill="#334155"
+        transform={`rotate(-90 ${x - 14} ${y + l / 2})`}
       >
         {room.length_ft}'
       </text>
@@ -1050,23 +1073,55 @@ const OPENING_INWARD = {
 };
 const DOOR_SWING_SWEEP = { N: 0, E: 0, S: 1, W: 1 };
 
-// A door/double-door/exterior-door symbol: a straight leaf from the hinge
-// (the opening's start point) swung 90° into the room, plus a quarter-
-// circle arc tracing the swing back to the opening's far end — the
-// standard plan-view door symbol, so a door reads as a door at a glance
-// instead of just a colored line sitting on the wall.
-function DoorSwing({ sx, sy, ex, ey, side, color }) {
-  const r = Math.hypot(ex - sx, ey - sy);
+// A door/double-door/exterior-door/french-door symbol: a straight leaf
+// from the hinge swung 90° into the room, plus a quarter-circle arc
+// tracing the swing back to the opening's far end — the standard
+// plan-view door symbol, so a door reads as a door at a glance instead of
+// just a colored line sitting on the wall. `flipped` swaps which end of
+// the opening is the hinge, mirroring which side the door opens from.
+function DoorSwing({ sx, sy, ex, ey, side, color, flipped }) {
+  const hingeX = flipped ? ex : sx;
+  const hingeY = flipped ? ey : sy;
+  const farX = flipped ? sx : ex;
+  const farY = flipped ? sy : ey;
+  const r = Math.hypot(farX - hingeX, farY - hingeY);
   if (r < 1) return null;
   const inward = OPENING_INWARD[side];
-  const leafX = sx + inward.x * r;
-  const leafY = sy + inward.y * r;
-  const sweep = DOOR_SWING_SWEEP[side];
+  const leafX = hingeX + inward.x * r;
+  const leafY = hingeY + inward.y * r;
+  const sweep = flipped ? 1 - DOOR_SWING_SWEEP[side] : DOOR_SWING_SWEEP[side];
   return (
     <g style={{ pointerEvents: "none" }}>
-      <line x1={sx} y1={sy} x2={leafX} y2={leafY} stroke={color} strokeWidth="2" />
-      <path d={`M ${leafX} ${leafY} A ${r} ${r} 0 0 ${sweep} ${ex} ${ey}`} fill="none" stroke={color} strokeWidth="1.5" />
+      <line x1={hingeX} y1={hingeY} x2={leafX} y2={leafY} stroke={color} strokeWidth="2" />
+      <path d={`M ${leafX} ${leafY} A ${r} ${r} 0 0 ${sweep} ${farX} ${farY}`} fill="none" stroke={color} strokeWidth="1.5" />
     </g>
+  );
+}
+
+// A bifold door's panels fold rather than swing on one hinge, so it gets
+// its own zigzag marker across the gap instead of a swing arc.
+function BifoldFold({ sx, sy, ex, ey, color }) {
+  const len = Math.hypot(ex - sx, ey - sy);
+  if (len < 1) return null;
+  const steps = 4;
+  const dx = (ex - sx) / steps;
+  const dy = (ey - sy) / steps;
+  const px = -(ey - sy) / len;
+  const py = (ex - sx) / len;
+  const amp = 4;
+  const points = [];
+  for (let i = 0; i <= steps; i++) {
+    const offset = i % 2 === 0 ? 0 : amp;
+    points.push(`${sx + dx * i + px * offset},${sy + dy * i + py * offset}`);
+  }
+  return (
+    <polyline
+      points={points.join(" ")}
+      fill="none"
+      stroke={color}
+      strokeWidth="2"
+      style={{ pointerEvents: "none" }}
+    />
   );
 }
 
@@ -1093,15 +1148,25 @@ function WallWithOpenings({ room, side, color, selectedOpeningId, onSelectOpenin
         const style = openingRenderStyle(o.type);
         const selected = selectedOpeningId === o.id;
         const openingColor = selected ? "#0f172a" : style.color;
-        const hasSwing = OPENING_TYPES[o.type]?.hasSwing;
+        const symbol = OPENING_TYPES[o.type]?.symbol || "plain";
         return (
           <g key={o.id} className="cursor-pointer" onClick={(e) => onSelectOpening(o.id, e)}>
             {/* Mask the solid wall line across the opening's span so it
                 reads as a real break in the wall, not a line drawn on
                 top of one. */}
             <line x1={sx} y1={sy} x2={ex} y2={ey} stroke="#fff" strokeWidth="7" strokeLinecap="butt" />
-            {hasSwing ? (
-              <DoorSwing sx={sx} sy={sy} ex={ex} ey={ey} side={side} color={openingColor} />
+            {symbol === "swing" ? (
+              <DoorSwing
+                sx={sx}
+                sy={sy}
+                ex={ex}
+                ey={ey}
+                side={side}
+                color={openingColor}
+                flipped={!!o.swing_flipped}
+              />
+            ) : symbol === "fold" ? (
+              <BifoldFold sx={sx} sy={sy} ex={ex} ey={ey} color={openingColor} />
             ) : (
               <line
                 x1={sx}
@@ -1302,6 +1367,15 @@ function OpeningProperties({ opening, room, onChange, onDelete }) {
             ))}
           </Select>
         </Field>
+        {OPENING_TYPES[form.type]?.symbol === "swing" && (
+          <button
+            type="button"
+            onClick={() => onChange({ swing_flipped: !opening.swing_flipped })}
+            className="w-full rounded-lg border border-navy-600 bg-navy-900/60 px-3 py-2 text-left text-sm font-semibold text-white/80 hover:bg-navy-800"
+          >
+            ↔ Flip which side it opens from
+          </button>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <Field label={isMissingWall ? "Missing length (ft)" : "Width (ft)"}>
             <Input type="number" step="0.1" value={form.width_ft} onChange={set("width_ft")} onBlur={() => commit()} />

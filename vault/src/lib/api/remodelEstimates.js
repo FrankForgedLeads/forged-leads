@@ -209,6 +209,7 @@ export async function addRoomOpening({
   type = "door",
   description = "",
   startsAtFloor = true,
+  swingFlipped = false,
 }) {
   // A not-null numeric column in Postgres rejects NaN/undefined outright
   // (they serialize to JSON null), so guard against that here regardless
@@ -226,6 +227,7 @@ export async function addRoomOpening({
       type,
       description: description || null,
       starts_at_floor: startsAtFloor,
+      swing_flipped: swingFlipped,
     })
     .select("*")
     .single();

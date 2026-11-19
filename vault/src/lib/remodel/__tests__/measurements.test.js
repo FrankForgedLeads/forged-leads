@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   hasMeasurements,
+  isOnFloorPlan,
   floorAreaSF,
   ceilingAreaSF,
   perimeterLF,
@@ -18,6 +19,18 @@ describe("hasMeasurements", () => {
   it("is false when either dimension is missing", () => {
     expect(hasMeasurements({ length_ft: 10 })).toBe(false);
     expect(hasMeasurements({})).toBe(false);
+  });
+});
+
+describe("isOnFloorPlan", () => {
+  it("is true once a room has a floor-plan position, even at (0,0)", () => {
+    expect(isOnFloorPlan({ floorplan_x: 0, floorplan_y: 0 })).toBe(true);
+    expect(isOnFloorPlan({ floorplan_x: 5, floorplan_y: 2.5 })).toBe(true);
+  });
+
+  it("is false for a room that's never been placed on the floor plan", () => {
+    expect(isOnFloorPlan({})).toBe(false);
+    expect(isOnFloorPlan({ floorplan_x: null, floorplan_y: null })).toBe(false);
   });
 });
 

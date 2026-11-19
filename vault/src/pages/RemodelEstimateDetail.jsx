@@ -19,6 +19,7 @@ import { roomTotal, computeEstimateTotals } from "../lib/remodel/totals.js";
 import {
   hasMeasurements,
   hasSketch,
+  isOnFloorPlan,
   floorAreaSF,
   ceilingAreaSF,
   perimeterLF,
@@ -399,6 +400,11 @@ function RoomCard({ room, catalog, macros, onRoomChanged, onRoomDeleted }) {
   }
 
   const roomWithMeasurements = { ...room, ...measurements };
+  // Once a room is on the Floor Plan (and has no separate legacy sketch),
+  // its measurements already come from real geometry there — the
+  // freeform sketch tool and the manual door/window counts would just be
+  // a second, possibly-disagreeing source for the same numbers.
+  const onFloorPlan = isOnFloorPlan(room) && !hasSketch(room);
 
   async function handleDeleteRoom() {
     if (!window.confirm(`Delete "${room.name}" and all its items?`)) return;
@@ -458,17 +464,33 @@ function RoomCard({ room, catalog, macros, onRoomChanged, onRoomDeleted }) {
       <div className="mt-4 rounded-lg border border-navy-500 bg-navy-900/40 p-3">
         <div className="mb-2 flex items-center justify-between gap-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
-            {hasSketch(room) ? "Measured by sketch" : "Measurements (optional)"}
+            {hasSketch(room)
+              ? "Measured by sketch"
+              : onFloorPlan
+                ? "Measured by Floor Plan"
+                : "Measurements (optional)"}
           </span>
-          <Button
-            as="button"
-            type="button"
-            variant="secondary"
-            onClick={() => navigate(`/remodel/${room.estimate_id}/sketch/${room.id}`)}
-            className="px-3 py-1.5 text-xs"
-          >
-            📐 {hasSketch(room) ? "Re-sketch this room" : "Sketch this room"}
-          </Button>
+          {onFloorPlan ? (
+            <Button
+              as="button"
+              type="button"
+              variant="secondary"
+              onClick={() => navigate(`/remodel/${room.estimate_id}/floorplan`)}
+              className="px-3 py-1.5 text-xs"
+            >
+              📐 Open in Floor Plan
+            </Button>
+          ) : (
+            <Button
+              as="button"
+              type="button"
+              variant="secondary"
+              onClick={() => navigate(`/remodel/${room.estimate_id}/sketch/${room.id}`)}
+              className="px-3 py-1.5 text-xs"
+            >
+              📐 {hasSketch(room) ? "Re-sketch this room" : "Sketch this room"}
+            </Button>
+          )}
         </div>
         {hasSketch(room) && (
           <p className="mb-2 text-xs text-white/40">
@@ -476,7 +498,13 @@ function RoomCard({ room, catalog, macros, onRoomChanged, onRoomDeleted }) {
             ignored while a sketch exists. Re-sketch to update, or clear it from the sketch page.
           </p>
         )}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {onFloorPlan && (
+          <p className="mb-2 text-xs text-white/40">
+            This room's dimensions, doors, and windows come from the Floor Plan now — edit them
+            there so the sketch and this estimate always agree.
+          </p>
+        )}
+      <div className={`grid grid-cols-2 gap-2 ${onFloorPlan ? "sm:grid-cols-3" : "sm:grid-cols-5"}`}>
         <Field label="Length (ft)">
           <Input
             type="number"
@@ -507,24 +535,28 @@ function RoomCard({ room, catalog, macros, onRoomChanged, onRoomDeleted }) {
             placeholder="default 8"
           />
         </Field>
-        <Field label="# Doors">
-          <Input
-            type="number"
-            step="1"
-            value={measurements.door_count}
-            onChange={setMeasurement("door_count")}
-            onBlur={handleMeasurementsBlur}
-          />
-        </Field>
-        <Field label="# Windows">
-          <Input
-            type="number"
-            step="1"
-            value={measurements.window_count}
-            onChange={setMeasurement("window_count")}
-            onBlur={handleMeasurementsBlur}
-          />
-        </Field>
+        {!onFloorPlan && (
+          <>
+            <Field label="# Doors">
+              <Input
+                type="number"
+                step="1"
+                value={measurements.door_count}
+                onChange={setMeasurement("door_count")}
+                onBlur={handleMeasurementsBlur}
+              />
+            </Field>
+            <Field label="# Windows">
+              <Input
+                type="number"
+                step="1"
+                value={measurements.window_count}
+                onChange={setMeasurement("window_count")}
+                onBlur={handleMeasurementsBlur}
+              />
+            </Field>
+          </>
+        )}
         {hasMeasurements(roomWithMeasurements) && (
           <div className="col-span-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/60 sm:col-span-5">
             <span>Floor: {floorAreaSF(roomWithMeasurements).toFixed(1)} SF</span>

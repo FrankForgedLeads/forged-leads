@@ -33,6 +33,16 @@ function hasRealOpenings(room) {
   return Array.isArray(room?.remodel_room_openings) && room.remodel_room_openings.length > 0;
 }
 
+// True once a room has been placed on the Floor Plan canvas (has a
+// position there), regardless of whether it has any doors/windows yet —
+// floor area/perimeter are already real geometry at that point, so the
+// legacy per-room sketch tool and the simple door/window-count fields
+// become redundant (and can disagree with the floor plan) once this is
+// true, unless the room also still has an actual legacy sketch.
+export function isOnFloorPlan(room) {
+  return room?.floorplan_x != null && room?.floorplan_y != null;
+}
+
 function floorplanGeometryFor(room) {
   return computeRoomGeometry({
     widthFt: room.width_ft,

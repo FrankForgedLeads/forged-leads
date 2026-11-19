@@ -2736,6 +2736,12 @@ begin
 end $$;
 
 -- ============================================================================
+-- Door swing flip (which side a door/double/french/exterior door opens
+-- from), plus Bifold door and French doors as proper opening types.
+-- ============================================================================
+alter table public.remodel_room_openings add column if not exists swing_flipped boolean not null default false;
+
+-- ============================================================================
 -- End of migration.
 -- Next: run supabase/seed_items.sql to load the Vault's starting item set.
 -- ============================================================================
