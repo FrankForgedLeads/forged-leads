@@ -1,0 +1,2768 @@
+-- ============================================================================
+-- Beeyond Vault — initial schema
+-- Run this once in the Supabase SQL editor (or `supabase db push`) on a fresh
+-- project, in order, top to bottom. See SETUP.md (Phase 8) for the
+-- click-by-click version of this step.
+-- ============================================================================
+
+create extension if not exists pgcrypto;
+
+-- ----------------------------------------------------------------------------
+-- ADMIN CONTROL
+--
+-- Decision: admin access is granted by row, not by hardcoding ADMIN_EMAIL into
+-- SQL. Nobody can read this table directly (RLS denies all direct access);
+-- the is_admin() function below is SECURITY DEFINER so it can check
+-- membership without exposing the table itself. After running this
+-- migration, add yourself with:
+--   insert into public.admins (email) values ('you@example.com');
+-- (Use the same address as the ADMIN_EMAIL env var so the app and the
+-- database agree on who's an admin.)
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.admins (
+  email text primary key,
+  created_at timestamptz not null default now()
+);
+
+alter table public.admins enable row level security;
+-- No policies = no direct access for anon/authenticated. Only service_role
+-- (which bypasses RLS) or the SECURITY DEFINER function below can read it.
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.admins a
+    where a.email = (auth.jwt() ->> 'email')
+  );
+$$;
+
+-- ----------------------------------------------------------------------------
+-- TEAMS
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.teams (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  seat_limit integer not null default 5,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists teams_owner_id_idx on public.teams(owner_id);
+
+-- ----------------------------------------------------------------------------
+-- PROFILES (1:1 with auth.users)
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  full_name text,
+  company text,
+  phone text,
+  role text check (role in ('roofer', 'restoration', 'pa', 'gc', 'other')),
+  plan text check (plan in ('solo', 'crew')),
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  -- Mirrors Stripe subscription statuses: trialing, active, past_due,
+  -- canceled, unpaid, incomplete, incomplete_expired. NULL = never
+  -- subscribed (paywall sends them to /subscribe).
+  subscription_status text,
+  trial_ends_at timestamptz,
+  team_id uuid references public.teams(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists profiles_team_id_idx on public.profiles(team_id);
+create index if not exists profiles_stripe_customer_id_idx on public.profiles(stripe_customer_id);
+
+-- Now that both tables exist, point teams.owner_id's implicit "one owner
+-- profile" relationship the other way isn't needed — owner_id already
+-- references auth.users directly above, which is enough for RLS.
+
+-- ----------------------------------------------------------------------------
+-- TEAM INVITES
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.team_invites (
+  id uuid primary key default gen_random_uuid(),
+  team_id uuid not null references public.teams(id) on delete cascade,
+  email text not null,
+  accepted_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists team_invites_team_id_idx on public.team_invites(team_id);
+create index if not exists team_invites_email_idx on public.team_invites(email);
+
+-- ----------------------------------------------------------------------------
+-- ITEMS (the Vault)
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.items (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (
+    category in (
+      'roofing', 'water_mitigation', 'mold', 'interior',
+      'exterior', 'general_conditions', 'code_upgrades'
+    )
+  ),
+  title text not null,
+  description text,
+  why_owed text,
+  xactimate_code text,
+  code_citation text,
+  low_amount numeric(10, 2),
+  high_amount numeric(10, 2),
+  unit text, -- e.g. SQ, LF, SF, EA, day, visit
+  region_note text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  -- Full-text search across the fields a contractor would actually search by.
+  search_vector tsvector generated always as (
+    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(xactimate_code, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(code_citation, '')), 'B') ||
+    setweight(to_tsvector('english', coalesce(description, '')), 'C') ||
+    setweight(to_tsvector('english', coalesce(why_owed, '')), 'C')
+  ) stored
+);
+
+create index if not exists items_category_idx on public.items(category);
+create index if not exists items_is_active_idx on public.items(is_active);
+create index if not exists items_search_vector_idx on public.items using gin(search_vector);
+
+-- ----------------------------------------------------------------------------
+-- CLAIMS
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.claims (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  team_id uuid references public.teams(id) on delete set null,
+  claim_number text,
+  insured_name text,
+  property_address text,
+  carrier text,
+  adjuster_name text,
+  date_of_loss date,
+  loss_type text, -- free text, e.g. wind, hurricane, water, fire, other
+  status text not null default 'open' check (
+    status in ('open', 'in_progress', 'submitted', 'partially_approved', 'resolved', 'closed')
+  ),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists claims_user_id_idx on public.claims(user_id);
+create index if not exists claims_team_id_idx on public.claims(team_id);
+
+-- ----------------------------------------------------------------------------
+-- CLAIM ITEMS (items attached to a claim)
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.claim_items (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  item_id uuid not null references public.items(id) on delete restrict,
+  quantity numeric(10, 2) not null default 1,
+  -- Overrides the item's low/high range with a specific $ amount for this claim.
+  custom_amount numeric(10, 2),
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists claim_items_claim_id_idx on public.claim_items(claim_id);
+create index if not exists claim_items_item_id_idx on public.claim_items(item_id);
+
+-- ----------------------------------------------------------------------------
+-- LETTERS
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.letters (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  template_key text not null check (
+    template_key in (
+      'initial_scope_clarification',
+      'follow_up_no_response',
+      'response_to_partial_approval'
+    )
+  ),
+  generated_at timestamptz not null default now(),
+  pdf_meta jsonb -- snapshot of the fields used to render the PDF (company block, edits, etc.)
+);
+
+create index if not exists letters_claim_id_idx on public.letters(claim_id);
+
+-- ----------------------------------------------------------------------------
+-- LEADS (Scope Checker capture — Phase 5, schema included now so the app
+-- doesn't need a second migration)
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.leads (
+  id uuid primary key default gen_random_uuid(),
+  name text,
+  email text not null,
+  phone text,
+  company text,
+  -- Which of the 12 checklist items they had checked, and the running total shown.
+  answers jsonb,
+  estimated_total numeric(10, 2),
+  source text not null default 'scope_checker',
+  contacted_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists leads_email_idx on public.leads(email);
+create index if not exists leads_created_at_idx on public.leads(created_at desc);
+
+-- ----------------------------------------------------------------------------
+-- updated_at maintenance
+-- ----------------------------------------------------------------------------
+
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists set_updated_at on public.profiles;
+create trigger set_updated_at before update on public.profiles
+  for each row execute function public.set_updated_at();
+
+drop trigger if exists set_updated_at on public.items;
+create trigger set_updated_at before update on public.items
+  for each row execute function public.set_updated_at();
+
+drop trigger if exists set_updated_at on public.claims;
+create trigger set_updated_at before update on public.claims
+  for each row execute function public.set_updated_at();
+
+-- ----------------------------------------------------------------------------
+-- Auto-create a profile row when someone signs up via magic link.
+-- subscription_status stays NULL until Stripe checkout completes (Phase 6
+-- webhook sets plan/status/trial_ends_at from the actual subscription).
+--
+-- Also auto-accepts a pending Crew team invite sent to this email (Phase
+-- 7's invite-teammate function inserts the team_invites row before the
+-- invited person has ever signed in) — attaches the new profile to that
+-- team and marks the invite accepted, atomically with profile creation.
+-- Known v1 limitation: this only fires on a brand-new auth.users row, so
+-- inviting someone who already has a Beeyond Vault account needs a manual
+-- fix (update their profiles.team_id) rather than auto-accepting here.
+-- ----------------------------------------------------------------------------
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  matched_invite record;
+begin
+  insert into public.profiles (id, email)
+  values (new.id, new.email)
+  on conflict (id) do nothing;
+
+  select * into matched_invite
+  from public.team_invites
+  where email = new.email and accepted_at is null
+  order by created_at desc
+  limit 1;
+
+  if matched_invite.id is not null then
+    update public.profiles set team_id = matched_invite.team_id where id = new.id;
+    update public.team_invites set accepted_at = now() where id = matched_invite.id;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- ============================================================================
+-- ROW LEVEL SECURITY
+-- ============================================================================
+
+alter table public.teams enable row level security;
+alter table public.profiles enable row level security;
+alter table public.team_invites enable row level security;
+alter table public.items enable row level security;
+alter table public.claims enable row level security;
+alter table public.claim_items enable row level security;
+alter table public.letters enable row level security;
+alter table public.leads enable row level security;
+
+-- Helper: the caller's team_id, or null. Used inline below to avoid repeating
+-- the subquery on every policy.
+create or replace function public.my_team_id()
+returns uuid
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select team_id from public.profiles where id = auth.uid();
+$$;
+
+-- --- profiles ---------------------------------------------------------------
+-- Readable/writable only by the owner, by admins (subscriber list), or by a
+-- fellow team member (Crew — so the owner's Account page can show who's on
+-- the team; my_team_id() already backs the same pattern for claims).
+
+create policy "profiles_select_own_admin_or_teammate" on public.profiles
+  for select using (
+    id = auth.uid()
+    or public.is_admin()
+    or (team_id is not null and team_id = public.my_team_id())
+  );
+
+create policy "profiles_update_own_or_admin" on public.profiles
+  for update using (id = auth.uid() or public.is_admin());
+
+create policy "profiles_insert_own" on public.profiles
+  for insert with check (id = auth.uid());
+
+-- --- teams --------------------------------------------------------------
+-- Owner manages their team; team members can view it; admins see everything.
+
+create policy "teams_select_member_or_admin" on public.teams
+  for select using (
+    owner_id = auth.uid()
+    or id = public.my_team_id()
+    or public.is_admin()
+  );
+
+create policy "teams_insert_owner" on public.teams
+  for insert with check (owner_id = auth.uid());
+
+create policy "teams_update_owner_or_admin" on public.teams
+  for update using (owner_id = auth.uid() or public.is_admin());
+
+create policy "teams_delete_owner_or_admin" on public.teams
+  for delete using (owner_id = auth.uid() or public.is_admin());
+
+-- --- team_invites ---------------------------------------------------------
+-- Team owner manages invites for their team. An invited user can see (and
+-- accept) the invite addressed to their own email.
+
+create policy "team_invites_select" on public.team_invites
+  for select using (
+    exists (select 1 from public.teams t where t.id = team_id and t.owner_id = auth.uid())
+    or email = (auth.jwt() ->> 'email')
+    or public.is_admin()
+  );
+
+create policy "team_invites_insert_owner" on public.team_invites
+  for insert with check (
+    exists (select 1 from public.teams t where t.id = team_id and t.owner_id = auth.uid())
+  );
+
+create policy "team_invites_update" on public.team_invites
+  for update using (
+    exists (select 1 from public.teams t where t.id = team_id and t.owner_id = auth.uid())
+    or email = (auth.jwt() ->> 'email')
+  );
+
+create policy "team_invites_delete_owner" on public.team_invites
+  for delete using (
+    exists (select 1 from public.teams t where t.id = team_id and t.owner_id = auth.uid())
+  );
+
+-- --- items ------------------------------------------------------------------
+-- Read-only reference data for any signed-in user. Only admins write.
+
+create policy "items_select_authenticated" on public.items
+  for select using (auth.role() = 'authenticated' or public.is_admin());
+
+create policy "items_insert_admin" on public.items
+  for insert with check (public.is_admin());
+
+create policy "items_update_admin" on public.items
+  for update using (public.is_admin());
+
+create policy "items_delete_admin" on public.items
+  for delete using (public.is_admin());
+
+-- --- claims -------------------------------------------------------------
+-- Owner or teammate (shared team_id) can read/write; admins see everything.
+
+create policy "claims_select" on public.claims
+  for select using (
+    user_id = auth.uid()
+    or (team_id is not null and team_id = public.my_team_id())
+    or public.is_admin()
+  );
+
+create policy "claims_insert" on public.claims
+  for insert with check (
+    user_id = auth.uid()
+    and (team_id is null or team_id = public.my_team_id())
+  );
+
+create policy "claims_update" on public.claims
+  for update using (
+    user_id = auth.uid()
+    or (team_id is not null and team_id = public.my_team_id())
+    or public.is_admin()
+  );
+
+create policy "claims_delete" on public.claims
+  for delete using (
+    user_id = auth.uid()
+    or public.is_admin()
+  );
+
+-- --- claim_items --------------------------------------------------------
+-- Access follows the parent claim.
+
+create policy "claim_items_select" on public.claim_items
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "claim_items_insert" on public.claim_items
+  for insert with check (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "claim_items_update" on public.claim_items
+  for update using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "claim_items_delete" on public.claim_items
+  for delete using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- --- letters --------------------------------------------------------------
+-- Access follows the parent claim, same shape as claim_items.
+
+create policy "letters_select" on public.letters
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "letters_insert" on public.letters
+  for insert with check (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "letters_delete" on public.letters
+  for delete using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- --- leads ------------------------------------------------------------------
+-- Anyone (including anonymous visitors on the public Scope Checker) can
+-- submit a lead. Only admins can read the list back.
+
+create policy "leads_insert_anyone" on public.leads
+  for insert with check (true);
+
+create policy "leads_select_admin" on public.leads
+  for select using (public.is_admin());
+
+-- ============================================================================
+-- PHASE 2 — ESTIMATE REVIEW: uploads + storage
+--
+-- Decision: "claims" becomes the one record that eventually holds a project's
+-- estimate, documentation, analysis, and generated documents together (the
+-- product spec's "Projects/Reviews" entity) — so this extends the existing
+-- claims table with the review/project-info fields instead of creating a
+-- second, parallel table that would need merging with claims later. The
+-- claims -> Projects/Reviews UI relabel is its own later phase; this is just
+-- the schema and storage groundwork. Written as ALTER ... IF NOT EXISTS
+-- throughout so this section is safe to re-run whether claims was just
+-- created above or already existed from an earlier run of this file.
+-- ============================================================================
+
+alter table public.claims add column if not exists project_type text;
+alter table public.claims add column if not exists trade text;
+alter table public.claims add column if not exists estimate_total numeric(12, 2);
+alter table public.claims add column if not exists description text;
+alter table public.claims add column if not exists notes text;
+
+-- Replace the old insurance-specific status vocabulary with the product
+-- spec's review-workflow vocabulary. Remap any existing rows first so the
+-- new, stricter check constraint never rejects data already in the table.
+update public.claims set status = case status
+  when 'open' then 'new'
+  when 'in_progress' then 'under_review'
+  when 'submitted' then 'under_review'
+  when 'partially_approved' then 'under_review'
+  when 'resolved' then 'completed'
+  when 'closed' then 'completed'
+  else status
+end
+where status in ('open', 'in_progress', 'submitted', 'partially_approved', 'resolved', 'closed');
+
+alter table public.claims drop constraint if exists claims_status_check;
+alter table public.claims add constraint claims_status_check check (
+  status in ('new', 'under_review', 'findings_reviewed', 'documentation_complete', 'completed')
+);
+alter table public.claims alter column status set default 'new';
+
+-- ----------------------------------------------------------------------------
+-- REVIEW FILES (uploaded estimate PDFs, photos, and supporting documents)
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.review_files (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  -- 'estimate' = the uploaded estimate PDF; 'photo' = a damage/property
+  -- photo; 'document' = anything else (scope notes, invoices, moisture
+  -- maps, measurements, etc).
+  file_type text not null check (file_type in ('estimate', 'photo', 'document')),
+  -- Path within the private 'review-files' storage bucket, always prefixed
+  -- with the uploader's auth.uid() — see the storage.objects policies
+  -- below, which key off that same prefix.
+  storage_path text not null,
+  file_name text not null,
+  mime_type text,
+  size_bytes bigint,
+  uploaded_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists review_files_claim_id_idx on public.review_files(claim_id);
+
+alter table public.review_files enable row level security;
+
+-- Access follows the parent claim, same shape as claim_items/letters.
+create policy "review_files_select" on public.review_files
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "review_files_insert" on public.review_files
+  for insert with check (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "review_files_delete" on public.review_files
+  for delete using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- ----------------------------------------------------------------------------
+-- STORAGE — private 'review-files' bucket
+--
+-- Objects are stored at `${auth.uid()}/${claim_id}/${generated filename}`.
+-- Access is scoped to the top-level folder matching the caller's own
+-- auth.uid() — the standard Supabase Storage per-user-folder RLS pattern.
+-- Known v1 limitation: a Crew teammate can see a shared claim's *rows* in
+-- review_files (per the policies above) but not fetch the actual file bytes
+-- of a teammate's upload, since storage access is scoped by uploader, not by
+-- team. Acceptable for v1 — revisit if team-shared file access becomes a
+-- real ask; the fix is a storage policy that joins storage.objects back to
+-- review_files/claims the same way the table policies above do.
+-- 15 MB per file cap and an allow-list of the file types the upload UI
+-- actually offers — enforced by Postgres here, not just client-side, so a
+-- direct API call can't bypass it and blow through the Storage free tier.
+-- ----------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'review-files',
+  'review-files',
+  false,
+  15728640, -- 15 MB
+  array['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic']
+)
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "review_files_storage_select" on storage.objects
+  for select using (
+    bucket_id = 'review-files'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+create policy "review_files_storage_insert" on storage.objects
+  for insert with check (
+    bucket_id = 'review-files'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "review_files_storage_delete" on storage.objects
+  for delete using (
+    bucket_id = 'review-files'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+-- ============================================================================
+-- PHASE 3 — ESTIMATE REVIEW: structured analysis engine
+--
+-- review_findings holds each candidate scope gap the analysis engine
+-- surfaces, always pending human review (status defaults to 'new' and only
+-- moves to 'added'/'dismissed'/'needs_info' when the contractor acts on it
+-- — see RequireSubscription-gated ClaimDetail UI). analysis_runs is both an
+-- audit trail and the cost-control table: every analysis attempt gets a
+-- row, success or failure, so a per-user rate limit can be enforced without
+-- guessing, and nothing here ever lets the analysis function itself decide
+-- something is "owed" — it only ever writes candidate rows for the human to
+-- act on.
+-- ============================================================================
+
+create table if not exists public.review_findings (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  -- References analysis_runs, added via ALTER TABLE below once that table
+  -- exists — can't forward-reference it here.
+  analysis_run_id uuid,
+  -- The matched Vault item, when the model could confidently tie this
+  -- finding to a real, existing item. Null is allowed and expected for
+  -- findings that don't map cleanly to one item (e.g. a quantity mismatch)
+  -- — the model is instructed never to invent a new Vault item to fill
+  -- this in.
+  item_id uuid references public.items(id) on delete set null,
+  title text not null,
+  -- Distinguishes "this line item's text wasn't found in the estimate" (an
+  -- absence) from "the documentation indicates this is required" (a much
+  -- stronger, rarer claim) — see the product spec: those are not the same
+  -- thing and must never be worded the same way in the UI.
+  scope_status text not null check (
+    scope_status in ('not_found_in_estimate', 'quantity_mismatch', 'code_required')
+  ),
+  reason text not null,
+  evidence text,
+  confidence text not null check (confidence in ('high', 'medium', 'low')),
+  suggested_quantity numeric(10, 2),
+  suggested_unit text,
+  potential_amount_low numeric(10, 2),
+  potential_amount_high numeric(10, 2),
+  xactimate_code text,
+  code_reference text,
+  requires_human_verification boolean not null default true,
+  -- Human-in-the-loop state. Never set by the analysis engine itself —
+  -- only by the contractor's own action in the UI.
+  status text not null default 'new' check (status in ('new', 'added', 'dismissed', 'needs_info')),
+  claim_item_id uuid references public.claim_items(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists review_findings_claim_id_idx on public.review_findings(claim_id);
+
+create table if not exists public.analysis_runs (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  status text not null default 'running' check (status in ('running', 'succeeded', 'failed')),
+  error_message text,
+  model text,
+  input_tokens integer,
+  output_tokens integer,
+  estimated_cost_usd numeric(10, 4),
+  findings_count integer,
+  started_at timestamptz not null default now(),
+  completed_at timestamptz
+);
+
+create index if not exists analysis_runs_claim_id_idx on public.analysis_runs(claim_id);
+create index if not exists analysis_runs_user_id_started_at_idx on public.analysis_runs(user_id, started_at desc);
+
+-- review_findings.analysis_run_id references analysis_runs, which is
+-- defined after it above for readability — add the FK now that both tables
+-- exist (can't forward-reference a not-yet-created table in the column
+-- definition itself).
+alter table public.review_findings
+  drop constraint if exists review_findings_analysis_run_id_fkey;
+alter table public.review_findings
+  add constraint review_findings_analysis_run_id_fkey
+  foreign key (analysis_run_id) references public.analysis_runs(id) on delete set null;
+
+alter table public.review_findings enable row level security;
+alter table public.analysis_runs enable row level security;
+
+-- Access follows the parent claim, same shape as review_files. Findings
+-- and runs are never writable by the client directly — only the
+-- review-analyze Netlify Function (using the service-role key) creates
+-- them; the client can only update a finding's own status (add/dismiss).
+create policy "review_findings_select" on public.review_findings
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "review_findings_update_status" on public.review_findings
+  for update using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "analysis_runs_select" on public.analysis_runs
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- ============================================================================
+-- PHASE 5 — VAULT KNOWLEDGE BASE: verification tracking
+--
+-- The product spec is explicit and marked CRITICAL: "Do not present
+-- automatically generated code citations as verified facts. Every code
+-- citation should have: Last Verified and Verify applicability before
+-- submission." These columns are deliberately left NULL for every existing
+-- seeded item (see seed_items.sql's own long-standing disclaimer that all
+-- of it is draft data pending Frankie's review) rather than backfilled with
+-- a fabricated date — an unset last_verified_date IS the honest signal
+-- that an item hasn't been through admin review yet, and the UI (Vault
+-- browse, admin list, and every Estimate Review finding) renders that
+-- absence as "Not yet verified," never silently as blank.
+-- ============================================================================
+
+alter table public.items add column if not exists jurisdiction_notes text;
+alter table public.items add column if not exists required_documentation text;
+alter table public.items add column if not exists common_exclusions text;
+alter table public.items add column if not exists last_verified_date date;
+alter table public.items add column if not exists source_notes text;
+
+-- ============================================================================
+-- SECURITY FIX (Phase 10 audit) — profiles/team_invites column privileges
+--
+-- Vulnerability: "profiles_update_own_or_admin" (defined earlier in this
+-- file) and "team_invites_update" both use `for update using (...)` with
+-- no `with check` clause. Postgres RLS reuses the USING expression as the
+-- check on the NEW row when no WITH CHECK is given — so the *only* thing
+-- either policy actually enforces is "this row belongs to me." Neither
+-- restricts which COLUMNS a permitted update can change. Concretely, any
+-- signed-in user could send `PATCH .../profiles?id=eq.<their own id>` with
+-- body `{"team_id": "<any other team's uuid>"}` and it would succeed —
+-- since every Crew-sharing policy in this file (teams, claims, claim_items,
+-- letters, review_files, review_findings, analysis_runs) grants access
+-- based on `team_id = public.my_team_id()`, and my_team_id() just reads
+-- the caller's own profiles.team_id, this let any user grant themselves
+-- read/write access to an arbitrary team's claims, documents, and
+-- Estimate Review findings by editing one column on their own row.
+--
+-- Fix: column-level privileges, not a trickier RLS rewrite. Postgres
+-- checks table/column grants before it ever evaluates RLS — an UPDATE
+-- naming a column the role has no privilege on fails outright, regardless
+-- of policy content. This is simpler to get right than a self-referential
+-- WITH CHECK subquery and fully closes the hole either way. The
+-- `authenticated` role only legitimately needs to update the columns the
+-- Account page actually lets a user edit (full_name, company, phone,
+-- role) — team_id, plan, the Stripe fields, subscription_status, and
+-- trial_ends_at are all written exclusively by the Stripe webhook or the
+-- signup trigger, both of which run as service_role and are unaffected by
+-- these grants (service_role bypasses RLS and column privileges alike).
+--
+-- team_invites_update is revoked outright: grepping the app confirms the
+-- client never calls .update() on team_invites (only .select() and
+-- .delete() — see src/lib/api/team.js) and invite acceptance is handled
+-- entirely inside handle_new_user(), a SECURITY DEFINER trigger that also
+-- runs as its owner, not as the calling session. The policy was dead code
+-- providing only attack surface (the same missing-WITH-CHECK gap would
+-- have let an invited user repoint their own pending invite to a
+-- different team's id).
+-- ============================================================================
+
+revoke update on public.profiles from authenticated;
+grant update (full_name, company, phone, role) on public.profiles to authenticated;
+
+revoke update on public.team_invites from authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Same missing-WITH-CHECK gap, found by re-checking every other `for update`
+-- policy in this file after the profiles/team_invites fix above, rather than
+-- assuming it was the only instance:
+--
+-- - teams_update_owner_or_admin: same as team_invites — the client never
+--   calls .update() on teams at all (grep confirms only .select() in
+--   src/lib/api/team.js). Dead policy, pure attack surface. Revoked outright.
+-- - claims_update / claim_items_update / review_findings_update_status: all
+--   three grant "can update this row" based on team/ownership, without
+--   restricting which columns. Without a column restriction, a legitimate
+--   teammate (who has genuine, intended update access to a shared claim)
+--   could re-parent that row's claim_id/team_id-linked ownership — e.g. set
+--   claims.team_id or claim_items.claim_id or review_findings.claim_id to a
+--   team/claim they don't belong to, injecting content into a victim's
+--   claim — or, on review_findings specifically, rewrite the AI's own
+--   output after the fact: reason, confidence, scope_status, and critically
+--   requires_human_verification, which the analysis engine (see
+--   estimateAnalysisService.js) deliberately never lets the model set to
+--   anything but true. None of that should be client-writable — the app
+--   only ever updates a narrow field set on each of these tables (verified
+--   by grepping every real call site), so grant only that set.
+-- ----------------------------------------------------------------------------
+
+revoke update on public.teams from authenticated;
+
+revoke update on public.claims from authenticated;
+grant update (
+  status, project_type, trade, property_address, insured_name, estimate_total,
+  date_of_loss, loss_type, claim_number, carrier, adjuster_name, description, notes
+) on public.claims to authenticated;
+
+revoke update on public.claim_items from authenticated;
+grant update (quantity, custom_amount, note) on public.claim_items to authenticated;
+
+revoke update on public.review_findings from authenticated;
+grant update (status, claim_item_id) on public.review_findings to authenticated;
+
+-- ============================================================================
+-- Phase 7 — Review Summary PDF export
+--
+-- Reuses the existing `letters` table (client-side snapshot record of a
+-- generated PDF, same shape needed for both) rather than adding a parallel
+-- table, so the only schema change is widening the template_key check
+-- constraint to also allow "review_summary". No RLS change: letters_select/
+-- insert/delete already key off the parent claim generically and don't
+-- special-case template_key.
+-- ============================================================================
+
+alter table public.letters drop constraint if exists letters_template_key_check;
+alter table public.letters add constraint letters_template_key_check check (
+  template_key in (
+    'initial_scope_clarification',
+    'follow_up_no_response',
+    'response_to_partial_approval',
+    'review_summary'
+  )
+);
+
+-- ============================================================================
+-- Phase 9 — Usage analytics + customer feedback
+--
+-- Product spec's ANALYTICS section lists 11 events to track (signup,
+-- trial_started, first_review_started, estimate_uploaded, photos_uploaded,
+-- analysis_started, analysis_completed, findings_added,
+-- documentation_generated, subscription_started, subscription_canceled).
+-- Four of those are deliberately NOT separate rows here because they're
+-- already fully reconstructable from existing tables with zero risk of the
+-- event log and the source-of-truth table drifting apart:
+--   - first_review_started -> MIN(claims.created_at) per user
+--   - analysis_started / analysis_completed -> analysis_runs.started_at /
+--     analysis_runs where status = 'succeeded' (Phase 3)
+--   - documentation_generated -> letters.generated_at (Phase 4 / Phase 7)
+-- The other 7 have no existing table to derive them from (a point-in-time
+-- transition, not a standing record) — those get real rows below.
+-- ============================================================================
+
+create table if not exists public.analytics_events (
+  id uuid primary key default gen_random_uuid(),
+  event_name text not null check (
+    event_name in (
+      'signup',
+      'trial_started',
+      'subscription_started',
+      'subscription_canceled',
+      'estimate_uploaded',
+      'photos_uploaded',
+      'findings_added'
+    )
+  ),
+  -- Nullable + on delete cascade rather than not-null: keeps the same shape
+  -- as analysis_runs.user_id (Phase 3) for an account that gets deleted —
+  -- the event should disappear with the user, not orphan a broken FK.
+  user_id uuid references auth.users(id) on delete cascade,
+  metadata jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists analytics_events_event_name_idx on public.analytics_events(event_name, created_at);
+create index if not exists analytics_events_user_id_idx on public.analytics_events(user_id);
+
+alter table public.analytics_events enable row level security;
+
+-- Append-only audit log: authenticated users may record their own events
+-- (client-fired ones — estimate_uploaded, photos_uploaded, findings_added)
+-- and never anyone else's; only admin can read it back; no update/delete
+-- policy at all, for anyone — nothing should ever rewrite analytics history.
+-- The signup/trial_started/subscription_started/subscription_canceled rows
+-- are written by service_role (the signup trigger and the Stripe webhook
+-- function), which bypasses RLS entirely, same as analysis_runs.
+create policy "analytics_events_insert_own" on public.analytics_events
+  for insert with check (user_id = auth.uid());
+
+create policy "analytics_events_select_admin" on public.analytics_events
+  for select using (public.is_admin());
+
+create table if not exists public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  message text not null,
+  -- Which page/screen the feedback was submitted from, for context —
+  -- e.g. "/claims/<id>" — set by the client, not user-editable free text.
+  page_context text,
+  status text not null default 'new' check (status in ('new', 'reviewed')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists feedback_created_at_idx on public.feedback(created_at desc);
+
+alter table public.feedback enable row level security;
+
+create policy "feedback_insert_own" on public.feedback
+  for insert with check (user_id = auth.uid());
+
+create policy "feedback_select_admin" on public.feedback
+  for select using (public.is_admin());
+
+-- Admin-only update, and even then restricted to the one column that's
+-- actually meant to change post-insert (see the column-privilege pattern
+-- established in the Phase 10 security fixes above) — admin has no
+-- legitimate reason to rewrite someone's feedback message or reattribute
+-- whose it was, only to mark it reviewed.
+create policy "feedback_update_admin" on public.feedback
+  for update using (public.is_admin()) with check (public.is_admin());
+
+revoke update on public.feedback from authenticated;
+grant update (status) on public.feedback to authenticated;
+
+-- Extends handle_new_user (defined earlier, Phase 2) to also record a
+-- signup event, now that analytics_events exists. CREATE OR REPLACE is
+-- idempotent and safe to run again against an already-migrated project —
+-- the existing on_auth_user_created trigger already points at this
+-- function by name and picks up the new body automatically; it does not
+-- need to be recreated.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  matched_invite record;
+begin
+  insert into public.profiles (id, email)
+  values (new.id, new.email)
+  on conflict (id) do nothing;
+
+  insert into public.analytics_events (event_name, user_id)
+  values ('signup', new.id);
+
+  select * into matched_invite
+  from public.team_invites
+  where email = new.email and accepted_at is null
+  order by created_at desc
+  limit 1;
+
+  if matched_invite.id is not null then
+    update public.profiles set team_id = matched_invite.team_id where id = new.id;
+    update public.team_invites set accepted_at = now() where id = matched_invite.id;
+  end if;
+
+  return new;
+end;
+$$;
+
+-- ============================================================================
+-- PHOTO EVIDENCE (vault-photos) — photos linked to a specific claim_item
+--
+-- Deliberately keyed off claim_items.id (one FK), not a separate claim_id +
+-- item_id pair — a claim_items row already *is* "this specific line item on
+-- this specific claim" (see the CLAIM ITEMS section above), so a second pair
+-- of FKs here would just duplicate that and risk drifting out of sync (e.g.
+-- a photo whose claim_id/item_id no longer match any real claim_items row).
+-- One FK, cascade-deleted with its claim_item, can't go stale.
+-- ============================================================================
+
+create table if not exists public.claim_item_photos (
+  id uuid primary key default gen_random_uuid(),
+  claim_item_id uuid not null references public.claim_items(id) on delete cascade,
+  -- Path within the private 'claim-item-photos' bucket, prefixed with the
+  -- uploader's auth.uid() — same shape as review_files.storage_path, same
+  -- storage.objects policy pattern below.
+  storage_path text not null,
+  file_name text not null,
+  mime_type text,
+  size_bytes bigint,
+  -- From EXIF when present (client-side extraction, see
+  -- lib/api/claimItemPhotos.js) — both null together when the photo has no
+  -- GPS tag (most desktop screenshots, some phones with location off).
+  -- Never block or fail an upload for missing EXIF; these just stay null.
+  gps_lat double precision,
+  gps_lng double precision,
+  -- EXIF capture timestamp when present, else set to uploaded_at at insert
+  -- time — always populated, so the UI/PDF never has to fall back at render
+  -- time on whether this is "captured" or "uploaded" info.
+  captured_at timestamptz not null,
+  uploaded_at timestamptz not null default now(),
+  uploaded_by uuid references auth.users(id) on delete set null,
+  caption text
+);
+
+create index if not exists claim_item_photos_claim_item_id_idx on public.claim_item_photos(claim_item_id);
+
+alter table public.claim_item_photos enable row level security;
+
+-- Access follows the parent claim_item -> claim, same two-hop join shape
+-- used nowhere else yet in this file (review_files/letters are one hop,
+-- claim_id directly) since photos hang off claim_items, not claims.
+create policy "claim_item_photos_select" on public.claim_item_photos
+  for select using (
+    exists (
+      select 1 from public.claim_items ci
+      join public.claims c on c.id = ci.claim_id
+      where ci.id = claim_item_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "claim_item_photos_insert" on public.claim_item_photos
+  for insert with check (
+    exists (
+      select 1 from public.claim_items ci
+      join public.claims c on c.id = ci.claim_id
+      where ci.id = claim_item_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "claim_item_photos_delete" on public.claim_item_photos
+  for delete using (
+    exists (
+      select 1 from public.claim_items ci
+      join public.claims c on c.id = ci.claim_id
+      where ci.id = claim_item_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- No update policy: a photo's caption is the only thing that could ever
+-- change post-upload, and v1 doesn't expose editing it — delete + re-add
+-- covers that case for now, keeping this table (like review_files) write-
+-- once/delete, no update surface to secure.
+
+-- ----------------------------------------------------------------------------
+-- STORAGE — private 'claim-item-photos' bucket
+--
+-- Same per-user-folder pattern as 'review-files': objects live at
+-- `${auth.uid()}/${claim_item_id}/${generated filename}`, access scoped to
+-- the caller's own top-level folder. Image types only (no PDF — this bucket
+-- is strictly photo evidence, not general documents) and a 10 MB/file cap,
+-- enforced by Postgres so a direct API call can't bypass it.
+-- Same known v1 limitation as review-files: a Crew teammate sees a shared
+-- claim's photo *rows* but can't fetch a teammate's actual file bytes,
+-- since storage access is scoped by uploader folder, not by team.
+-- ----------------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'claim-item-photos',
+  'claim-item-photos',
+  false,
+  10485760, -- 10 MB
+  array['image/jpeg', 'image/png', 'image/webp', 'image/heic']
+)
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "claim_item_photos_storage_select" on storage.objects
+  for select using (
+    bucket_id = 'claim-item-photos'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+create policy "claim_item_photos_storage_insert" on storage.objects
+  for insert with check (
+    bucket_id = 'claim-item-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "claim_item_photos_storage_delete" on storage.objects
+  for delete using (
+    bucket_id = 'claim-item-photos'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+-- ============================================================================
+-- SECURITY FIX (production audit) — server-side free-review + paywall gate
+--
+-- Vulnerability: netlify/functions/review-analyze.js never checked
+-- profiles.subscription_status before running a paid AI analysis. RLS on
+-- claims/review_files only requires row ownership, not an active
+-- subscription, and RequireSubscription.jsx is a client-side route guard
+-- only — so any signed-up account (even one that never touched Stripe)
+-- could call review-analyze directly and get up to ANALYSIS_DAILY_LIMIT
+-- (20) free AI reviews per day, forever, bypassing the paywall entirely.
+-- Fixed in review-analyze.js by checking subscription_status server-side.
+--
+-- Separately, the "free review ends the trial" logic added earlier only
+-- checked subscription_status === 'trialing' at call time — two requests
+-- fired close together, or one arriving before the trial-end webhook
+-- lands, could both pass that check and both run a full paid analysis
+-- before either one actually converts the trial. free_review_used_at
+-- below is an atomic claim ticket: review-analyze.js reserves it with a
+-- single UPDATE ... WHERE free_review_used_at IS NULL, so only one
+-- concurrent request can ever win it per account, and releases it again
+-- if that specific run fails — so a failed review never burns the
+-- entitlement. Only ever written by the service-role client in
+-- review-analyze.js; no grant needed for `authenticated` (the existing
+-- `revoke update on public.profiles from authenticated` above already
+-- blocks any column not explicitly granted, this one included).
+-- ============================================================================
+
+alter table public.profiles add column if not exists free_review_used_at timestamptz;
+
+-- ============================================================================
+-- PHOTO LOG — GPS + timestamp on review_files (Beeyond Vault)
+-- ----------------------------------------------------------------------------
+-- Supports the "photo log" feature: taking a photo directly from the camera
+-- tags it with where and when it was taken, so a claim's photos read like a
+-- jobsite log rather than a bare file list. Nullable — a regular file-picker
+-- upload (or a browser that denies location permission) just leaves these
+-- blank; the upload itself is never blocked on having them. No new RLS
+-- policy needed: review_files_insert already allows the claim owner to
+-- insert any column on their own claim's rows (see that policy above).
+-- ============================================================================
+
+alter table public.review_files add column if not exists captured_at timestamptz;
+alter table public.review_files add column if not exists latitude double precision;
+alter table public.review_files add column if not exists longitude double precision;
+
+-- ============================================================================
+-- DUPLICATE FREE-TRIAL DETECTION — card_fingerprint on profiles
+-- ----------------------------------------------------------------------------
+-- Closes the loophole the one-free-review-per-account rule doesn't: signing
+-- up again with a new email but the *same* payment card. Stripe's card
+-- fingerprint identifies the physical card without exposing its number —
+-- stripe-webhook.js records it on checkout.session.completed, and
+-- review-analyze.js checks it before granting a free review: if any other
+-- account sharing this fingerprint has already used its free review, this
+-- one can't claim a second. Nullable and fails open by design — if the
+-- fingerprint hasn't been recorded yet (webhook race, non-card payment
+-- method), the check is simply skipped rather than blocking a legitimate
+-- customer. No column grant needed: `revoke update on public.profiles from
+-- authenticated` above already blocks any column not in that explicit
+-- grant list, same as free_review_used_at — only ever written by the
+-- service-role client in stripe-webhook.js.
+-- ============================================================================
+
+alter table public.profiles add column if not exists card_fingerprint text;
+create index if not exists profiles_card_fingerprint_idx on public.profiles(card_fingerprint)
+  where card_fingerprint is not null;
+
+-- ============================================================================
+-- SUPPLEMENT NARRATIVE — ready-to-use letter language per finding
+-- ----------------------------------------------------------------------------
+-- Previously, a finding added to a claim only carried its short internal
+-- "evidence" field into the letter (see ClaimDetail.jsx's handleAction:
+-- note was `Vault Review: ${finding.evidence}`) — useful for the
+-- contractor reviewing the finding, but not phrased as something you'd
+-- actually hand a carrier. supplement_narrative is a separate field: 1-3
+-- sentences of polished, carrier-facing justification language the model
+-- writes at the same time as the finding itself (see estimateAnalysisService.js),
+-- following the same legal guardrails as the rest of the app (the
+-- contractor's own scope of work, never a coverage claim or a statement
+-- made "on behalf of" the insured — see letters/templates.js's own note on
+-- this). Nullable: older findings generated before this column existed
+-- simply don't have one. No column grant needed — review_findings has no
+-- insert policy for `authenticated` at all (only the service-role client in
+-- review-analyze-background.js creates rows), and its one update grant
+-- below already lists only (status, claim_item_id).
+-- ============================================================================
+
+alter table public.review_findings add column if not exists supplement_narrative text;
+
+-- ============================================================================
+-- VOICE NOTES — speak a jobsite note, get back a clean, organized write-up
+-- ----------------------------------------------------------------------------
+-- Dictate instead of typing a field note. The browser's own speech-to-text
+-- (no vendor, no API key) produces a raw transcript client-side; the
+-- voice-note Netlify Function (service-role, same reasoning as
+-- review-analyze.js) sends that transcript to Claude to turn rambling
+-- spoken text into a short title plus an organized note — never inventing
+-- facts, never guessing at words the model couldn't make out, always
+-- leaving a [unclear] marker instead. The contractor sees the cleaned
+-- result immediately and can edit it before it's used anywhere else; the
+-- raw_transcript is kept alongside it so nothing spoken is ever silently
+-- lost to a bad cleanup pass.
+-- ============================================================================
+
+create table if not exists public.claim_voice_notes (
+  id uuid primary key default gen_random_uuid(),
+  claim_id uuid not null references public.claims(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete set null,
+  raw_transcript text not null,
+  title text not null,
+  note text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists claim_voice_notes_claim_id_idx on public.claim_voice_notes(claim_id);
+
+alter table public.claim_voice_notes enable row level security;
+
+-- Access follows the parent claim, same shape as review_files/review_findings.
+-- No insert policy for `authenticated` — only the service-role client in
+-- voice-note.js creates rows, after it has verified an active subscription
+-- and applied a daily rate limit (voice notes call Claude just like
+-- Estimate Review does, so the same cost-control reasoning applies).
+create policy "claim_voice_notes_select" on public.claim_voice_notes
+  for select using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "claim_voice_notes_update" on public.claim_voice_notes
+  for update using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "claim_voice_notes_delete" on public.claim_voice_notes
+  for delete using (
+    exists (
+      select 1 from public.claims c
+      where c.id = claim_id
+        and (
+          c.user_id = auth.uid()
+          or (c.team_id is not null and c.team_id = public.my_team_id())
+        )
+    )
+  );
+
+-- Column-restricted, same reasoning as claims/claim_items/review_findings
+-- above: a teammate with genuine edit access to a shared claim's voice note
+-- should be able to fix up the cleaned title/note, never re-parent the row
+-- to a different claim or rewrite the raw_transcript it was generated from.
+revoke update on public.claim_voice_notes from authenticated;
+grant update (title, note) on public.claim_voice_notes to authenticated;
+
+-- ============================================================================
+-- MULTI-STATE SUPPORT — items.state, claims.state
+-- ----------------------------------------------------------------------------
+-- Every item up to now implicitly assumed Florida — there was no state
+-- column at all, so expanding the Vault to another state would have meant
+-- an AI review handing a South Carolina contractor a finding that cites
+-- Florida Building Code, which is worse than no finding at all (confidently
+-- wrong, not just absent). This is the one-time fix that makes every future
+-- state addition safe.
+--
+-- items.state: NULL means the item applies everywhere — true for anything
+-- citing a national standard instead of a state code (IICRC S500/S520 for
+-- Water Mitigation/Mold, plain labor/material lines with no code_citation
+-- at all). A real state code ('FL', 'SC', ...) means the item is only
+-- relevant in that state. The backfill below is mechanical and ONLY a
+-- starting point — re-verify any item this logic mis-tags.
+--
+-- claims.state: which state the property is in, so review-analyze-background.js
+-- knows which items are even eligible to be considered for this claim.
+-- Backfilled to 'FL' for every existing claim (every one predates this
+-- column, and every one actually is a Florida property) — this preserves
+-- today's behavior exactly for every current customer.
+-- ============================================================================
+
+alter table public.items add column if not exists state text;
+
+update public.items
+set state = 'FL'
+where state is null
+  and (
+    code_citation ilike '%FBC%'
+    or code_citation ilike '%HVHZ%'
+    or code_citation ilike '%Miami-Dade%'
+  );
+
+alter table public.claims add column if not exists state text;
+
+update public.claims set state = 'FL' where state is null;
+
+revoke update on public.claims from authenticated;
+grant update (
+  status, project_type, trade, property_address, state, insured_name, estimate_total,
+  date_of_loss, loss_type, claim_number, carrier, adjuster_name, description, notes
+) on public.claims to authenticated;
+
+-- ============================================================================
+-- PRICE REFERENCES
+--
+-- A separate, read-only browsing table for general regional cost ranges
+-- (e.g. "mold remediation runs $10-25/SF in South Florida"). Deliberately
+-- NOT the same table as `items`: items drives the automated missing-item
+-- scan in review-analyze-background.js and every row there has to carry a
+-- real code_citation/why_owed justification. A price reference has no such
+-- justification — it's just "here's what this typically costs" — so mixing
+-- the two would risk the scan treating a generic price lookup as a missing
+-- line item. This table is never read by review-analyze-background.js.
+--
+-- Every row must cite a real, named source (source_name/source_url) and the
+-- date it was checked (last_verified_date). No row may be inserted with
+-- invented pricing or an unnamed source.
+-- ============================================================================
+
+create table if not exists public.price_references (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (
+    category in (
+      'roofing', 'water_mitigation', 'mold', 'interior',
+      'exterior', 'general_conditions', 'code_upgrades'
+    )
+  ),
+  description text not null,
+  unit text not null, -- e.g. SF, LF, EA, job, visit
+  price_low numeric(10, 2),
+  price_high numeric(10, 2),
+  region_note text, -- e.g. "South Florida", "Palm Beach County"
+  state text,
+  source_name text not null,
+  source_url text,
+  last_verified_date date not null,
+  notes text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists price_references_category_idx on public.price_references(category);
+create index if not exists price_references_state_idx on public.price_references(state);
+create index if not exists price_references_is_active_idx on public.price_references(is_active);
+
+drop trigger if exists set_updated_at on public.price_references;
+create trigger set_updated_at before update on public.price_references
+  for each row execute function public.set_updated_at();
+
+alter table public.price_references enable row level security;
+
+-- Read-only reference data for any signed-in user. Only admins write —
+-- same pattern as items.
+create policy "price_references_select_authenticated" on public.price_references
+  for select using (auth.role() = 'authenticated' or public.is_admin());
+
+create policy "price_references_insert_admin" on public.price_references
+  for insert with check (public.is_admin());
+
+create policy "price_references_update_admin" on public.price_references
+  for update using (public.is_admin());
+
+create policy "price_references_delete_admin" on public.price_references
+  for delete using (public.is_admin());
+
+-- ============================================================================
+-- REMODEL ESTIMATOR
+--
+-- A from-scratch estimate builder for non-insurance remodel/GC work — the
+-- room-by-room, "type a quantity and it totals itself" workflow a lot of
+-- remodelers currently do by hand in Excel. Deliberately separate from
+-- `items`/`claims` (insurance-estimate review) and from `price_references`
+-- (a browse-only lookup page): this is a real working document a user
+-- builds up over time, with its own rooms and line items.
+--
+-- remodel_items is the catalog (shared, admin-maintained, same sourcing
+-- discipline as price_references — every row cites a real source).
+-- remodel_estimates/_rooms/_room_items are a specific user's in-progress
+-- job. Room items snapshot description/unit/price at the time they're
+-- added (remodel_item_id is just a reference back to where the price came
+-- from) — so editing the catalog later never silently changes a job a
+-- customer already priced and sent out.
+-- ============================================================================
+
+create table if not exists public.remodel_items (
+  id uuid primary key default gen_random_uuid(),
+  code text,
+  category text not null check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures'
+    )
+  ),
+  description text not null,
+  unit text not null, -- e.g. SF, LF, SQ, EA, job
+  price_low numeric(10, 2),
+  price_high numeric(10, 2),
+  source_name text not null,
+  source_url text,
+  last_verified_date date not null,
+  notes text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists remodel_items_category_idx on public.remodel_items(category);
+create index if not exists remodel_items_is_active_idx on public.remodel_items(is_active);
+
+drop trigger if exists set_updated_at on public.remodel_items;
+create trigger set_updated_at before update on public.remodel_items
+  for each row execute function public.set_updated_at();
+
+alter table public.remodel_items enable row level security;
+
+create policy "remodel_items_select_authenticated" on public.remodel_items
+  for select using (auth.role() = 'authenticated' or public.is_admin());
+
+create policy "remodel_items_insert_admin" on public.remodel_items
+  for insert with check (public.is_admin());
+
+create policy "remodel_items_update_admin" on public.remodel_items
+  for update using (public.is_admin());
+
+create policy "remodel_items_delete_admin" on public.remodel_items
+  for delete using (public.is_admin());
+
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.remodel_estimates (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  team_id uuid references public.teams(id) on delete set null,
+  title text not null default 'Untitled estimate',
+  client_name text,
+  property_address text,
+  -- Job-level markups, same shape as the hand-built Excel template this
+  -- replaces (10% overhead, 10% contractor fee, sales tax on materials).
+  overhead_pct numeric(5, 2) not null default 10,
+  profit_pct numeric(5, 2) not null default 10,
+  tax_pct numeric(5, 2) not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists remodel_estimates_user_id_idx on public.remodel_estimates(user_id);
+create index if not exists remodel_estimates_team_id_idx on public.remodel_estimates(team_id);
+
+drop trigger if exists set_updated_at on public.remodel_estimates;
+create trigger set_updated_at before update on public.remodel_estimates
+  for each row execute function public.set_updated_at();
+
+alter table public.remodel_estimates enable row level security;
+
+-- Owner or teammate (shared team_id) can read/write; admins see everything —
+-- identical pattern to claims.
+create policy "remodel_estimates_select" on public.remodel_estimates
+  for select using (
+    user_id = auth.uid()
+    or (team_id is not null and team_id = public.my_team_id())
+    or public.is_admin()
+  );
+
+create policy "remodel_estimates_insert" on public.remodel_estimates
+  for insert with check (
+    user_id = auth.uid()
+    and (team_id is null or team_id = public.my_team_id())
+  );
+
+create policy "remodel_estimates_update" on public.remodel_estimates
+  for update using (
+    user_id = auth.uid()
+    or (team_id is not null and team_id = public.my_team_id())
+    or public.is_admin()
+  );
+
+create policy "remodel_estimates_delete" on public.remodel_estimates
+  for delete using (
+    user_id = auth.uid()
+    or public.is_admin()
+  );
+
+revoke update on public.remodel_estimates from authenticated;
+grant update (
+  title, client_name, property_address, overhead_pct, profit_pct, tax_pct
+) on public.remodel_estimates to authenticated;
+
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.remodel_rooms (
+  id uuid primary key default gen_random_uuid(),
+  estimate_id uuid not null references public.remodel_estimates(id) on delete cascade,
+  name text not null default 'Untitled room',
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_rooms_estimate_id_idx on public.remodel_rooms(estimate_id);
+
+alter table public.remodel_rooms enable row level security;
+
+-- Access follows the parent estimate — identical pattern to claim_items.
+create policy "remodel_rooms_select" on public.remodel_rooms
+  for select using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_rooms_insert" on public.remodel_rooms
+  for insert with check (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_rooms_update" on public.remodel_rooms
+  for update using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_rooms_delete" on public.remodel_rooms
+  for delete using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+revoke update on public.remodel_rooms from authenticated;
+grant update (
+  name, sort_order, length_ft, width_ft, ceiling_height_ft, door_count, window_count,
+  sketch_data, sketch_floor_area_sf, sketch_ceiling_area_sf, sketch_wall_area_sf,
+  sketch_wall_gross_area_sf, sketch_baseboard_lf, sketch_room_volume_cf, sketch_perimeter_lf,
+  floorplan_x, floorplan_y
+) on public.remodel_rooms to authenticated;
+
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.remodel_room_items (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.remodel_rooms(id) on delete cascade,
+  -- Nullable: a user can add a fully custom line item with no catalog
+  -- match. Where it does reference the catalog, this is just provenance —
+  -- description/unit/unit_price below are an independent snapshot, so a
+  -- later catalog price update never retroactively changes a sent estimate.
+  remodel_item_id uuid references public.remodel_items(id) on delete set null,
+  description text not null,
+  unit text not null,
+  quantity numeric(10, 2) not null default 1,
+  unit_price numeric(10, 2) not null,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_room_items_room_id_idx on public.remodel_room_items(room_id);
+create index if not exists remodel_room_items_remodel_item_id_idx on public.remodel_room_items(remodel_item_id);
+
+alter table public.remodel_room_items enable row level security;
+
+create policy "remodel_room_items_select" on public.remodel_room_items
+  for select using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_room_items_insert" on public.remodel_room_items
+  for insert with check (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_room_items_update" on public.remodel_room_items
+  for update using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_room_items_delete" on public.remodel_room_items
+  for delete using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+revoke update on public.remodel_room_items from authenticated;
+grant update (
+  description, unit, quantity, unit_price, note, measurement_source, quantity_overridden
+) on public.remodel_room_items to authenticated;
+
+-- ============================================================================
+-- COMPANY LOGO — profiles.logo_path + private 'company-logos' bucket
+--
+-- Lets a user put their own company logo on an exported PDF (Remodel
+-- estimates first; the letter builder can pick it up later the same way).
+-- One logo per user, at a fixed path (${auth.uid()}/logo.<ext>) so a
+-- re-upload overwrites instead of accumulating files — storage.objects has
+-- no "update," so the client upserts (upload with upsert: true), which
+-- needs both an insert and an update policy on the same path.
+-- ============================================================================
+
+alter table public.profiles add column if not exists logo_path text;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'company-logos',
+  'company-logos',
+  false,
+  2097152, -- 2 MB
+  array['image/jpeg', 'image/png', 'image/webp']
+)
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "company_logos_storage_select" on storage.objects
+  for select using (
+    bucket_id = 'company-logos'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+create policy "company_logos_storage_insert" on storage.objects
+  for insert with check (
+    bucket_id = 'company-logos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "company_logos_storage_update" on storage.objects
+  for update using (
+    bucket_id = 'company-logos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "company_logos_storage_delete" on storage.objects
+  for delete using (
+    bucket_id = 'company-logos'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.is_admin()
+    )
+  );
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — expand remodel_items categories
+--
+-- Widens the category list beyond the original general/kitchen/bathroom/
+-- roofing set, per Frank's ask for a more complete catalog (electrical,
+-- plumbing, doors/windows, stairs/railings, closets, HVAC, exterior, and
+-- water mitigation/mold — the last one covers his restoration/water-
+-- mitigation business line too, not just remodel work).
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation'
+    )
+  );
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — expand remodel_items categories, second round
+--
+-- Adds framing_structural, demolition, masonry, and appliances_fixtures,
+-- identified as gaps by reviewing several real third-party insurance
+-- estimates Frank sent as samples of real-world line-item coverage (no
+-- prices or wording from those documents were used anywhere in this
+-- catalog — see seed_remodel_items.sql for the sourcing discipline).
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures'
+    )
+  );
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — dedupe + guard against accidental double-inserts
+--
+-- With many similar SQL Editor tabs open, Frank ran the same insert block
+-- twice by accident (confirmed by duplicate rows: same category+description
+-- appearing 2-4x). remodel_items had no unique constraint, so Postgres
+-- happily inserted exact duplicates. This removes any existing duplicates
+-- (keeping the oldest copy of each) and adds a constraint so re-running an
+-- insert by accident fails loudly instead of silently duplicating data.
+-- ============================================================================
+
+delete from public.remodel_items a
+using public.remodel_items b
+where a.category = b.category
+  and a.description = b.description
+  and a.created_at > b.created_at;
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_description_key;
+alter table public.remodel_items add constraint remodel_items_category_description_key
+  unique (category, description);
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — split the "general" catch-all into real sub-categories
+--
+-- "general" had grown into ~40 unrelated items (paint, drywall, flooring,
+-- trim, insulation, hardware, window treatments) — unusable as a single
+-- dropdown bucket. Splits it into paint, drywall_texture, flooring,
+-- trim_molding, insulation, hardware_accessories, with one item moved into
+-- the existing doors_windows category. "general" stays as a small
+-- prep/logistics bucket (masking, cleaning, content moving, rentals).
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories'
+    )
+  );
+
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Paint walls, 2 coats';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Paint ceiling, 2 coats';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Wall texture, knockdown or orange peel';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Interior door/trim painting, 2 coats';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Popcorn/texture ceiling removal, non-asbestos';
+update public.remodel_items set category = 'paint' where category = 'general' and description = 'Wood stain and finish application (trim, doors, baseboard, handrail)';
+update public.remodel_items set category = 'drywall_texture' where category = 'general' and description = 'Drywall installation, new';
+update public.remodel_items set category = 'drywall_texture' where category = 'general' and description = 'Drywall repair/patch';
+update public.remodel_items set category = 'drywall_texture' where category = 'general' and description = 'Skim coat drywall finish';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring, luxury vinyl plank';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring, ceramic/porcelain tile';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring, engineered hardwood';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring, carpet';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Floor leveling / self-leveling compound application';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Hardwood floor sanding and refinishing (existing floor)';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Flooring underlayment / vapor barrier installation';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Laminate flooring installation';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Tile grout removal and regrouting';
+update public.remodel_items set category = 'flooring' where category = 'general' and description = 'Tile grout sealing (sealant only, no regrouting)';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Baseboard/trim installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Crown molding installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Wainscoting or beadboard installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Chair rail installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Shoe molding or quarter-round trim installation';
+update public.remodel_items set category = 'trim_molding' where category = 'general' and description = 'Door or window casing trim installation';
+update public.remodel_items set category = 'insulation' where category = 'general' and description = 'Insulation, batt (R-13 to R-30)';
+update public.remodel_items set category = 'insulation' where category = 'general' and description = 'Spray foam insulation';
+update public.remodel_items set category = 'insulation' where category = 'general' and description = 'Blown-in insulation, attic';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Cabinet/furniture hardware installation (knobs, pulls)';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Deadbolt lock installation or replacement';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Interior door knob/lever handle replacement';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Door peephole installation';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Window blinds installation, per window';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Curtain rod and bracket installation, per window';
+update public.remodel_items set category = 'hardware_accessories' where category = 'general' and description = 'Door threshold installation or replacement';
+update public.remodel_items set category = 'doors_windows' where category = 'general' and description = 'Interior door replacement, incl. hardware';
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — reference codes + fire/smoke restoration category
+-- ----------------------------------------------------------------------------
+-- Adds a short, independently-invented reference code to every catalog item
+-- (e.g. "PNT-004") purely so the Remodel item picker can show a code next to
+-- the description for faster browsing. This is NOT modeled on any
+-- third-party estimating software's coding scheme — it's just our own
+-- category abbreviation (see CATEGORY_LABEL in RemodelEstimateDetail.jsx)
+-- plus a running number, assigned here by each row's creation order within
+-- its category so it stays stable without hand-listing every row.
+--
+-- Also adds "fire_smoke_restoration" as its own category — a real gap found
+-- by re-reading a fire-damage insurance estimate: cleaning/deodorizing a
+-- fixture after smoke damage (without replacing it) is a distinct service
+-- with its own pricing, and didn't fit any existing category.
+-- ============================================================================
+
+alter table public.remodel_items add column if not exists code text;
+
+with ranked as (
+  select id, category,
+         row_number() over (partition by category order by created_at) as rn
+  from public.remodel_items
+  where code is null
+)
+update public.remodel_items r
+set code = (
+  case ranked.category
+    when 'paint' then 'PNT'
+    when 'drywall_texture' then 'DRY'
+    when 'flooring' then 'FLR'
+    when 'trim_molding' then 'TRM'
+    when 'kitchen' then 'KIT'
+    when 'bathroom' then 'BTH'
+    when 'doors_windows' then 'DOR'
+    when 'hardware_accessories' then 'HRD'
+    when 'electrical' then 'ELE'
+    when 'plumbing' then 'PLM'
+    when 'insulation' then 'INS'
+    when 'stairs_railings' then 'STR'
+    when 'closets_storage' then 'CLS'
+    when 'hvac' then 'HVC'
+    when 'roofing' then 'RFG'
+    when 'exterior' then 'EXT'
+    when 'framing_structural' then 'FRM'
+    when 'demolition' then 'DMO'
+    when 'masonry' then 'MAS'
+    when 'appliances_fixtures' then 'APP'
+    when 'water_mitigation' then 'WTR'
+    when 'general' then 'GEN'
+    when 'fire_smoke_restoration' then 'FSR'
+    else upper(left(ranked.category, 3))
+  end
+) || '-' || lpad(ranked.rn::text, 3, '0')
+from ranked
+where ranked.id = r.id;
+
+alter table public.remodel_items drop constraint if exists remodel_items_code_key;
+alter table public.remodel_items add constraint remodel_items_code_key unique (code);
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories',
+      'fire_smoke_restoration'
+    )
+  );
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — room measurements
+-- ----------------------------------------------------------------------------
+-- Lets a room store its length/width/ceiling height and door/window counts,
+-- so the UI can compute floor/wall/ceiling SF and perimeter LF for the
+-- contractor instead of them doing that math by hand. Nullable — a room
+-- with no measurements entered just doesn't show the computed numbers.
+-- ============================================================================
+
+alter table public.remodel_rooms add column if not exists length_ft numeric(8, 2);
+alter table public.remodel_rooms add column if not exists width_ft numeric(8, 2);
+alter table public.remodel_rooms add column if not exists ceiling_height_ft numeric(8, 2);
+alter table public.remodel_rooms add column if not exists door_count int not null default 0;
+alter table public.remodel_rooms add column if not exists window_count int not null default 0;
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — remove "kitchen" and "bathroom" as trade categories
+-- ----------------------------------------------------------------------------
+-- The room name (typed at the top of each room card) already says "Kitchen"
+-- or "Bathroom" — having the same word show up again in the trade dropdown
+-- is a redundant room-echo, not a real trade. Splits those 53 items into
+-- real trades: cabinetry_countertops and tile_stone (new categories), with
+-- the rest routed into appliances_fixtures, plumbing, electrical,
+-- hardware_accessories, and doors_windows — wherever each item actually
+-- belongs as a trade.
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'kitchen', 'bathroom', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories',
+      'fire_smoke_restoration', 'cabinetry_countertops', 'tile_stone'
+    )
+  );
+
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Base cabinets, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Cabinet refacing';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, granite, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, quartz, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, laminate, installed';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'kitchen' and description = 'Tile backsplash, installed';
+update public.remodel_items set category = 'appliances_fixtures', code = null where category = 'kitchen' and description = 'Dishwasher installation, labor only';
+update public.remodel_items set category = 'appliances_fixtures', code = null where category = 'kitchen' and description = 'Range/cooktop installation, labor only';
+update public.remodel_items set category = 'appliances_fixtures', code = null where category = 'kitchen' and description = 'Range hood/vent installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'kitchen' and description = 'Garbage disposal installation, incl. hookup';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Kitchen island, per project';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Upper/wall cabinet installation';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Lazy Susan corner cabinet organizer';
+update public.remodel_items set category = 'plumbing', code = null where category = 'kitchen' and description = 'Farmhouse/apron-front sink installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'kitchen' and description = 'Pull-down/pull-out kitchen faucet installation';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Cabinet end panel installation';
+update public.remodel_items set category = 'appliances_fixtures', code = null where category = 'kitchen' and description = 'Built-in/under-counter microwave installation';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, butcher block/wood, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, solid surface (Corian-type), installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, marble, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Countertop, concrete, installed';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'kitchen' and description = 'Open/floating shelving installation';
+
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'bathroom' and description = 'Vanity installation, incl. sink';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Toilet installation/replacement';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Tub replacement, standard alcove';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Walk-in shower conversion (tub-to-shower)';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Shower pan replacement';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Bathroom floor tile, installed';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Shower wall tile (surround), installed';
+update public.remodel_items set category = 'electrical', code = null where category = 'bathroom' and description = 'Exhaust fan installation';
+update public.remodel_items set category = 'hardware_accessories', code = null where category = 'bathroom' and description = 'Mirror installation';
+update public.remodel_items set category = 'doors_windows', code = null where category = 'bathroom' and description = 'Window replacement, standard size';
+update public.remodel_items set category = 'doors_windows', code = null where category = 'bathroom' and description = 'Exterior door replacement, incl. hardware';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'bathroom' and description = 'Medicine cabinet installation';
+update public.remodel_items set category = 'hardware_accessories', code = null where category = 'bathroom' and description = 'Towel bar or towel ring installation';
+update public.remodel_items set category = 'hardware_accessories', code = null where category = 'bathroom' and description = 'Toilet paper holder installation';
+update public.remodel_items set category = 'cabinetry_countertops', code = null where category = 'bathroom' and description = 'Vanity countertop/top replacement only';
+update public.remodel_items set category = 'hardware_accessories', code = null where category = 'bathroom' and description = 'Robe hook installation';
+update public.remodel_items set category = 'electrical', code = null where category = 'bathroom' and description = 'Bathroom heat lamp fixture installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Pedestal sink installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Vessel sink installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Undermount sink installation';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Mosaic tile installation';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Natural stone or marble tile installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Freestanding/soaking tub installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Drop-in or corner tub installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Clawfoot tub installation';
+update public.remodel_items set category = 'plumbing', code = null where category = 'bathroom' and description = 'Whirlpool/jetted tub installation';
+update public.remodel_items set category = 'doors_windows', code = null where category = 'bathroom' and description = 'Shower door installation, frameless glass';
+update public.remodel_items set category = 'doors_windows', code = null where category = 'bathroom' and description = 'Shower door installation, framed or sliding';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Recessed tile-in toilet paper holder installation';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Recessed tile-in soap dish installation';
+update public.remodel_items set category = 'tile_stone', code = null where category = 'bathroom' and description = 'Recessed shower niche/shelf installation';
+
+with existing_max as (
+  select category, coalesce(max(substring(code from '\d+$')::int), 0) as max_num
+  from public.remodel_items
+  where code is not null
+  group by category
+),
+to_assign as (
+  select id, category,
+         row_number() over (partition by category order by created_at) as rn
+  from public.remodel_items
+  where code is null
+)
+update public.remodel_items r
+set code = (
+  case ta.category
+    when 'paint' then 'PNT'
+    when 'drywall_texture' then 'DRY'
+    when 'flooring' then 'FLR'
+    when 'trim_molding' then 'TRM'
+    when 'cabinetry_countertops' then 'CAB'
+    when 'tile_stone' then 'TIL'
+    when 'doors_windows' then 'DOR'
+    when 'hardware_accessories' then 'HRD'
+    when 'electrical' then 'ELE'
+    when 'plumbing' then 'PLM'
+    when 'insulation' then 'INS'
+    when 'stairs_railings' then 'STR'
+    when 'closets_storage' then 'CLS'
+    when 'hvac' then 'HVC'
+    when 'roofing' then 'RFG'
+    when 'exterior' then 'EXT'
+    when 'framing_structural' then 'FRM'
+    when 'demolition' then 'DMO'
+    when 'masonry' then 'MAS'
+    when 'appliances_fixtures' then 'APP'
+    when 'water_mitigation' then 'WTR'
+    when 'general' then 'GEN'
+    when 'fire_smoke_restoration' then 'FSR'
+    else upper(left(ta.category, 3))
+  end
+) || '-' || lpad((coalesce(em.max_num, 0) + ta.rn)::text, 3, '0')
+from to_assign ta
+left join existing_max em on em.category = ta.category
+where ta.id = r.id;
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories',
+      'fire_smoke_restoration', 'cabinetry_countertops', 'tile_stone'
+    )
+  );
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — split light fixtures out of electrical, fixtures out
+-- of plumbing
+-- ----------------------------------------------------------------------------
+-- "electrical" had grown to 28 items mixing wiring/panels/switches with
+-- lighting fixtures; "plumbing" had 27 mixing pipes/valves/water heaters
+-- with sinks/tubs/toilets/faucets. Splits each into its own trade category
+-- so the dropdown isn't a wall of unrelated items.
+-- ============================================================================
+
+alter table public.remodel_items drop constraint if exists remodel_items_category_check;
+alter table public.remodel_items add constraint remodel_items_category_check
+  check (
+    category in (
+      'general', 'roofing', 'electrical', 'plumbing',
+      'doors_windows', 'stairs_railings', 'closets_storage', 'hvac', 'exterior',
+      'water_mitigation', 'framing_structural', 'demolition', 'masonry',
+      'appliances_fixtures', 'paint', 'drywall_texture', 'flooring',
+      'trim_molding', 'insulation', 'hardware_accessories',
+      'fire_smoke_restoration', 'cabinetry_countertops', 'tile_stone',
+      'light_fixtures', 'plumbing_fixtures'
+    )
+  );
+
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Light fixture installation, existing wiring/box';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Ceiling fan installation, existing fan-rated box';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Recessed/can lighting installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Chandelier installation, existing ceiling box';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Pendant light installation, single fixture';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Flush-mount or semi-flush ceiling light installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Track lighting installation, per fixture head';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Wall sconce installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Vanity/bathroom light bar installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Outdoor/exterior light fixture installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Under-cabinet lighting installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Ceiling fan with integrated light kit installation';
+update public.remodel_items set category = 'light_fixtures', code = null where category = 'electrical' and description = 'Bathroom heat lamp fixture installation';
+
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Sink installation, labor only';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Faucet installation, labor only';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Utility or laundry tub installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Farmhouse/apron-front sink installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Pull-down/pull-out kitchen faucet installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Toilet installation/replacement';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Tub replacement, standard alcove';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Walk-in shower conversion (tub-to-shower)';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Shower pan replacement';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Pedestal sink installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Vessel sink installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Undermount sink installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Freestanding/soaking tub installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Drop-in or corner tub installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Clawfoot tub installation';
+update public.remodel_items set category = 'plumbing_fixtures', code = null where category = 'plumbing' and description = 'Whirlpool/jetted tub installation';
+
+with existing_max as (
+  select category, coalesce(max(substring(code from '\d+$')::int), 0) as max_num
+  from public.remodel_items
+  where code is not null
+  group by category
+),
+to_assign as (
+  select id, category,
+         row_number() over (partition by category order by created_at) as rn
+  from public.remodel_items
+  where code is null
+)
+update public.remodel_items r
+set code = (
+  case ta.category
+    when 'paint' then 'PNT'
+    when 'drywall_texture' then 'DRY'
+    when 'flooring' then 'FLR'
+    when 'trim_molding' then 'TRM'
+    when 'cabinetry_countertops' then 'CAB'
+    when 'tile_stone' then 'TIL'
+    when 'light_fixtures' then 'LIT'
+    when 'plumbing_fixtures' then 'PLF'
+    when 'doors_windows' then 'DOR'
+    when 'hardware_accessories' then 'HRD'
+    when 'electrical' then 'ELE'
+    when 'plumbing' then 'PLM'
+    when 'insulation' then 'INS'
+    when 'stairs_railings' then 'STR'
+    when 'closets_storage' then 'CLS'
+    when 'hvac' then 'HVC'
+    when 'roofing' then 'RFG'
+    when 'exterior' then 'EXT'
+    when 'framing_structural' then 'FRM'
+    when 'demolition' then 'DMO'
+    when 'masonry' then 'MAS'
+    when 'appliances_fixtures' then 'APP'
+    when 'water_mitigation' then 'WTR'
+    when 'general' then 'GEN'
+    when 'fire_smoke_restoration' then 'FSR'
+    else upper(left(ta.category, 3))
+  end
+) || '-' || lpad((coalesce(em.max_num, 0) + ta.rn)::text, 3, '0')
+from to_assign ta
+left join existing_max em on em.category = ta.category
+where ta.id = r.id;
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — room sketch tool
+-- ----------------------------------------------------------------------------
+-- A room can now be measured by sketching its shape (click to place wall
+-- corners, type each wall's real length) instead of just length x width.
+-- sketch_data stores the raw drawing (points, typed lengths, which walls
+-- have a door/window) so it can be reopened and edited; the four
+-- sketch_*_sf/lf columns store the computed result, which
+-- lib/remodel/measurements.js prefers over length_ft/width_ft whenever
+-- present (see that file for why — a sketched room isn't always a plain
+-- rectangle). A room with no sketch works exactly as before.
+-- ============================================================================
+
+alter table public.remodel_rooms add column if not exists sketch_data jsonb;
+alter table public.remodel_rooms add column if not exists sketch_floor_area_sf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_ceiling_area_sf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_wall_area_sf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_perimeter_lf numeric(10, 2);
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — wall-by-wall engine upgrade
+-- ----------------------------------------------------------------------------
+-- sketch_data's internal shape changed from parallel wallLengths/doorWalls/
+-- windowWalls arrays to one walls[] array (length, height override,
+-- real-dimension openings, demo/replace flags, flood-cut height, notes) —
+-- that's a JSON shape change only, so it needs no column here; old sketches
+-- upgrade themselves the moment they're reopened (lib/remodel/sketch.js's
+-- upgradeLegacySketchData). These three room-level columns are new,
+-- feeding the room's gross wall SF / baseboard LF / volume quick-fills.
+-- ============================================================================
+alter table public.remodel_rooms add column if not exists sketch_wall_gross_area_sf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_baseboard_lf numeric(10, 2);
+alter table public.remodel_rooms add column if not exists sketch_room_volume_cf numeric(10, 2);
+
+-- Lets a line item say WHERE its quantity came from (a sketch measurement,
+-- a specific wall, a flood cut) and whether someone has since hand-edited
+-- the quantity away from that source — so "refresh from sketch" never
+-- silently overwrites a deliberate manual change.
+alter table public.remodel_room_items add column if not exists measurement_source text;
+alter table public.remodel_room_items add column if not exists quantity_overridden boolean not null default false;
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — macros (one-click line-item bundles)
+-- ----------------------------------------------------------------------------
+-- Our own version of what Xactimate/Symbility call macros — a named bundle
+-- of catalog items that get added to a room in one click instead of one at
+-- a time (e.g. "Bathroom Remodel (Full)" adds the vanity, toilet, tile,
+-- paint, etc. all at once). Independently designed, referencing only our
+-- own category/item IDs — no third-party macro content or codes involved.
+--
+-- quantity_mode controls how big a line comes in at when the macro is
+-- applied: 'fixed' always uses fixed_quantity; 'floor_sf'/'wall_sf'/
+-- 'ceiling_sf'/'perimeter_lf' pull the live number from the room's
+-- measurements (lib/remodel/measurements.js) when available, falling back
+-- to fixed_quantity for a room with none entered yet. Quantities are always
+-- editable after the macro adds them — this just saves the first typing.
+-- ============================================================================
+
+create table if not exists public.remodel_macros (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.remodel_macro_items (
+  id uuid primary key default gen_random_uuid(),
+  macro_id uuid not null references public.remodel_macros(id) on delete cascade,
+  remodel_item_id uuid not null references public.remodel_items(id) on delete cascade,
+  quantity_mode text not null default 'fixed'
+    check (quantity_mode in ('fixed', 'floor_sf', 'wall_sf', 'ceiling_sf', 'perimeter_lf')),
+  fixed_quantity numeric(10, 2) not null default 1,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_macro_items_macro_id_idx on public.remodel_macro_items(macro_id);
+
+-- Guards against the seed file being re-run and silently duplicating macros
+-- (each macro name should only ever exist once).
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'remodel_macros_name_key'
+  ) then
+    alter table public.remodel_macros add constraint remodel_macros_name_key unique (name);
+  end if;
+end $$;
+
+alter table public.remodel_macros enable row level security;
+alter table public.remodel_macro_items enable row level security;
+
+create policy "remodel_macros_select_authenticated" on public.remodel_macros
+  for select using (auth.role() = 'authenticated' or public.is_admin());
+create policy "remodel_macros_insert_admin" on public.remodel_macros
+  for insert with check (public.is_admin());
+create policy "remodel_macros_update_admin" on public.remodel_macros
+  for update using (public.is_admin());
+create policy "remodel_macros_delete_admin" on public.remodel_macros
+  for delete using (public.is_admin());
+
+create policy "remodel_macro_items_select_authenticated" on public.remodel_macro_items
+  for select using (auth.role() = 'authenticated' or public.is_admin());
+create policy "remodel_macro_items_insert_admin" on public.remodel_macro_items
+  for insert with check (public.is_admin());
+create policy "remodel_macro_items_update_admin" on public.remodel_macro_items
+  for update using (public.is_admin());
+create policy "remodel_macro_items_delete_admin" on public.remodel_macro_items
+  for delete using (public.is_admin());
+
+-- ============================================================================
+-- REMODEL ESTIMATOR — floor plan (object-based rooms + wall-attached openings)
+-- ----------------------------------------------------------------------------
+-- The keyboard-driven floor plan (press R for a room, D for a door, W for a
+-- window) places rooms as real rectangles instead of a freehand-drawn shape.
+-- A room's geometry is just length_ft/width_ft/ceiling_height_ft — columns
+-- that already existed for the old "simple entry" fields — plus where it
+-- sits on the shared canvas (floorplan_x/floorplan_y, in feet). Its walls
+-- are implicit (N/E/S/W sides of that rectangle), so an opening attaches to
+-- a room by naming which side and how far along it, not by raw pixel
+-- position — moving or resizing the room keeps every opening attached.
+-- ============================================================================
+alter table public.remodel_rooms add column if not exists floorplan_x numeric(10, 2);
+alter table public.remodel_rooms add column if not exists floorplan_y numeric(10, 2);
+
+create table if not exists public.remodel_room_openings (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.remodel_rooms(id) on delete cascade,
+  wall_side text not null check (wall_side in ('N', 'E', 'S', 'W')),
+  offset_ft numeric(10, 2) not null default 0,
+  width_ft numeric(10, 2) not null default 3,
+  height_ft numeric(10, 2) not null default 7,
+  qty int not null default 1,
+  type text not null default 'door',
+  description text,
+  starts_at_floor boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_room_openings_room_id_idx on public.remodel_room_openings(room_id);
+
+alter table public.remodel_room_openings enable row level security;
+
+-- Same ownership pattern as remodel_room_items: access follows the parent
+-- room -> estimate chain (owner, shared team, or admin to read/edit; admin
+-- is excluded from insert, matching remodel_room_items, so an admin account
+-- can moderate/view but not quietly insert openings as if they were you).
+create policy "remodel_room_openings_select" on public.remodel_room_openings
+  for select using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_room_openings_insert" on public.remodel_room_openings
+  for insert with check (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_room_openings_update" on public.remodel_room_openings
+  for update using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_room_openings_delete" on public.remodel_room_openings
+  for delete using (
+    exists (
+      select 1 from public.remodel_rooms r
+      join public.remodel_estimates e on e.id = r.estimate_id
+      where r.id = room_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- ============================================================================
+-- FLOOR PLAN v2 — Phase 1: vertex/wall geometry foundation
+-- ============================================================================
+-- The floor plan today represents each room as an independent rectangle
+-- (width_ft x length_ft at floorplan_x/floorplan_y) with its 4 walls
+-- implicit. That can't represent one physical wall shared by two rooms,
+-- closets as true subrooms, or door types with real swing/hinge data —
+-- all requested next. This phase only adds the new foundation tables and
+-- backfills them from today's rooms; it changes no existing column, no
+-- existing table, and nothing the app currently reads from yet, so it is
+-- safe to run with zero visible behavior change.
+--
+-- Coordinates are stored in INCHES (not feet, not pixels) per the
+-- "screen pixels must never be the source of truth" requirement — ft/in
+-- display conversion is a presentation-layer concern only.
+
+create table if not exists public.remodel_vertices (
+  id uuid primary key default gen_random_uuid(),
+  estimate_id uuid not null references public.remodel_estimates(id) on delete cascade,
+  x_in numeric(10, 2) not null,
+  y_in numeric(10, 2) not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_vertices_estimate_id_idx on public.remodel_vertices(estimate_id);
+
+alter table public.remodel_vertices enable row level security;
+
+create policy "remodel_vertices_select" on public.remodel_vertices
+  for select using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_vertices_insert" on public.remodel_vertices
+  for insert with check (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_vertices_update" on public.remodel_vertices
+  for update using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_vertices_delete" on public.remodel_vertices
+  for delete using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create table if not exists public.remodel_walls (
+  id uuid primary key default gen_random_uuid(),
+  estimate_id uuid not null references public.remodel_estimates(id) on delete cascade,
+  start_vertex_id uuid not null references public.remodel_vertices(id) on delete restrict,
+  end_vertex_id uuid not null references public.remodel_vertices(id) on delete restrict,
+  height_in numeric(10, 2) not null default 96,
+  thickness_in numeric(10, 2) not null default 4.5,
+  wall_type text not null default 'interior',
+  is_exterior boolean not null default false,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists remodel_walls_estimate_id_idx on public.remodel_walls(estimate_id);
+
+alter table public.remodel_walls enable row level security;
+
+create policy "remodel_walls_select" on public.remodel_walls
+  for select using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_walls_insert" on public.remodel_walls
+  for insert with check (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_walls_update" on public.remodel_walls
+  for update using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_walls_delete" on public.remodel_walls
+  for delete using (
+    exists (
+      select 1 from public.remodel_estimates e
+      where e.id = estimate_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- Join table: which room(s) a wall belongs to. A wall with ONE row here is
+-- an unshared/exterior wall; a wall with TWO rows (side 'A' and side 'B')
+-- is a true shared wall between two rooms — the whole point of this
+-- phase. ordinal is this wall's position in that room's loop (0, 1, 2...),
+-- so the room's polygon can be walked in order.
+create table if not exists public.remodel_wall_rooms (
+  wall_id uuid not null references public.remodel_walls(id) on delete cascade,
+  room_id uuid not null references public.remodel_rooms(id) on delete cascade,
+  side text not null default 'A' check (side in ('A', 'B')),
+  ordinal int not null default 0,
+  primary key (wall_id, room_id)
+);
+
+create index if not exists remodel_wall_rooms_room_id_idx on public.remodel_wall_rooms(room_id);
+
+alter table public.remodel_wall_rooms enable row level security;
+
+create policy "remodel_wall_rooms_select" on public.remodel_wall_rooms
+  for select using (
+    exists (
+      select 1 from public.remodel_walls w
+      join public.remodel_estimates e on e.id = w.estimate_id
+      where w.id = wall_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_wall_rooms_insert" on public.remodel_wall_rooms
+  for insert with check (
+    exists (
+      select 1 from public.remodel_walls w
+      join public.remodel_estimates e on e.id = w.estimate_id
+      where w.id = wall_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+        )
+    )
+  );
+
+create policy "remodel_wall_rooms_update" on public.remodel_wall_rooms
+  for update using (
+    exists (
+      select 1 from public.remodel_walls w
+      join public.remodel_estimates e on e.id = w.estimate_id
+      where w.id = wall_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+create policy "remodel_wall_rooms_delete" on public.remodel_wall_rooms
+  for delete using (
+    exists (
+      select 1 from public.remodel_walls w
+      join public.remodel_estimates e on e.id = w.estimate_id
+      where w.id = wall_id
+        and (
+          e.user_id = auth.uid()
+          or (e.team_id is not null and e.team_id = public.my_team_id())
+          or public.is_admin()
+        )
+    )
+  );
+
+-- One-time backfill: generate 4 vertices + 4 walls + 4 wall_rooms rows for
+-- every existing room that doesn't have any walls yet, from its current
+-- floorplan_x/floorplan_y/width_ft/length_ft/ceiling_height_ft (feet ->
+-- inches: x12). Safe to re-run — "where not exists" skips rooms already
+-- backfilled, so this never creates duplicates.
+do $$
+declare
+  r record;
+  v_nw uuid; v_ne uuid; v_se uuid; v_sw uuid;
+  w_n uuid; w_e uuid; w_s uuid; w_w uuid;
+  x0 numeric; y0 numeric; x1 numeric; y1 numeric; h_in numeric;
+begin
+  for r in
+    select * from public.remodel_rooms
+    where not exists (
+      select 1 from public.remodel_wall_rooms wr where wr.room_id = remodel_rooms.id
+    )
+  loop
+    x0 := coalesce(r.floorplan_x, 0) * 12;
+    y0 := coalesce(r.floorplan_y, 0) * 12;
+    x1 := x0 + coalesce(r.width_ft, 10) * 12;
+    y1 := y0 + coalesce(r.length_ft, 10) * 12;
+    h_in := coalesce(r.ceiling_height_ft, 8) * 12;
+
+    insert into public.remodel_vertices (estimate_id, x_in, y_in) values (r.estimate_id, x0, y0) returning id into v_nw;
+    insert into public.remodel_vertices (estimate_id, x_in, y_in) values (r.estimate_id, x1, y0) returning id into v_ne;
+    insert into public.remodel_vertices (estimate_id, x_in, y_in) values (r.estimate_id, x1, y1) returning id into v_se;
+    insert into public.remodel_vertices (estimate_id, x_in, y_in) values (r.estimate_id, x0, y1) returning id into v_sw;
+
+    insert into public.remodel_walls (estimate_id, start_vertex_id, end_vertex_id, height_in) values (r.estimate_id, v_nw, v_ne, h_in) returning id into w_n;
+    insert into public.remodel_walls (estimate_id, start_vertex_id, end_vertex_id, height_in) values (r.estimate_id, v_ne, v_se, h_in) returning id into w_e;
+    insert into public.remodel_walls (estimate_id, start_vertex_id, end_vertex_id, height_in) values (r.estimate_id, v_se, v_sw, h_in) returning id into w_s;
+    insert into public.remodel_walls (estimate_id, start_vertex_id, end_vertex_id, height_in) values (r.estimate_id, v_sw, v_nw, h_in) returning id into w_w;
+
+    insert into public.remodel_wall_rooms (wall_id, room_id, side, ordinal) values
+      (w_n, r.id, 'A', 0),
+      (w_e, r.id, 'A', 1),
+      (w_s, r.id, 'A', 2),
+      (w_w, r.id, 'A', 3);
+  end loop;
+end $$;
+
+-- ============================================================================
+-- Door swing flip (which side a door/double/french/exterior door opens
+-- from), plus Bifold door and French doors as proper opening types.
+-- ============================================================================
+alter table public.remodel_room_openings add column if not exists swing_flipped boolean not null default false;
+
+-- ============================================================================
+-- Closets/subrooms — a room attached to a parent room (e.g. a walk-in
+-- closet inside a bedroom). Reuses the plain remodel_rooms model: a
+-- subroom is a normal room with its own dimensions/openings/measurements/
+-- estimate items, just with parent_room_id set, so it keeps everything a
+-- room already does rather than needing a new table. "on delete set null"
+-- so deleting a parent room doesn't cascade-delete its closets, which
+-- then just become ordinary top-level rooms.
+-- ============================================================================
+alter table public.remodel_rooms add column if not exists parent_room_id uuid references public.remodel_rooms(id) on delete set null;
+
+create index if not exists remodel_rooms_parent_room_id_idx on public.remodel_rooms(parent_room_id);
+
+revoke update on public.remodel_rooms from authenticated;
+grant update (
+  name, sort_order, length_ft, width_ft, ceiling_height_ft, door_count, window_count,
+  sketch_data, sketch_floor_area_sf, sketch_ceiling_area_sf, sketch_wall_area_sf,
+  sketch_wall_gross_area_sf, sketch_baseboard_lf, sketch_room_volume_cf, sketch_perimeter_lf,
+  floorplan_x, floorplan_y, parent_room_id
+) on public.remodel_rooms to authenticated;
+
+-- ============================================================================
+-- End of migration.
+-- Next: run supabase/seed_items.sql to load the Vault's starting item set.
+-- ============================================================================

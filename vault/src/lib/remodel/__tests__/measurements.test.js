@@ -1,0 +1,158 @@
+import { describe, it, expect } from "vitest";
+import {
+  hasMeasurements,
+  isOnFloorPlan,
+  floorAreaSF,
+  ceilingAreaSF,
+  perimeterLF,
+  wallAreaSF,
+  wallGrossAreaSF,
+  baseboardLF,
+  roomVolumeCF,
+} from "../measurements.js";
+
+describe("hasMeasurements", () => {
+  it("is true once length and width are both set", () => {
+    expect(hasMeasurements({ length_ft: 10, width_ft: 12 })).toBe(true);
+  });
+
+  it("is false when either dimension is missing", () => {
+    expect(hasMeasurements({ length_ft: 10 })).toBe(false);
+    expect(hasMeasurements({})).toBe(false);
+  });
+});
+
+describe("isOnFloorPlan", () => {
+  it("is true once a room has a floor-plan position, even at (0,0)", () => {
+    expect(isOnFloorPlan({ floorplan_x: 0, floorplan_y: 0 })).toBe(true);
+    expect(isOnFloorPlan({ floorplan_x: 5, floorplan_y: 2.5 })).toBe(true);
+  });
+
+  it("is false for a room that's never been placed on the floor plan", () => {
+    expect(isOnFloorPlan({})).toBe(false);
+    expect(isOnFloorPlan({ floorplan_x: null, floorplan_y: null })).toBe(false);
+  });
+});
+
+describe("floorAreaSF / ceilingAreaSF", () => {
+  it("multiplies length by width", () => {
+    const room = { length_ft: 10, width_ft: 12 };
+    expect(floorAreaSF(room)).toBe(120);
+    expect(ceilingAreaSF(room)).toBe(120);
+  });
+
+  it("returns 0 without measurements", () => {
+    expect(floorAreaSF({})).toBe(0);
+  });
+});
+
+describe("perimeterLF", () => {
+  it("is twice the sum of length and width", () => {
+    expect(perimeterLF({ length_ft: 10, width_ft: 12 })).toBe(44);
+  });
+});
+
+describe("wallAreaSF", () => {
+  it("computes gross wall area at the given ceiling height", () => {
+    const room = { length_ft: 10, width_ft: 12, ceiling_height_ft: 8 };
+    expect(wallAreaSF(room)).toBe(44 * 8);
+  });
+
+  it("defaults ceiling height to 8 ft when not set", () => {
+    const room = { length_ft: 10, width_ft: 12 };
+    expect(wallAreaSF(room)).toBe(44 * 8);
+  });
+
+  it("deducts door and window openings", () => {
+    const room = { length_ft: 10, width_ft: 12, ceiling_height_ft: 8, door_count: 1, window_count: 2 };
+    expect(wallAreaSF(room)).toBe(44 * 8 - 20 - 2 * 15);
+  });
+
+  it("never goes negative", () => {
+    const room = { length_ft: 4, width_ft: 4, ceiling_height_ft: 8, door_count: 5, window_count: 5 };
+    expect(wallAreaSF(room)).toBe(0);
+  });
+});
+
+describe("sketch-derived measurements take priority over length/width", () => {
+  const sketched = {
+    length_ft: 10,
+    width_ft: 12,
+    sketch_perimeter_lf: 50,
+    sketch_floor_area_sf: 140,
+    sketch_ceiling_area_sf: 140,
+    sketch_wall_area_sf: 350,
+  };
+
+  it("uses the sketch numbers instead of recomputing from length/width", () => {
+    expect(hasMeasurements(sketched)).toBe(true);
+    expect(floorAreaSF(sketched)).toBe(140);
+    expect(ceilingAreaSF(sketched)).toBe(140);
+    expect(perimeterLF(sketched)).toBe(50);
+    expect(wallAreaSF(sketched)).toBe(350);
+  });
+
+  it("falls back to length/width when there's no sketch", () => {
+    const room = { length_ft: 10, width_ft: 12 };
+    expect(floorAreaSF(room)).toBe(120);
+  });
+});
+
+describe("wallGrossAreaSF", () => {
+  it("is perimeter x height, with no deductions, for a simple-entry room", () => {
+    const room = { length_ft: 10, width_ft: 12, ceiling_height_ft: 8, door_count: 1, window_count: 2 };
+    expect(wallGrossAreaSF(room)).toBe(44 * 8);
+  });
+
+  it("reads the sketch's stored gross SF when the room was sketched", () => {
+    const room = { sketch_perimeter_lf: 44, sketch_wall_gross_area_sf: 352 };
+    expect(wallGrossAreaSF(room)).toBe(352);
+  });
+});
+
+describe("baseboardLF", () => {
+  it("nets out a typical 3 ft door width per counted door, not windows", () => {
+    const room = { length_ft: 10, width_ft: 12, door_count: 1, window_count: 2 };
+    expect(baseboardLF(room)).toBe(44 - 3);
+  });
+
+  it("reads the sketch's stored baseboard LF when the room was sketched", () => {
+    const room = { sketch_perimeter_lf: 44, sketch_baseboard_lf: 41 };
+    expect(baseboardLF(room)).toBe(41);
+  });
+});
+
+describe("real floor-plan openings take priority over door/window counts", () => {
+  const room = {
+    width_ft: 12,
+    length_ft: 10,
+    ceiling_height_ft: 8,
+    door_count: 0, // deliberately wrong/stale — the real openings should win
+    window_count: 0,
+    remodel_room_openings: [
+      { wall_side: "N", width_ft: 3, height_ft: 7, qty: 1, starts_at_floor: true },
+      { wall_side: "E", width_ft: 4, height_ft: 3, qty: 1, starts_at_floor: false },
+    ],
+  };
+
+  it("nets out the real openings instead of the (empty) counts", () => {
+    expect(wallGrossAreaSF(room)).toBe(352);
+    expect(wallAreaSF(room)).toBe(319); // 352 - 21 (door) - 12 (window)
+  });
+
+  it("nets baseboard by the real door width, not a guessed count", () => {
+    expect(baseboardLF(room)).toBe(41); // 44 - 3
+  });
+});
+
+describe("roomVolumeCF", () => {
+  it("is floor area x ceiling height for a simple-entry room", () => {
+    const room = { length_ft: 10, width_ft: 12, ceiling_height_ft: 8 };
+    expect(roomVolumeCF(room)).toBe(120 * 8);
+  });
+
+  it("reads the sketch's stored volume when the room was sketched", () => {
+    const room = { sketch_perimeter_lf: 44, sketch_floor_area_sf: 120, sketch_room_volume_cf: 960 };
+    expect(roomVolumeCF(room)).toBe(960);
+  });
+});

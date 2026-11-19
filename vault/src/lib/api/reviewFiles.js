@@ -1,0 +1,158 @@
+import { supabase } from "../supabaseClient.js";
+import { logEvent } from "./analyticsEvents.js";
+
+// Must match the storage.buckets row in supabase/migration.sql — kept here
+// too so the UI can reject an oversized/wrong-type file with a clear
+// message before ever hitting the network, instead of surfacing whatever
+// error Supabase Storage happens to return.
+export const REVIEW_FILE_MAX_BYTES = 15 * 1024 * 1024; // 15 MB
+export const REVIEW_FILE_ALLOWED_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+];
+// A soft cap on files per review — not a hard product limit, just a sane
+// ceiling so nobody accidentally uploads hundreds of photos to one claim
+// against the Storage free tier. Scaled by plan: Crew covers a team working
+// the same claim (multiple people's photos stacking up on one review), so
+// it gets a higher ceiling than Solo. Enforced client-side only, same as
+// before — this is a UX guardrail, not a security boundary.
+export const REVIEW_FILES_MAX_PER_CLAIM_BY_PLAN = { solo: 60, crew: 150 };
+export const REVIEW_FILES_MAX_PER_CLAIM_DEFAULT = 60;
+
+export function maxReviewFilesForPlan(plan) {
+  return REVIEW_FILES_MAX_PER_CLAIM_BY_PLAN[plan] ?? REVIEW_FILES_MAX_PER_CLAIM_DEFAULT;
+}
+
+const BUCKET = "review-files";
+
+export function validateReviewFile(file) {
+  if (!REVIEW_FILE_ALLOWED_TYPES.includes(file.type)) {
+    return "Only PDF, JPG, PNG, WEBP, or HEIC files are supported.";
+  }
+  if (file.size > REVIEW_FILE_MAX_BYTES) {
+    return `File is too large — max 15 MB (this one is ${(file.size / (1024 * 1024)).toFixed(1)} MB).`;
+  }
+  return null;
+}
+
+export async function fetchReviewFiles(claimId) {
+  const { data, error } = await supabase
+    .from("review_files")
+    .select("*")
+    .eq("claim_id", claimId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
+// Best-effort GPS fix for the photo log — resolves to null rather than
+// rejecting on denied permission, no geolocation support, or a slow/stuck
+// fix, since a photo without a location is still a perfectly good photo
+// and must never block the actual upload.
+function getCurrentPositionSafe({ timeoutMs = 8000 } = {}) {
+  return new Promise((resolve) => {
+    if (!("geolocation" in navigator)) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+      () => resolve(null),
+      { timeout: timeoutMs, maximumAge: 60_000 },
+    );
+  });
+}
+
+// Uploads straight from the browser to Storage (never through a Netlify
+// Function — see the Phase 2 architecture notes: functions have a ~6MB
+// request-body ceiling on the free tier, so routing file bytes through one
+// would break on anything but the smallest photos), then records the
+// review_files row. Storage path is prefixed with the uploader's own user
+// id, matching the storage.objects RLS policies in the migration.
+//
+// capturedAt/latitude/longitude are optional — pass them for a camera
+// capture (see uploadPhotoLogEntry below) to power the photo log view;
+// a plain file-picker upload leaves them null, which is fine, they're
+// nullable columns.
+export async function uploadReviewFile({ claimId, userId, file, fileType, capturedAt, latitude, longitude }) {
+  const invalidReason = validateReviewFile(file);
+  if (invalidReason) throw new Error(invalidReason);
+
+  const ext = file.name.includes(".") ? file.name.split(".").pop() : "";
+  const safeName = `${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
+  const storagePath = `${userId}/${claimId}/${safeName}`;
+
+  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, file, {
+    contentType: file.type,
+    upsert: false,
+  });
+  if (uploadError) throw uploadError;
+
+  const { data, error } = await supabase
+    .from("review_files")
+    .insert({
+      claim_id: claimId,
+      file_type: fileType,
+      storage_path: storagePath,
+      file_name: file.name,
+      mime_type: file.type,
+      size_bytes: file.size,
+      uploaded_by: userId,
+      captured_at: capturedAt ?? null,
+      latitude: latitude ?? null,
+      longitude: longitude ?? null,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    // Row insert failed after the upload succeeded — clean up the orphaned
+    // object rather than leaving unreferenced bytes in the bucket.
+    await supabase.storage.from(BUCKET).remove([storagePath]);
+    throw error;
+  }
+
+  if (fileType === "estimate") logEvent("estimate_uploaded", userId, { claim_id: claimId });
+  if (fileType === "photo") logEvent("photos_uploaded", userId, { claim_id: claimId });
+
+  return data;
+}
+
+// The "Take Photo" entry point — captures the moment and (best-effort)
+// location right when the photo is taken, then uploads it as a photo-log
+// entry. A plain "Upload documentation" file picker goes through
+// uploadReviewFile directly instead, with no location (the user didn't
+// just take it, so tagging it with wherever they happen to be browsing
+// from would be misleading).
+export async function uploadPhotoLogEntry({ claimId, userId, file }) {
+  const capturedAt = new Date().toISOString();
+  const position = await getCurrentPositionSafe();
+  return uploadReviewFile({
+    claimId,
+    userId,
+    file,
+    fileType: "photo",
+    capturedAt,
+    latitude: position?.latitude,
+    longitude: position?.longitude,
+  });
+}
+
+export async function deleteReviewFile({ id, storagePath }) {
+  const { error: storageError } = await supabase.storage.from(BUCKET).remove([storagePath]);
+  if (storageError) throw storageError;
+
+  const { error } = await supabase.from("review_files").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// Bucket is private — every view/download needs a short-lived signed URL
+// rather than a public path.
+export async function getReviewFileSignedUrl(storagePath) {
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(storagePath, 60 * 5);
+  if (error) throw error;
+  return data.signedUrl;
+}
